@@ -1,0 +1,17 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Institution Dashboard
+{% endblock %}
+
+{% block page_content %}
+
+<h1 class="text-3xl font-bold">
+    Institution Dashboard
+</h1>
+
+<p class="mt-2 text-slate-500">
+    Welcome {{ session["full_name"] }}
+</p>
+
+{% endblock %}

@@ -1,14 +1,20 @@
-from flask import Blueprint, session, redirect, render_template
+from flask import (
+    Blueprint,
+    render_template
+)
 
 from middleware.auth import login_required
-from middleware.roles import role_required
 
-dashboard = Blueprint("dashboard", __name__)
+dashboard_bp = Blueprint(
+    "dashboard",
+    __name__
+)
 
 
-@dashboard.route("/dashboard")
+@dashboard_bp.route("/dashboard")
 @login_required
-@role_required("super_admin")
-def dashboard_home():
+def dashboard():
 
-    return render_template("dashboard/index.html")
+    return render_template(
+        "dashboard/index.html"
+    )

@@ -6,6 +6,8 @@ from flask import (
     flash 
     
 )
+
+from werkzeug.security import generate_password_hash
 from database.db import get_connection
 
 
@@ -56,66 +58,141 @@ def add_institution():
 
     if request.method == "POST":
 
-        name = request.form["name"]
-        code = request.form["code"]
-        email = request.form["email"]
-        phone = request.form["phone"]
         name = request.form["name"].strip()
         code = request.form["code"].strip()
         email = request.form["email"].strip()
         phone = request.form["phone"].strip()
 
+        admin_full_name = request.form["admin_full_name"].strip()
+        admin_username = request.form["admin_username"].strip()
+        admin_password = request.form["admin_password"]
+        confirm_password = request.form["confirm_password"]
+
         if not name:
-            return "Institution Name is required"
+            flash("Institution name is required.", "error")
+            return render_template("institutions/add.html")
 
         if not code:
-            return "Institution Code is required"
+            flash("Institution code is required.", "error")
+            return render_template("institutions/add.html")
+
+        if admin_password != confirm_password:
+            flash("Passwords do not match.", "error")
+            return render_template("institutions/add.html")
 
         conn = get_connection()
         cur = conn.cursor()
-        
-        cur.execute(
-            "SELECT id FROM institutions WHERE code = %s",
-            (code,)
-        )
 
-        existing = cur.fetchone()
+        try:
 
-        if existing:
+            # Institution code duplicate check
+            cur.execute(
+                "SELECT id FROM institutions WHERE code = %s",
+                (code,)
+            )
+
+            if cur.fetchone():
+                flash("Institution code already exists.", "error")
+                return render_template("institutions/add.html")
+
+            # Username duplicate check
+            cur.execute(
+                "SELECT id FROM users WHERE username = %s",
+                (admin_username,)
+            )
+
+            if cur.fetchone():
+                flash("Username already exists.", "error")
+                return render_template("institutions/add.html")
+
+            # Get Institution Admin role
+            cur.execute(
+                "SELECT id FROM roles WHERE name = %s",
+                ("institution_admin",)
+            )
+
+            role = cur.fetchone()
+
+            if not role:
+                flash("Institution Admin role not found.", "error")
+                return render_template("institutions/add.html")
+
+            role_id = role["id"]
+
+            # Create Institution
+            cur.execute("""
+                INSERT INTO institutions
+                (
+                    name,
+                    code,
+                    email,
+                    phone,
+                    status
+                )
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id
+            """, (
+                name,
+                code,
+                email,
+                phone,
+                "Active"
+            ))
+
+            institution_id = cur.fetchone()["id"]
+
+            # Hash Password
+            hashed_password = generate_password_hash(admin_password)
+
+            # Create Institution Admin User
+            cur.execute("""
+                INSERT INTO users
+                (
+                    institution_id,
+                    role_id,
+                    full_name,
+                    username,
+                    password,
+                    is_active
+                )
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (
+                institution_id,
+                role_id,
+                admin_full_name,
+                admin_username,
+                hashed_password,
+                True
+            ))
+
+            conn.commit()
+
+            flash(
+                "Institution and administrator created successfully.",
+                "success"
+            )
+
+            return redirect(
+                url_for("institution.institutions")
+            )
+
+        except Exception as e:
+
+            conn.rollback()
+
+            flash(
+                f"Error: {str(e)}",
+                "error"
+            )
+
+            return render_template("institutions/add.html")
+
+        finally:
 
             cur.close()
             conn.close()
 
-            flash("Institution code already exists.", "error")
-            return render_template("institutions/add.html")
-
-        cur.execute("""
-            INSERT INTO institutions
-            (name, code, email, phone, status)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (
-            name,
-            code,
-            email,
-            phone,
-            "Active"
-        ))
-
-        conn.commit()
-        flash("Institution created successfully.", "success")
-
-
-
-        cur.close()
-        conn.close()
-
-        return redirect(
-            url_for("institution.institutions")
-        )
-
-    return render_template(
-        "institutions/add.html"
-    )
+    return render_template("institutions/add.html")
     
 def update_institution(id):
 

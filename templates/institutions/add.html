@@ -75,6 +75,64 @@
 
         </div>
 
+        <hr class="my-8">
+
+<h2 class="text-2xl font-semibold mb-6">
+    Institution Administrator
+</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <div>
+        <label class="block mb-2 font-medium">
+            Full Name
+        </label>
+
+        <input
+            type="text"
+            name="admin_full_name"
+            required
+            class="w-full border rounded-xl px-4 py-3">
+    </div>
+
+    <div>
+        <label class="block mb-2 font-medium">
+            Username
+        </label>
+
+        <input
+            type="text"
+            name="admin_username"
+            required
+            class="w-full border rounded-xl px-4 py-3">
+    </div>
+
+    <div>
+        <label class="block mb-2 font-medium">
+            Password
+        </label>
+
+        <input
+            type="password"
+            name="admin_password"
+            required
+            class="w-full border rounded-xl px-4 py-3">
+    </div>
+
+    <div>
+        <label class="block mb-2 font-medium">
+            Confirm Password
+        </label>
+
+        <input
+            type="password"
+            name="confirm_password"
+            required
+            class="w-full border rounded-xl px-4 py-3">
+    </div>
+
+</div>
+
         <div class="mt-8 flex justify-end gap-3">
 
             <a href="{{ url_for('institution.institutions') }}"
