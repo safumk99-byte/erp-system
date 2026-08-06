@@ -1,0 +1,183 @@
+<aside class="w-72 bg-slate-900 text-white flex flex-col h-screen">
+
+    <!-- ========================= -->
+    <!-- Logo -->
+    <!-- ========================= -->
+
+    <div class="border-b border-slate-800 p-6">
+
+        <h1 class="text-2xl font-bold tracking-wide text-white">
+            ALIF ERP
+        </h1>
+
+        <p class="text-sm text-slate-400 mt-1">
+            Institution Management System
+        </p>
+
+        <div class="mt-4 rounded-lg bg-slate-800 p-3">
+
+            <p class="text-xs text-slate-400">
+                Logged in as
+            </p>
+
+            <p class="font-semibold mt-1">
+
+                {{ session.get("full_name","Guest") }}
+
+            </p>
+
+            <p class="text-xs text-slate-400">
+
+                {{ session.get("role","-")|replace("_"," ")|title }}
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- Navigation -->
+    <!-- ========================= -->
+
+    <nav class="flex-1 overflow-y-auto px-4 py-5 space-y-2">
+        <!-- Dashboard -->
+<a href="{{ url_for('dashboard.dashboard_home') }}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+
+    <span>Dashboard</span>
+
+</a>
+
+<!-- Institutions -->
+<a href="#"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="building-2" class="w-5 h-5"></i>
+
+    <span>Institutions</span>
+
+</a>
+
+<!-- Academic -->
+<a href="#"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+
+    <span>Academic</span>
+
+</a>
+
+<!-- Staff -->
+<a href="#"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="briefcase-business" class="w-5 h-5"></i>
+
+    <span>Staff</span>
+
+</a>
+
+<!-- Students -->
+<a href="#"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="users" class="w-5 h-5"></i>
+
+    <span>Students</span>
+
+</a>
+
+<!-- Parents -->
+<a href="#"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="user-round" class="w-5 h-5"></i>
+
+    <span>Parents</span>
+
+</a>
+
+<!-- Attendance -->
+<a href="#"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="calendar-check-2" class="w-5 h-5"></i>
+
+    <span>Attendance</span>
+
+</a>
+
+<!-- Exams -->
+<a href="#"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+
+    <span>Exams</span>
+
+</a>
+
+<!-- Reading Skill -->
+<a href="#"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="book-open" class="w-5 h-5"></i>
+
+    <span>Reading Skill</span>
+
+</a>
+
+<!-- Speakers Forum -->
+<a href="#"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="mic-2" class="w-5 h-5"></i>
+
+    <span>Speakers Forum</span>
+
+</a>
+
+<!-- Reports -->
+<a href="#"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+
+    <span>Reports</span>
+
+</a>
+
+<!-- Settings -->
+<a href="#"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="settings" class="w-5 h-5"></i>
+
+    <span>Settings</span>
+
+</a>
+
+</nav>
+
+<!-- ========================= -->
+<!-- Bottom Section -->
+<!-- ========================= -->
+
+<div class="border-t border-slate-800 p-4">
+
+    <a href="{{ url_for('auth.logout') }}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-600 hover:text-white transition">
+
+        <i data-lucide="log-out" class="w-5 h-5"></i>
+
+        <span>Logout</span>
+
+    </a>
+
+</div>
+
+</aside>

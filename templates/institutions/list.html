@@ -1,0 +1,171 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Institutions
+{% endblock %}
+
+{% block page_content %}
+
+<div class="flex items-center justify-between mb-6">
+
+    <div>
+        <h1 class="text-3xl font-bold text-slate-800">
+            Institutions
+        </h1>
+
+        <p class="text-slate-500 mt-1">
+            Manage all institutions
+        </p>
+    </div>
+
+    <form method="GET" class="mb-6">
+
+    <div class="flex gap-3">
+
+        <input
+            type="text"
+            name="search"
+            value="{{ search }}"
+            placeholder="Search institution..."
+            class="flex-1 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+        <button
+            type="submit"
+            class="bg-slate-800 text-white px-6 rounded-xl">
+
+            Search
+
+        </button>
+
+    </div>
+
+</form>
+
+    <a href="{{ url_for('institution.create_institution') }}"
+       class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+
+        + Add Institution
+
+    </a>
+
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+    <table class="w-full">
+
+        <thead class="bg-slate-100">
+
+            <tr>
+
+                <th class="text-left px-6 py-4">Name</th>
+                <th class="text-left px-6 py-4">Code</th>
+                <th class="text-left px-6 py-4">Email</th>
+                <th class="text-left px-6 py-4">Phone</th>
+                <th class="text-left px-6 py-4">Status</th>
+                <th class="text-center px-6 py-4">Actions</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for institution in institutions %}
+
+            <tr class="border-t">
+
+                <td class="px-6 py-4">
+                    {{ institution.name }}
+                </td>
+
+                <td class="px-6 py-4">
+                    {{ institution.code }}
+                </td>
+
+                <td class="px-6 py-4">
+                    {{ institution.email }}
+                </td>
+
+                <td class="px-6 py-4">
+                    {{ institution.phone }}
+                </td>
+
+                <td class="px-6 py-4">
+
+                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+
+                       {% if institution.status == "Active" %}
+
+<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+    Active
+</span>
+
+{% else %}
+
+<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+    Inactive
+</span>
+
+{% endif %}
+
+                    </span>
+
+                </td>
+
+                <td class="px-6 py-4 text-center">
+
+                    <button class="text-indigo-600 hover:underline">
+
+                        View
+
+                    </button>
+
+                    <a
+    href="{{ url_for('institution.edit_institution', id=institution.id) }}"
+    class="text-indigo-600 hover:underline">
+
+    Edit
+
+</a>
+
+<a
+    href="{{ url_for('institution.deactivate_institution', id=institution.id) }}"
+    class="text-red-600 hover:underline"
+    onclick="return confirm('Deactivate this institution?')">
+
+    {% if institution.status == "Active" %}
+
+<a href="{{ url_for('institution.deactivate_institution', id=institution.id) }}"
+   class="text-red-600 hover:underline"
+   onclick="return confirm('Deactivate this institution?')">
+
+    Deactivate
+
+</a>
+
+{% else %}
+
+<a href="{{ url_for('institution.deactivate_institution', id=institution.id) }}"
+   class="text-green-600 hover:underline"
+   onclick="return confirm('Activate this institution?')">
+
+    Activate
+
+</a>
+
+{% endif %}
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

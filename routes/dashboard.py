@@ -1,12 +1,14 @@
-from flask import Blueprint, session, redirect
+from flask import Blueprint, session, redirect, render_template
+
+from middleware.auth import login_required
+from middleware.roles import role_required
 
 dashboard = Blueprint("dashboard", __name__)
 
 
 @dashboard.route("/dashboard")
+@login_required
+@role_required("super_admin")
 def dashboard_home():
 
-    if "user_id" not in session:
-        return redirect("/login")
-
-    return "Welcome to ERP Dashboard 🚀"
+    return render_template("dashboard/index.html")

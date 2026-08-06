@@ -1,0 +1,29 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+{% block page_content %}
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+    {% with title="Institutions", value="1", icon="building-2" %}
+        {% include "components/stat_card.html" %}
+    {% endwith %}
+
+    {% with title="Staff", value="0", icon="briefcase-business" %}
+        {% include "components/stat_card.html" %}
+    {% endwith %}
+
+    {% with title="Students", value="0", icon="users" %}
+        {% include "components/stat_card.html" %}
+    {% endwith %}
+
+    {% with title="Parents", value="0", icon="user-round" %}
+        {% include "components/stat_card.html" %}
+    {% endwith %}
+
+</div>
+
+{% endblock %}

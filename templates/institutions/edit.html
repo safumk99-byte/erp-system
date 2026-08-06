@@ -1,0 +1,101 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}Add Institution{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-800">
+            Add Institution
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Create a new institution
+        </p>
+    </div>
+
+    <form method="POST"
+          class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div>
+                <label class="block mb-2 font-medium">
+                    Institution Name
+                </label>
+
+                <input
+                    type="text"
+                    name="name"
+                    value="{{ institution.name }}"
+                    required
+                    maxlength="150"
+                    class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <div>
+                <label class="block mb-2 font-medium">
+                    Institution Code
+                </label>
+
+                <input
+    type="text"
+    name="code"
+    value="{{ institution.code }}"
+    required
+    maxlength="20"
+                    class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <div>
+                <label class="block mb-2 font-medium">
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    name="email"
+                    value="{{ institution.email }}"
+                    required
+                    maxlength="150"
+                    class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <div>
+                <label class="block mb-2 font-medium">
+                    Phone
+                </label>
+
+                <input
+                    type="text"
+                    name="phone"
+                    value="{{ institution.phone }}"
+                    required
+                    maxlength="20"
+                    class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+        </div>
+
+        <div class="mt-8 flex justify-end gap-3">
+
+            <a href="{{ url_for('institution.institutions') }}"
+               class="px-6 py-3 rounded-xl border">
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl">
+                Save Institution
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

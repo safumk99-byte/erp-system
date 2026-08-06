@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+@source "../templates/**/*.html";
+@source "../templates/**/*.jinja";
+@source "../templates/**/*.jinja2";
+@source "../static/js/**/*.js";
