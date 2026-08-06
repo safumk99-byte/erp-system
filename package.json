@@ -1,0 +1,20 @@
+{
+  "name": "erp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+ "scripts": {
+  "tailwind": "npx @tailwindcss/cli -i ./src/input.css -o ./static/css/output.css --watch"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  }
+}
