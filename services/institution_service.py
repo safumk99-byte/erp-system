@@ -60,6 +60,7 @@ def add_institution():
 
         name = request.form["name"].strip()
         code = request.form["code"].strip()
+        admission_prefix = request.form["admission_prefix"].strip().upper()
         email = request.form["email"].strip()
         phone = request.form["phone"].strip()
 
@@ -125,15 +126,17 @@ def add_institution():
                 (
                     name,
                     code,
+                    admission_prefix,
                     email,
                     phone,
                     status
                 )
-                VALUES (%s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 RETURNING id
             """, (
                 name,
                 code,
+                admission_prefix,
                 email,
                 phone,
                 "Active"
@@ -203,6 +206,7 @@ def update_institution(id):
 
         name = request.form["name"].strip()
         code = request.form["code"].strip()
+        admission_prefix = request.form["admission_prefix"].strip().upper()
         email = request.form["email"].strip()
         phone = request.form["phone"].strip()
 
@@ -211,6 +215,7 @@ def update_institution(id):
             SET
                 name=%s,
                 code=%s,
+                admission_prefix=%s,
                 email=%s,
                 phone=%s,
                 updated_at=NOW()
@@ -218,6 +223,7 @@ def update_institution(id):
         """, (
             name,
             code,
+            admission_prefix,
             email,
             phone,
             id

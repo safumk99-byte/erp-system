@@ -1,0 +1,167 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Parents
+{% endblock %}
+
+{% block page_content %}
+
+<div class="flex items-center justify-between mb-6">
+
+    <div>
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Parents
+        </h1>
+
+        <p class="text-slate-500 mt-1">
+            Manage Parents
+        </p>
+
+    </div>
+
+    <div class="flex gap-3">
+
+        <form method="GET">
+
+            <div class="flex gap-3">
+
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search }}"
+                    placeholder="Search parent..."
+                    class="border rounded-xl px-4 py-3">
+
+                <button
+                    type="submit"
+                    class="bg-slate-800 text-white px-6 rounded-xl">
+
+                    Search
+
+                </button>
+
+            </div>
+
+        </form>
+
+        <a href="{{ url_for('parents.create_parent') }}"
+           class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+
+            + Add Parent
+
+        </a>
+
+    </div>
+
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+    <table class="w-full">
+
+        <thead class="bg-slate-100">
+
+            <tr>
+
+                <th class="text-left px-6 py-4">Name</th>
+                <th class="text-left px-6 py-4">Username</th>
+                <th class="text-left px-6 py-4">Phone</th>
+                <th class="text-left px-6 py-4">Status</th>
+                <th class="text-center px-6 py-4">Actions</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% if parents %}
+
+            {% for parent in parents %}
+
+            <tr class="border-t">
+
+                <td class="px-6 py-4">{{ parent.full_name }}</td>
+                <td class="px-6 py-4">{{ parent.username }}</td>
+                <td class="px-6 py-4">{{ parent.phone or "-" }}</td>
+
+                <td class="px-6 py-4">
+
+                    {% if parent.is_active %}
+
+                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                        Active
+                    </span>
+
+                    {% else %}
+
+                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                        Inactive
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td class="px-6 py-4 text-center">
+
+                    <a href="{{ url_for('parents.update_parent', id=parent.id) }}"
+                       class="text-indigo-600 hover:underline">
+
+                        Edit
+
+                    </a>
+
+                    <span class="mx-2 text-slate-300">|</span>
+
+                    {% if parent.is_active %}
+
+                    <a href="{{ url_for('parents.toggle_parent', id=parent.id) }}"
+                       class="text-red-600 hover:underline"
+                       onclick="return confirm('Deactivate this parent?')">
+
+                        Deactivate
+
+                    </a>
+
+                    {% else %}
+
+                    <a href="{{ url_for('parents.toggle_parent', id=parent.id) }}"
+                       class="text-green-600 hover:underline"
+                       onclick="return confirm('Activate this parent?')">
+
+                        Activate
+
+                    </a>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        {% else %}
+
+            <tr>
+
+                <td colspan="5"
+                    class="text-center py-10 text-slate-500">
+
+                    No parents found.
+
+                </td>
+
+            </tr>
+
+        {% endif %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

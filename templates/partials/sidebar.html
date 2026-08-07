@@ -71,7 +71,16 @@
 
         </a>
 
-        <a href="#"
+        <a href="{{ url_for('classes.class_list') }}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="school" class="w-5 h-5"></i>
+
+    <span>Classes</span>
+
+</a>
+
+        <a href="{{ url_for('students.student_list') }}"
            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
 
             <i data-lucide="users" class="w-5 h-5"></i>
@@ -79,13 +88,23 @@
 
         </a>
 
-        <a href="#"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+        <a  href="{{ url_for('subjects.create_subject') }}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
 
-            <i data-lucide="user-round" class="w-5 h-5"></i>
-            <span>Parents</span>
+    <i data-lucide="book-copy" class="w-5 h-5"></i>
 
-        </a>
+    <span>Subjects</span>
+
+</a>
+
+        <a href="{{ url_for('parents.parent_list') }}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="user-round" class="w-5 h-5"></i>
+
+    <span>Parents</span>
+
+</a>
 
         <a href="#"
            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">

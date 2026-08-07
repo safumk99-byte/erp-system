@@ -1,0 +1,78 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Add Class
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-3xl mx-auto">
+
+    <div class="mb-8">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Add Class
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Create a new class.
+        </p>
+
+    </div>
+
+    {% include "components/alert.html" %}
+
+    <form method="POST"
+          class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-6">
+
+        <div>
+
+            <label class="block mb-2 font-medium">
+                Class Name
+            </label>
+
+            <input
+                type="text"
+                name="class_name"
+                required
+                class="w-full border rounded-xl px-4 py-3">
+
+        </div>
+
+        <div>
+
+            <label class="block mb-2 font-medium">
+                Description
+            </label>
+
+            <textarea
+                name="description"
+                rows="4"
+                class="w-full border rounded-xl px-4 py-3"></textarea>
+
+        </div>
+
+        <div class="flex justify-end gap-3">
+
+            <a href="{{ url_for('classes.class_list') }}"
+               class="px-6 py-3 rounded-xl border">
+
+                Cancel
+
+            </a>
+
+            <button
+                type="submit"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl">
+
+                Save Class
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
