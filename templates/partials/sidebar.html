@@ -106,21 +106,23 @@
 
 </a>
 
-        <a href="#"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+        <a href="{{ url_for('attendance.attendance_list') }}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
 
-            <i data-lucide="calendar-check-2" class="w-5 h-5"></i>
-            <span>Attendance</span>
+    <i data-lucide="calendar-check-2" class="w-5 h-5"></i>
 
-        </a>
+    <span>Attendance</span>
 
-        <a href="#"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+</a>
 
-            <i data-lucide="clipboard-list" class="w-5 h-5"></i>
-            <span>Exams</span>
+        <a href="{{ url_for('exams.exam_list') }}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
 
-        </a>
+    <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+
+    <span>Exams</span>
+
+</a>
 
         <a href="#"
            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">

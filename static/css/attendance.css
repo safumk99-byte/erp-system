@@ -1,0 +1,219 @@
+/* ==========================================
+   Attendance Box
+========================================== */
+
+.attendance-box{
+
+    width:56px;
+    height:56px;
+
+    border-radius:14px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:18px;
+    font-weight:700;
+
+    cursor:pointer;
+
+    user-select:none;
+
+    transition:all .18s ease;
+
+    box-shadow:
+        0 2px 8px rgba(0,0,0,.12);
+
+}
+
+.attendance-box:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 8px 18px rgba(0,0,0,.18);
+
+}
+
+.attendance-box:active{
+
+    transform:scale(.92);
+
+}
+
+/* ==========================================
+   Status Colors
+========================================== */
+
+.bg-green-500{
+
+    background:#22c55e;
+
+    color:#fff;
+
+}
+
+.bg-purple-500{
+
+    background:#8b5cf6;
+
+    color:#fff;
+
+}
+
+.bg-yellow-400{
+
+    background:#facc15;
+
+    color:#111827;
+
+}
+
+.bg-red-500{
+
+    background:#ef4444;
+
+    color:#fff;
+
+}
+
+/* ==========================================
+   Popup Background
+========================================== */
+
+#studentPopup{
+
+    backdrop-filter:blur(3px);
+
+    animation:fadeIn .2s ease;
+
+}
+
+/* ==========================================
+   Popup Card
+========================================== */
+
+#studentPopup > div{
+
+    animation:popupIn .22s ease;
+
+}
+
+/* ==========================================
+   Student Photo
+========================================== */
+
+#popupPhoto{
+
+    width:96px;
+    height:96px;
+
+    object-fit:cover;
+
+    border-radius:50%;
+
+    border:4px solid #e5e7eb;
+
+}
+
+/* ==========================================
+   Summary Cards
+========================================== */
+
+.summary-card{
+
+    border-radius:16px;
+
+    padding:18px;
+
+    color:#fff;
+
+    text-align:center;
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,.12);
+
+}
+
+/* ==========================================
+   Scroll
+========================================== */
+
+::-webkit-scrollbar{
+
+    width:8px;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:#cbd5e1;
+
+    border-radius:10px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+    background:#94a3b8;
+
+}
+
+/* ==========================================
+   Animation
+========================================== */
+
+@keyframes popupIn{
+
+    from{
+
+        opacity:0;
+
+        transform:scale(.9);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:scale(1);
+
+    }
+
+}
+
+@keyframes fadeIn{
+
+    from{
+
+        opacity:0;
+
+    }
+
+    to{
+
+        opacity:1;
+
+    }
+
+}
+
+/* ==========================================
+   Mobile
+========================================== */
+
+@media(max-width:640px){
+
+    .attendance-box{
+
+        width:50px;
+
+        height:50px;
+
+        font-size:16px;
+
+    }
+
+}

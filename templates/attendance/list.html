@@ -1,0 +1,375 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Attendance
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/attendance.css') }}">
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <div class="mb-8">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Attendance
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Mark student attendance
+        </p>
+
+    </div>
+
+    {% include "components/alert.html" %}
+
+    <!-- Filter -->
+
+    <form
+        method="GET"
+        class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+            <div>
+
+                <label class="block mb-2 font-medium">
+                    Date
+                </label>
+
+                <input
+                    type="date"
+                    name="date"
+                    value="{{ attendance_date }}"
+                    class="w-full border rounded-xl px-4 py-3">
+
+            </div>
+
+            <div>
+
+                <label class="block mb-2 font-medium">
+                    Class
+                </label>
+
+                <select
+                    name="class_id"
+                    class="w-full border rounded-xl px-4 py-3">
+
+                    <option value="">
+                        Select Class
+                    </option>
+
+                    {% for class_item in classes %}
+
+                    <option
+                        value="{{ class_item.id }}"
+                        {% if class_id|string == class_item.id|string %}selected{% endif %}>
+
+                        {{ class_item.class_name }}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+            <div class="flex items-end">
+
+                <button
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3">
+
+                    Load Students
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+{% if students %}
+
+<form
+    method="POST"
+    action="{{ url_for('attendance.save_attendance') }}">
+
+    <input
+        type="hidden"
+        name="attendance_date"
+        value="{{ attendance_date }}">
+
+    <input
+        type="hidden"
+        name="class_id"
+        value="{{ class_id }}">
+
+    <!-- Live Summary -->
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+
+        <div class="rounded-xl bg-green-500 text-white p-4 text-center">
+
+            <div class="text-sm">
+                Present
+            </div>
+
+            <div
+                id="presentCount"
+                class="text-2xl font-bold">
+
+                0
+
+            </div>
+
+        </div>
+
+        <div class="rounded-xl bg-purple-500 text-white p-4 text-center">
+
+            <div class="text-sm">
+                Late
+            </div>
+
+            <div
+                id="lateCount"
+                class="text-2xl font-bold">
+
+                0
+
+            </div>
+
+        </div>
+
+        <div class="rounded-xl bg-yellow-400 text-black p-4 text-center">
+
+            <div class="text-sm">
+                Leave
+            </div>
+
+            <div
+                id="leaveCount"
+                class="text-2xl font-bold">
+
+                0
+
+            </div>
+
+        </div>
+
+        <div class="rounded-xl bg-red-500 text-white p-4 text-center">
+
+            <div class="text-sm">
+                Absent
+            </div>
+
+            <div
+                id="absentCount"
+                class="text-2xl font-bold">
+
+                0
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Grid -->
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+
+        <div class="flex justify-between items-center mb-6">
+
+            <h2 class="text-xl font-semibold">
+
+                Students
+
+            </h2>
+
+            <button
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl">
+
+                Save Attendance
+
+            </button>
+
+        </div>
+
+        <div class="grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-3">
+            {% for student in students %}
+
+                <input
+                    type="hidden"
+                    name="student_id"
+                    value="{{ student.id }}">
+
+                <input
+                    type="hidden"
+                    id="status_{{ student.id }}"
+                    name="status_{{ student.id }}"
+                    value="{{ student.status }}">
+
+                <button
+
+                    id="box_{{ student.id }}"
+
+                    type="button"
+
+                    class="attendance-box
+                           w-14
+                           h-14
+                           rounded-xl
+                           text-white
+                           font-bold
+                           text-lg
+                           shadow
+                           transition-all
+                           duration-200"
+
+                    data-id="{{ student.id }}"
+
+                    data-status="{{ student.status }}"
+
+                    data-name="{{ student.full_name }}"
+
+                    data-admission="{{ student.admission_no }}"
+
+                    data-class="{{ student.class_name }}"
+
+                    data-parent="{{ student.parent_name }}"
+
+                    data-phone="{{ student.parent_phone }}"
+
+                    data-photo="{{ student.photo or '' }}">
+
+                    {{ "%02d"|format(loop.index) }}
+
+                </button>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</form>
+
+<!-- Student Popup -->
+
+<div
+
+    id="studentPopup"
+
+    class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+
+    <div
+        class="bg-white rounded-2xl w-96 p-6 relative">
+
+        <button
+
+            id="closePopup"
+
+            class="absolute top-4 right-4 text-slate-500 text-xl">
+
+            ✕
+
+        </button>
+
+        <div class="flex flex-col items-center">
+
+            <img
+
+                id="popupPhoto"
+
+                src=""
+
+                class="w-24 h-24 rounded-full object-cover border mb-4">
+
+            <h2
+
+                id="popupName"
+
+                class="text-2xl font-bold">
+
+            </h2>
+
+            <p class="text-slate-500">
+
+                <span id="popupAdmission"></span>
+
+            </p>
+
+        </div>
+
+        <div class="mt-6 space-y-3">
+
+            <div>
+
+                <strong>Class</strong>
+
+                <div id="popupClass"></div>
+
+            </div>
+
+            <div>
+
+                <strong>Parent</strong>
+
+                <div id="popupParent"></div>
+
+            </div>
+
+            <div>
+
+                <strong>Phone</strong>
+
+                <div id="popupPhone"></div>
+
+            </div>
+
+            <div>
+
+                <strong>Today's Status</strong>
+
+                <div
+                    id="popupStatus"
+                    class="font-semibold text-lg">
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="mt-8">
+
+            <a
+
+                id="viewStudent"
+
+                href="#"
+
+                class="block text-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3">
+
+                View Student
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+</div>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+{% endblock %}

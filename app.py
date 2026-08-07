@@ -9,6 +9,7 @@ from routes.students import students
 from routes.classes import classes
 from routes.subjects import subjects
 from routes.parents import parents
+from routes.attendance import attendance
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
@@ -22,6 +23,7 @@ app.register_blueprint(students)
 app.register_blueprint(classes)
 app.register_blueprint(subjects)
 app.register_blueprint(parents)
+app.register_blueprint(attendance)
 
 
 
