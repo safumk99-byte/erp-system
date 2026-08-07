@@ -1,0 +1,293 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Enter Marks
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <div class="flex items-center justify-between mb-8">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+
+                Enter Marks
+
+            </h1>
+
+            <p class="text-slate-500 mt-2">
+
+                {{ exam.exam_name }}
+
+                |
+
+                {{ exam.subject_name }}
+
+            </p>
+
+        </div>
+
+        <div class="text-right">
+
+            <p class="font-semibold">
+
+                Class :
+
+                {{ exam.class_name }}
+
+            </p>
+
+            <p class="text-slate-500">
+
+                Maximum Mark :
+
+                {{ exam.total_mark }}
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <form
+        method="POST"
+        action="{{ url_for('exams.save_exam_marks', id=exam.id) }}">
+
+        <input
+            type="hidden"
+            name="total_mark"
+            value="{{ exam.total_mark }}">
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+            <table class="w-full">
+
+                <thead class="bg-slate-100">
+
+                    <tr>
+
+                        <th class="px-6 py-4 text-left">
+
+                            #
+
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+
+                            Admission
+
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+
+                            Student
+
+                        </th>
+
+                        <th class="px-6 py-4 text-center">
+
+                            Mark
+
+                        </th>
+
+                        <th class="px-6 py-4 text-center">
+
+                            Grade
+
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for student in students %}
+
+                <tr class="border-t hover:bg-slate-50">
+
+                    <td class="px-6 py-4">
+
+                        {{ "%02d"|format(loop.index) }}
+
+                    </td>
+
+                    <td class="px-6 py-4">
+
+                        {{ student.admission_no }}
+
+                    </td>
+
+                    <td class="px-6 py-4 font-medium">
+
+                        {{ student.full_name }}
+
+                    </td>
+
+                    <td class="px-6 py-4 text-center">
+
+                        <input
+
+                            type="hidden"
+
+                            name="student_id"
+
+                            value="{{ student.id }}">
+
+                        <input
+
+                            type="number"
+
+                            step="0.01"
+
+                            min="0"
+
+                            max="{{ exam.total_mark }}"
+
+                            value="{{ student.mark or '' }}"
+
+                            name="mark_{{ student.id }}"
+
+                            class="mark-input w-24 border rounded-lg px-3 py-2 text-center focus:ring-2 focus:ring-indigo-500">
+
+                    </td>
+
+                    <td
+
+                        class="grade-cell px-6 py-4 text-center font-bold">
+
+                        {{ student.grade or "-" }}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="flex justify-end mt-8">
+
+            <button
+
+                type="submit"
+
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl">
+
+                Save Marks
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+
+const inputs =
+    document.querySelectorAll(".mark-input");
+
+const total =
+    Number(
+        {{ exam.total_mark }}
+    );
+
+inputs.forEach((input,index)=>{
+
+    input.addEventListener(
+        "input",
+        function(){
+
+            let value =
+                Number(this.value);
+
+            if(value>total){
+
+                alert(
+                    "Maximum mark is "+total
+                );
+
+                this.value=total;
+
+                value=total;
+
+            }
+
+            const percent =
+                (value/total)*100;
+
+            let grade="D";
+
+            if(percent>=90){
+
+                grade="A+";
+
+            }
+
+            else if(percent>=80){
+
+                grade="A";
+
+            }
+
+            else if(percent>=70){
+
+                grade="B+";
+
+            }
+
+            else if(percent>=60){
+
+                grade="B";
+
+            }
+
+            else if(percent>=50){
+
+                grade="C";
+
+            }
+
+            this.closest("tr")
+                .querySelector(".grade-cell")
+                .innerText=grade;
+
+        }
+    );
+
+    input.addEventListener(
+        "keydown",
+        function(e){
+
+            if(e.key==="Enter"){
+
+                e.preventDefault();
+
+                if(inputs[index+1]){
+
+                    inputs[index+1].focus();
+
+                    inputs[index+1].select();
+
+                }
+
+            }
+
+        }
+    );
+
+});
+
+</script>
+
+{% endblock %}
+
