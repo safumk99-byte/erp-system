@@ -1,0 +1,222 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Mentoring
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <div class="mb-6">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Mentoring
+        </h1>
+
+        <p class="text-slate-500 mt-1">
+            Add a confidential student mentoring note
+        </p>
+
+    </div>
+
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'mentoring.save_mentoring_note_route'
+            ) }}"
+            id="mentoringForm"
+            class="space-y-6">
+
+
+            <!-- Student -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Student
+                </label>
+
+                <select
+                    name="student_id"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3">
+
+                    <option value="">
+                        Select Student
+                    </option>
+
+                    {% for student in students %}
+
+                    <option
+                        value="{{ student.id }}"
+                        {% if student_id|string == student.id|string %}
+                            selected
+                        {% endif %}>
+
+                        {{ student.full_name }}
+
+                        {% if student.admission_no %}
+                            — {{ student.admission_no }}
+                        {% endif %}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- Date -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Date
+                </label>
+
+                <input
+                    type="date"
+                    name="note_date"
+                    value="{{ note_date }}"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3">
+
+            </div>
+
+
+            <!-- Category -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Category
+                </label>
+
+                <select
+                    name="category"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3">
+
+                    <option value="">
+                        Select Category
+                    </option>
+
+                    <option value="Behavioural">
+                        Behavioural
+                    </option>
+
+                    <option value="Academic">
+                        Academic
+                    </option>
+
+                    <option value="Personal Development">
+                        Personal Development
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- Note -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Mentoring Note
+                </label>
+
+                <textarea
+                    name="note"
+                    rows="6"
+                    required
+                    placeholder="Enter the mentoring observation..."
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3"></textarea>
+
+            </div>
+
+
+            <!-- Confidential Notice -->
+
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+
+                <p class="text-sm text-amber-800">
+                    This is a confidential mentoring record.
+                    Access is restricted to authorized users.
+                </p>
+
+            </div>
+
+
+            <!-- Save -->
+
+            <div class="flex justify-end">
+
+                <button
+                    type="submit"
+                    id="saveMentoringButton"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-medium">
+
+                    Save Note
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const form =
+            document.getElementById(
+                "mentoringForm"
+            );
+
+        const button =
+            document.getElementById(
+                "saveMentoringButton"
+            );
+
+
+        if (form && button) {
+
+            form.addEventListener(
+                "submit",
+                function () {
+
+                    button.disabled = true;
+
+                    button.innerText =
+                        "Saving...";
+
+                    button.classList.add(
+                        "opacity-70",
+                        "cursor-not-allowed"
+                    );
+
+                }
+            );
+
+        }
+
+    }
+);
+
+</script>
+
+{% endblock %}

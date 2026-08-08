@@ -1,0 +1,261 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Edit Staff Attendance
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-3xl mx-auto">
+
+    <div class="mb-8">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Edit Staff Attendance
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Update attendance record
+        </p>
+
+    </div>
+
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+
+        <form method="POST">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Staff -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block mb-2 font-medium">
+                        Staff
+                    </label>
+
+                    <select
+                        name="staff_id"
+                        required
+                        class="w-full border rounded-xl px-4 py-3">
+
+                        {% for member in staff %}
+
+                        <option
+                            value="{{ member.id }}"
+                            {% if member.id == attendance.staff_id %}
+                                selected
+                            {% endif %}>
+
+                            {{ member.employee_id }} -
+                            {{ member.full_name }}
+
+                            {% if member.role %}
+                                ({{ member.role }})
+                            {% endif %}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- Date -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="attendance_date"
+                        value="{{ attendance.attendance_date }}"
+                        required
+                        class="w-full border rounded-xl px-4 py-3">
+
+                </div>
+
+
+                <!-- Period -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Period
+                    </label>
+
+                    <input
+                        type="number"
+                        name="period"
+                        min="1"
+                        value="{{ attendance.period }}"
+                        required
+                        class="w-full border rounded-xl px-4 py-3">
+
+                </div>
+
+
+                <!-- Status -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block mb-2 font-medium">
+                        Attendance Status
+                    </label>
+
+                    <select
+                        name="status"
+                        id="attendanceStatus"
+                        required
+                        class="w-full border rounded-xl px-4 py-3">
+
+                        <option
+                            value="Present"
+                            {% if attendance.status == "Present" %}
+                                selected
+                            {% endif %}>
+                            Present
+                        </option>
+
+                        <option
+                            value="Absent"
+                            {% if attendance.status == "Absent" %}
+                                selected
+                            {% endif %}>
+                            Absent
+                        </option>
+
+                        <option
+                            value="Leave"
+                            {% if attendance.status == "Leave" %}
+                                selected
+                            {% endif %}>
+                            Leave
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Leave Reason -->
+
+                <div
+                    id="leaveReasonField"
+                    class="md:col-span-2">
+
+                    <label class="block mb-2 font-medium">
+                        Leave Reason
+                    </label>
+
+                    <textarea
+                        name="leave_reason"
+                        id="leaveReason"
+                        rows="3"
+                        class="w-full border rounded-xl px-4 py-3">{{ attendance.leave_reason or '' }}</textarea>
+
+                </div>
+
+
+                <!-- Remarks -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block mb-2 font-medium">
+                        Remarks
+                    </label>
+
+                    <textarea
+                        name="remarks"
+                        rows="3"
+                        class="w-full border rounded-xl px-4 py-3">{{ attendance.remarks or '' }}</textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="flex justify-end gap-4 mt-8">
+
+                <a
+                    href="{{ url_for('staff_attendance.staff_attendance_list') }}"
+                    class="px-6 py-3 rounded-xl border">
+
+                    Cancel
+
+                </a>
+
+                <button
+                    type="submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl">
+
+                    Update Attendance
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const status =
+    document.getElementById(
+        "attendanceStatus"
+    );
+
+const leaveReasonField =
+    document.getElementById(
+        "leaveReasonField"
+    );
+
+const leaveReason =
+    document.getElementById(
+        "leaveReason"
+    );
+
+
+function updateLeaveField() {
+
+    if (status.value === "Leave") {
+
+        leaveReasonField.classList.remove(
+            "hidden"
+        );
+
+        leaveReason.required = true;
+
+    } else {
+
+        leaveReasonField.classList.add(
+            "hidden"
+        );
+
+        leaveReason.required = false;
+
+    }
+
+}
+
+
+status.addEventListener(
+    "change",
+    updateLeaveField
+);
+
+updateLeaveField();
+
+</script>
+
+{% endblock %}

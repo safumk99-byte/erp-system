@@ -16,6 +16,11 @@ from routes.speaking import speaking
 from routes.writing import writing
 from routes.publication import publication
 from routes.language import language
+from routes.achievement import achievement
+from routes.paper_presentation import paper_presentation
+from routes.staff_attendance import staff_attendance
+from routes.portion_completion import portion_completion
+from routes.mentoring import mentoring
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
@@ -36,7 +41,11 @@ app.register_blueprint(speaking)
 app.register_blueprint(writing)
 app.register_blueprint(publication)
 app.register_blueprint(language)
-
+app.register_blueprint(achievement)
+app.register_blueprint(paper_presentation)
+app.register_blueprint(staff_attendance)
+app.register_blueprint(portion_completion)
+app.register_blueprint(mentoring)
 
 @app.route("/login")
 def login():

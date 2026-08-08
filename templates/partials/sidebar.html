@@ -169,6 +169,77 @@
 
 </a>
 
+        <a href="{{ url_for('achievement.achievement_list') }}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="trophy" class="w-5 h-5"></i>
+
+    <span>Achievements</span>
+
+</a>
+
+    <a href="{{ url_for('paper_presentation.paper_presentation_list') }}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="presentation" class="w-5 h-5"></i>
+
+    <span>Paper Presentation</span>
+
+</a>
+
+<a href="{{ url_for('staff_attendance.staff_attendance_list') }}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="user-check" class="w-5 h-5"></i>
+
+    <span>Staff Attendance</span>
+
+</a>
+
+<a
+    href="{{ url_for('staff_attendance.staff_leave_requests_page') }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+
+    <span>Leave Requests</span>
+
+</a>
+
+<a
+    href="{{ url_for('portion_completion.portion_completion_page_route') }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="book-open-check" class="w-5 h-5"></i>
+
+    <span>Add Portions</span>
+
+</a>
+
+<a
+    href="{{ url_for(
+        'portion_completion.portion_completion_list_route'
+    ) }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="book-open-check" class="w-5 h-5"></i>
+
+    <span>Portion Completion</span>
+
+</a>
+
+<a
+    href="{{ url_for(
+        'mentoring.mentoring_list_route'
+    ) }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+    <i data-lucide="heart-handshake" class="w-5 h-5"></i>
+
+    <span>Mentoring</span>
+
+</a>
+
         <a href="#"
            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
 

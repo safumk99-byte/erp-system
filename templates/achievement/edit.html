@@ -1,0 +1,439 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Edit Achievement
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <div class="mb-8">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Edit Achievement
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Update pending achievement
+        </p>
+
+    </div>
+
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+
+        <form
+            method="POST"
+            enctype="multipart/form-data">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Student -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block mb-2 font-medium">
+                        Student
+                    </label>
+
+                    <select
+                        name="student_id"
+                        required
+                        class="w-full border rounded-xl px-4 py-3">
+
+                        {% for student in students %}
+
+                        <option
+                            value="{{ student.id }}"
+                            {% if student.id == achievement.student_id %}
+                                selected
+                            {% endif %}>
+
+                            {{ student.admission_no }} -
+                            {{ student.full_name }}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- Event -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block mb-2 font-medium">
+                        Event / Competition
+                    </label>
+
+                    <input
+                        type="text"
+                        name="event_name"
+                        required
+                        value="{{ achievement.event_name or '' }}"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                </div>
+
+
+                <!-- Category -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Achievement Category
+                    </label>
+
+                    <select
+                        name="achievement_type"
+                        id="achievementCategory"
+                        required
+                        class="w-full border rounded-xl px-4 py-3">
+
+                        <option
+                            value="Kithab"
+                            {% if achievement.achievement_type == "Kithab" %}
+                                selected
+                            {% endif %}>
+                            Kithab
+                        </option>
+
+                        <option
+                            value="Language"
+                            {% if achievement.achievement_type == "Language" %}
+                                selected
+                            {% endif %}>
+                            Language
+                        </option>
+
+                        <option
+                            value="Writing"
+                            {% if achievement.achievement_type == "Writing" %}
+                                selected
+                            {% endif %}>
+                            Writing
+                        </option>
+
+                        <option
+                            value="Presentation"
+                            {% if achievement.achievement_type == "Presentation" %}
+                                selected
+                            {% endif %}>
+                            Presentation
+                        </option>
+
+                        <option
+                            value="Others"
+                            {% if achievement.achievement_type == "Others" %}
+                                selected
+                            {% endif %}>
+                            Others
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Position -->
+
+                <div id="positionField">
+
+                    <label class="block mb-2 font-medium">
+                        Position
+                    </label>
+
+                    <select
+                        name="position"
+                        id="position"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                        <option value="">
+                            Select Position
+                        </option>
+
+                        <option
+                            value="First"
+                            {% if achievement.position == "First" %}
+                                selected
+                            {% endif %}>
+                            First
+                        </option>
+
+                        <option
+                            value="Second"
+                            {% if achievement.position == "Second" %}
+                                selected
+                            {% endif %}>
+                            Second
+                        </option>
+
+                        <option
+                            value="Third"
+                            {% if achievement.position == "Third" %}
+                                selected
+                            {% endif %}>
+                            Third
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Assigned Points -->
+
+                <div
+                    id="assignedPointsField"
+                    class="hidden">
+
+                    <label class="block mb-2 font-medium">
+                        Assigned Points
+                    </label>
+
+                    <input
+                        type="number"
+                        name="assigned_points"
+                        id="assignedPoints"
+                        min="0"
+                        step="0.5"
+                        value="{{ achievement.assigned_points or '' }}"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                    <p class="text-xs text-slate-500 mt-1">
+                        Used only for Others.
+                    </p>
+
+                </div>
+
+
+                <!-- Title -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Achievement Title
+                    </label>
+
+                    <input
+                        type="text"
+                        name="title"
+                        required
+                        value="{{ achievement.title }}"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                </div>
+
+
+                <!-- Organization -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Issuing Organization
+                    </label>
+
+                    <input
+                        type="text"
+                        name="issuing_organization"
+                        value="{{ achievement.issuing_organization or '' }}"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                </div>
+
+
+                <!-- Date -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Achievement Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="achievement_date"
+                        value="{{ achievement.achievement_date or '' }}"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                </div>
+
+
+                <!-- Certificate Number -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Certificate Number
+                    </label>
+
+                    <input
+                        type="text"
+                        name="certificate_number"
+                        value="{{ achievement.certificate_number or '' }}"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                </div>
+
+
+                <!-- Verification -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Verification Value
+                    </label>
+
+                    <input
+                        type="text"
+                        name="verification_value"
+                        value="{{ achievement.verification_value or '' }}"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                </div>
+
+
+                <!-- Certificate Upload -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Replace Certificate
+                    </label>
+
+                    <input
+                        type="file"
+                        name="certificate_file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                    {% if achievement.certificate_file %}
+
+                    <p class="text-xs text-green-600 mt-2">
+                        Existing certificate uploaded
+                    </p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- Description -->
+
+            <div class="mt-6">
+
+                <label class="block mb-2 font-medium">
+                    Description
+                </label>
+
+                <textarea
+                    name="description"
+                    rows="5"
+                    class="w-full border rounded-xl px-4 py-3">{{ achievement.description or '' }}</textarea>
+
+            </div>
+
+
+            <div class="flex justify-end gap-4 mt-8">
+
+                <a
+                    href="{{ url_for('achievement.achievement_list') }}"
+                    class="px-6 py-3 rounded-xl border">
+
+                    Cancel
+
+                </a>
+
+                <button
+                    type="submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl">
+
+                    Update Achievement
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const category =
+    document.getElementById(
+        "achievementCategory"
+    );
+
+const positionField =
+    document.getElementById(
+        "positionField"
+    );
+
+const assignedPointsField =
+    document.getElementById(
+        "assignedPointsField"
+    );
+
+const position =
+    document.getElementById(
+        "position"
+    );
+
+const assignedPoints =
+    document.getElementById(
+        "assignedPoints"
+    );
+
+
+function updateAchievementFields() {
+
+    if (category.value === "Others") {
+
+        positionField.classList.add(
+            "hidden"
+        );
+
+        assignedPointsField.classList.remove(
+            "hidden"
+        );
+
+        position.required = false;
+        assignedPoints.required = true;
+
+    } else {
+
+        positionField.classList.remove(
+            "hidden"
+        );
+
+        assignedPointsField.classList.add(
+            "hidden"
+        );
+
+        position.required = true;
+        assignedPoints.required = false;
+
+    }
+}
+
+
+category.addEventListener(
+    "change",
+    updateAchievementFields
+);
+
+updateAchievementFields();
+
+</script>
+
+{% endblock %}

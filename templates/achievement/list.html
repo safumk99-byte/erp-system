@@ -1,0 +1,400 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Achievement Tracking
+{% endblock %}
+
+{% block page_content %}
+
+<div class="flex items-center justify-between mb-6">
+
+    <div>
+        <h1 class="text-3xl font-bold text-slate-800">
+            Achievement Tracking
+        </h1>
+
+        <p class="text-slate-500 mt-1">
+            Awards, competitions and achievements
+        </p>
+    </div>
+
+    <a
+        href="{{ url_for('achievement.create_achievement') }}"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+
+        + Add Achievement
+
+    </a>
+
+</div>
+
+
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+    <div class="overflow-x-auto">
+
+        <table class="w-full">
+
+            <thead class="bg-slate-100">
+
+                <tr>
+
+                    <th class="text-left px-6 py-4">
+                        Student
+                    </th>
+
+                    <th class="text-left px-6 py-4">
+                        Event
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Category
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Position
+                    </th>
+
+                    <th class="text-left px-6 py-4">
+                        Achievement
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Certificate
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Points
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Status
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Actions
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% if achievements %}
+
+                {% for achievement in achievements %}
+
+                <tr class="border-t hover:bg-slate-50">
+
+                    <!-- Student -->
+
+                    <td class="px-6 py-5">
+
+                        <div class="font-medium text-slate-800">
+                            {{ achievement.full_name }}
+                        </div>
+
+                        <div class="text-sm text-slate-500">
+                            {{ achievement.admission_no }}
+                        </div>
+
+                    </td>
+
+
+                    <!-- Event -->
+
+                    <td class="px-6 py-5">
+
+                        {% if achievement.event_name %}
+                            {{ achievement.event_name }}
+                        {% else %}
+                            —
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Category -->
+
+                    <td class="px-6 py-5 text-center">
+
+                        {% if achievement.achievement_type == "Kithab" %}
+
+                            <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-sm">
+                                Kithab
+                            </span>
+
+                        {% elif achievement.achievement_type == "Language" %}
+
+                            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+                                Language
+                            </span>
+
+                        {% elif achievement.achievement_type == "Writing" %}
+
+                            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
+                                Writing
+                            </span>
+
+                        {% elif achievement.achievement_type == "Presentation" %}
+
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                                Presentation
+                            </span>
+
+                        {% else %}
+
+                            <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm">
+                                Others
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Position -->
+
+                    <td class="px-6 py-5 text-center">
+
+                        {% if achievement.position == "First" %}
+
+                            <span class="font-semibold">
+                                1st
+                            </span>
+
+                        {% elif achievement.position == "Second" %}
+
+                            <span class="font-semibold">
+                                2nd
+                            </span>
+
+                        {% elif achievement.position == "Third" %}
+
+                            <span class="font-semibold">
+                                3rd
+                            </span>
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Achievement -->
+
+                    <td class="px-6 py-5">
+
+                        <div class="font-medium text-slate-800">
+                            {{ achievement.title }}
+                        </div>
+
+                        {% if achievement.issuing_organization %}
+
+                        <div class="text-sm text-slate-500 mt-1">
+                            {{ achievement.issuing_organization }}
+                        </div>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Certificate -->
+
+                    <td class="px-6 py-5 text-center">
+
+                        {% if achievement.certificate_file %}
+
+    <a
+        href="{{ url_for(
+            'uploads',
+            filename=achievement.certificate_file
+        ) }}"
+        target="_blank"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm">
+
+        View Certificate
+
+    </a>
+
+{% else %}
+
+    <span class="text-slate-400">
+        —
+    </span>
+
+{% endif %}
+
+                    </td>
+
+
+                    <!-- Points -->
+
+                    <td class="px-6 py-5 text-center">
+
+                        {% if achievement.status == "Approved" %}
+
+                            <span class="font-bold text-indigo-600">
+                                {{ achievement.points }}
+                            </span>
+
+                        {% else %}
+
+                            <span class="text-slate-400">
+                                —
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Status -->
+
+                    <td class="px-6 py-5 text-center">
+
+                        {% if achievement.status == "Approved" %}
+
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                                Approved
+                            </span>
+
+                        {% elif achievement.status == "Rejected" %}
+
+                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                                Rejected
+                            </span>
+
+                        {% else %}
+
+                            <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+                                Pending
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Actions -->
+
+                    <td class="px-6 py-5">
+
+                        {% if achievement.status == "Pending" %}
+
+                            <div class="flex justify-center gap-2">
+
+                                <!-- Edit -->
+
+                                <a
+                                    href="{{ url_for(
+                                        'achievement.edit_achievement_submission',
+                                        id=achievement.id
+                                    ) }}"
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm">
+
+                                    Edit
+
+                                </a>
+
+
+                                <!-- Approve -->
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'achievement.approve_achievement_submission',
+                                        id=achievement.id
+                                    ) }}">
+
+                                    <button
+                                        type="submit"
+                                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+
+                                        Approve
+
+                                    </button>
+
+                                </form>
+
+
+                                <!-- Reject -->
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'achievement.reject_achievement_submission',
+                                        id=achievement.id
+                                    ) }}"
+                                    class="flex gap-2">
+
+                                    <input
+                                        type="text"
+                                        name="rejection_reason"
+                                        placeholder="Reason"
+                                        required
+                                        class="border rounded-lg px-3 py-2 text-sm w-32">
+
+                                    <button
+                                        type="submit"
+                                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+
+                                        Reject
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        {% elif achievement.status == "Approved" %}
+
+                            <span class="text-slate-400 text-sm">
+                                —
+                            </span>
+
+                        {% else %}
+
+                            <div class="text-sm text-red-600">
+                                {{ achievement.rejection_reason }}
+                            </div>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            {% else %}
+
+                <tr>
+
+                    <td
+                        colspan="9"
+                        class="text-center py-12 text-slate-500">
+
+                        No achievements found.
+
+                    </td>
+
+                </tr>
+
+            {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

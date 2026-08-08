@@ -1,0 +1,384 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Mark Staff Attendance
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-6xl mx-auto">
+
+    <!-- Header -->
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Mark Staff Attendance
+            </h1>
+
+            <p class="text-slate-500 mt-1">
+                Mark attendance for the selected period
+            </p>
+
+        </div>
+
+        <a
+            href="{{ url_for('staff_attendance.staff_attendance_list') }}"
+            class="border border-slate-300 hover:bg-slate-50 px-5 py-3 rounded-xl">
+
+            Attendance List
+
+        </a>
+
+    </div>
+
+
+    <!-- Date & Period -->
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+
+        <form
+            method="GET"
+            action="{{ url_for('staff_attendance.mark_staff_attendance_page_route') }}"
+            class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Date
+                </label>
+
+                <input
+                    type="date"
+                    name="date"
+                    value="{{ attendance_date }}"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3">
+
+            </div>
+
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Period
+                </label>
+
+                <input
+                    type="number"
+                    name="period"
+                    min="1"
+                    value="{{ period }}"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3">
+
+            </div>
+
+
+            <div>
+
+                <button
+                    type="submit"
+                    class="w-full bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl">
+
+                    Load Staff
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- Attendance Form -->
+
+    <form
+        method="POST"
+        action="{{ url_for('staff_attendance.save_staff_attendance') }}"
+        id="staffAttendanceForm">
+
+        <input
+            type="hidden"
+            name="attendance_date"
+            value="{{ attendance_date }}">
+
+        <input
+            type="hidden"
+            name="period"
+            value="{{ period }}">
+
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+            <div class="px-6 py-5 border-b bg-slate-50">
+
+                <h2 class="text-lg font-semibold text-slate-800">
+                    Period {{ period }}
+                </h2>
+
+                <p class="text-sm text-slate-500 mt-1">
+                    {{ attendance_date }}
+                </p>
+
+            </div>
+
+
+            {% if staff %}
+
+            <div class="divide-y">
+
+                {% for member in staff %}
+
+                <div class="px-6 py-5">
+
+                    <input
+                        type="hidden"
+                        name="staff_id"
+                        value="{{ member.id }}">
+
+
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+
+                        <div class="flex-1">
+
+                            <div class="font-semibold text-slate-800">
+                                {{ member.full_name }}
+                            </div>
+
+                            <div class="text-sm text-slate-500 mt-1">
+
+                                {{ member.username }}
+
+                                {% if member.role %}
+                                    · {{ member.role }}
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="w-full md:w-56">
+
+                            <select
+                                name="status_{{ member.id }}"
+                                class="w-full border border-slate-300 rounded-xl px-4 py-3">
+
+                                <option
+                                    value="Present"
+                                    {% if member.status == "Present" %}
+                                        selected
+                                    {% endif %}>
+                                    Present
+                                </option>
+
+                                <option
+                                    value="Absent"
+                                    {% if member.status == "Absent" %}
+                                        selected
+                                    {% endif %}>
+                                    Absent
+                                </option>
+
+                                <option
+                                    value="Leave"
+                                    {% if member.status == "Leave" %}
+                                        selected
+                                    {% endif %}>
+                                    Leave
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Leave reason -->
+
+                    <div
+                        class="mt-4 {% if member.status != 'Leave' %}hidden{% endif %}">
+
+                        <label class="block text-sm font-medium text-slate-600 mb-2">
+
+                            Leave Reason
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="leave_reason_{{ member.id }}"
+                            value="{{ member.leave_reason or '' }}"
+                            placeholder="Enter leave reason"
+                            class="w-full border border-slate-300 rounded-xl px-4 py-3">
+
+                    </div>
+
+
+                    <!-- Remarks -->
+
+                    <div class="mt-4">
+
+                        <label class="block text-sm font-medium text-slate-600 mb-2">
+
+                            Remarks
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="remarks_{{ member.id }}"
+                            value="{{ member.remarks or '' }}"
+                            placeholder="Optional"
+                            class="w-full border border-slate-300 rounded-xl px-4 py-3">
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+
+            <div class="px-6 py-5 border-t bg-slate-50 flex justify-end">
+
+                <button
+                    type="submit"
+                    id="saveStaffAttendance"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-medium">
+
+                    Save Attendance
+
+                </button>
+
+            </div>
+
+            {% else %}
+
+            <div class="text-center py-16">
+
+                <h2 class="text-lg font-semibold text-slate-700">
+                    No staff members found
+                </h2>
+
+                <p class="text-sm text-slate-500 mt-2">
+                    Please add staff members from Staff Management.
+                </p>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const selects =
+            document.querySelectorAll(
+                'select[name^="status_"]'
+            );
+
+
+        selects.forEach(
+            function (select) {
+
+                select.addEventListener(
+                    "change",
+                    function () {
+
+                        const staffId =
+                            select.name.replace(
+                                "status_",
+                                ""
+                            );
+
+                        const reason =
+                            document.querySelector(
+                                'input[name="leave_reason_' +
+                                staffId +
+                                '"]'
+                            );
+
+                        if (!reason) {
+                            return;
+                        }
+
+                        const container =
+                            reason.parentElement;
+
+                        if (
+                            select.value === "Leave"
+                        ) {
+
+                            container.classList.remove(
+                                "hidden"
+                            );
+
+                        } else {
+
+                            container.classList.add(
+                                "hidden"
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        const form =
+            document.getElementById(
+                "staffAttendanceForm"
+            );
+
+        const button =
+            document.getElementById(
+                "saveStaffAttendance"
+            );
+
+
+        if (form && button) {
+
+            form.addEventListener(
+                "submit",
+                function () {
+
+                    button.disabled = true;
+
+                    button.innerText =
+                        "Saving...";
+
+                    button.classList.add(
+                        "opacity-70",
+                        "cursor-not-allowed"
+                    );
+
+                }
+            );
+
+        }
+
+    }
+);
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,251 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Leave Requests
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-6xl mx-auto">
+
+    <!-- Header -->
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Leave Requests
+            </h1>
+
+            <p class="text-slate-500 mt-1">
+                Review and manage staff leave requests
+            </p>
+
+        </div>
+
+        <a
+            href="{{ url_for('staff_attendance.staff_attendance_list') }}"
+            class="border border-slate-300 hover:bg-slate-50 px-5 py-3 rounded-xl">
+
+            Staff Attendance
+
+        </a>
+
+    </div>
+
+
+    <!-- Leave Requests -->
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+        {% if leave_requests %}
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full">
+
+                <thead class="bg-slate-50 border-b">
+
+                    <tr>
+
+                        <th class="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                            Staff
+                        </th>
+
+                        <th class="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                            Date
+                        </th>
+
+                        <th class="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                            Period
+                        </th>
+
+                        <th class="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                            Reason
+                        </th>
+
+                        <th class="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                            Status
+                        </th>
+
+                        <th class="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y">
+
+                    {% for request in leave_requests %}
+
+                    <tr class="hover:bg-slate-50">
+
+                        <!-- Staff -->
+
+                        <td class="px-6 py-4">
+
+                            <div class="font-semibold text-slate-800">
+                                {{ request.full_name }}
+                            </div>
+
+                            <div class="text-sm text-slate-500">
+                                {{ request.username }}
+                            </div>
+
+                        </td>
+
+
+                        <!-- Date -->
+
+                        <td class="px-6 py-4 text-slate-700">
+
+                            {{ request.attendance_date }}
+
+                        </td>
+
+
+                        <!-- Period -->
+
+                        <td class="px-6 py-4 text-slate-700">
+
+                            Period {{ request.period }}
+
+                        </td>
+
+
+                        <!-- Reason -->
+
+                        <td class="px-6 py-4 text-slate-700">
+
+                            {{ request.leave_reason or "No reason provided" }}
+
+                        </td>
+
+
+                        <!-- Status -->
+
+                        <td class="px-6 py-4">
+
+                            {% if request.leave_status == "Pending" %}
+
+                            <span class="inline-flex bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+                                Pending
+                            </span>
+
+                            {% elif request.leave_status == "Approved" %}
+
+                            <span class="inline-flex bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                                Approved
+                            </span>
+
+                            {% elif request.leave_status == "Rejected" %}
+
+                            <span class="inline-flex bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                                Rejected
+                            </span>
+
+                            {% else %}
+
+                            <span class="inline-flex bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-sm">
+                                {{ request.leave_status or "Unknown" }}
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Action -->
+
+                        <td class="px-6 py-4">
+
+                            {% if request.leave_status == "Pending" %}
+
+                            <div class="flex gap-2">
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'staff_attendance.approve_staff_leave_submission',
+                                        id=request.id
+                                    ) }}">
+
+                                    <button
+                                        type="submit"
+                                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+
+                                        Approve
+
+                                    </button>
+
+                                </form>
+
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'staff_attendance.reject_staff_leave_submission',
+                                        id=request.id
+                                    ) }}">
+
+                                    <button
+                                        type="submit"
+                                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+
+                                        Reject
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                            {% else %}
+
+                            <span class="text-sm text-slate-400">
+                                Reviewed
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="text-center py-16">
+
+            <div class="text-4xl mb-3">
+                ✓
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-700">
+                No Leave Requests
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                There are no staff leave requests to review.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

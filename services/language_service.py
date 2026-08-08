@@ -40,10 +40,7 @@ def list_language_skills():
     )
 
 
-def add_language_skill():
-
-    conn = get_connection()
-    cur = conn.cursor()
+def get_students(cur):
 
     cur.execute("""
         SELECT
@@ -59,7 +56,15 @@ def add_language_skill():
         session["institution_id"],
     ))
 
-    students = cur.fetchall()
+    return cur.fetchall()
+
+
+def add_language_skill():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    students = get_students(cur)
 
     if request.method == "POST":
 
@@ -72,6 +77,10 @@ def add_language_skill():
         skill_type = request.form[
             "skill_type"
         ]
+
+        category = request.form.get(
+            "category"
+        ) or None
 
         title = request.form.get(
             "title",
@@ -96,6 +105,40 @@ def add_language_skill():
             ""
         ).strip()
 
+        # Category is required only for
+        # Reading and Writing
+
+        if skill_type in (
+            "Reading",
+            "Writing"
+        ) and category not in (
+            "Fiction",
+            "Non-Fiction"
+        ):
+
+            flash(
+                "Please select Fiction or Non-Fiction.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return render_template(
+                "language/add.html",
+                students=students
+            )
+
+        # Category is not required for
+        # Presentation / Hearing
+
+        if skill_type in (
+            "Presentation",
+            "Hearing"
+        ):
+
+            category = None
+
         if not language_name:
 
             flash(
@@ -111,11 +154,12 @@ def add_language_skill():
                 students=students
             )
 
-        # Duration validation
+        # Duration
 
         if duration_minutes:
 
             try:
+
                 duration_minutes = int(
                     duration_minutes
                 )
@@ -154,11 +198,12 @@ def add_language_skill():
 
             duration_minutes = None
 
-        # Pages validation
+        # Pages
 
         if pages:
 
             try:
+
                 pages = int(pages)
 
             except (TypeError, ValueError):
@@ -195,9 +240,6 @@ def add_language_skill():
 
             pages = None
 
-        points = 0
-        bonus_points = 0
-
         cur.execute("""
             INSERT INTO language_skill_assessments
             (
@@ -205,6 +247,7 @@ def add_language_skill():
                 student_id,
                 language_name,
                 skill_type,
+                category,
                 title,
                 duration_minutes,
                 pages,
@@ -214,8 +257,10 @@ def add_language_skill():
                 bonus_points,
                 status
             )
+
             VALUES
             (
+                %s,
                 %s,
                 %s,
                 %s,
@@ -234,13 +279,14 @@ def add_language_skill():
             student_id,
             language_name,
             skill_type,
+            category,
             title,
             duration_minutes,
             pages,
             review,
             description,
-            points,
-            bonus_points
+            0,
+            0
         ))
 
         conn.commit()
@@ -276,6 +322,7 @@ def edit_language_skill(id):
     cur.execute("""
         SELECT *
         FROM language_skill_assessments
+
         WHERE
             id = %s
             AND institution_id = %s
@@ -303,21 +350,7 @@ def edit_language_skill(id):
             )
         )
 
-    cur.execute("""
-        SELECT
-            id,
-            admission_no,
-            full_name
-        FROM students
-        WHERE
-            institution_id = %s
-            AND is_active = TRUE
-        ORDER BY full_name
-    """, (
-        session["institution_id"],
-    ))
-
-    students = cur.fetchall()
+    students = get_students(cur)
 
     if request.method == "POST":
 
@@ -330,6 +363,10 @@ def edit_language_skill(id):
         skill_type = request.form[
             "skill_type"
         ]
+
+        category = request.form.get(
+            "category"
+        ) or None
 
         title = request.form.get(
             "title",
@@ -354,6 +391,35 @@ def edit_language_skill(id):
             ""
         ).strip()
 
+        if skill_type in (
+            "Reading",
+            "Writing"
+        ) and category not in (
+            "Fiction",
+            "Non-Fiction"
+        ):
+
+            flash(
+                "Please select Fiction or Non-Fiction.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return render_template(
+                "language/edit.html",
+                assessment=assessment,
+                students=students
+            )
+
+        if skill_type in (
+            "Presentation",
+            "Hearing"
+        ):
+
+            category = None
+
         if not language_name:
 
             flash(
@@ -373,6 +439,7 @@ def edit_language_skill(id):
         if duration_minutes:
 
             try:
+
                 duration_minutes = int(
                     duration_minutes
                 )
@@ -416,6 +483,7 @@ def edit_language_skill(id):
         if pages:
 
             try:
+
                 pages = int(pages)
 
             except (TypeError, ValueError):
@@ -456,16 +524,19 @@ def edit_language_skill(id):
 
         cur.execute("""
             UPDATE language_skill_assessments
+
             SET
                 student_id = %s,
                 language_name = %s,
                 skill_type = %s,
+                category = %s,
                 title = %s,
                 duration_minutes = %s,
                 pages = %s,
                 review = %s,
                 description = %s,
                 updated_at = NOW()
+
             WHERE
                 id = %s
                 AND institution_id = %s
@@ -474,6 +545,7 @@ def edit_language_skill(id):
             student_id,
             language_name,
             skill_type,
+            category,
             title,
             duration_minutes,
             pages,
@@ -517,10 +589,13 @@ def approve_language_skill(id):
     cur.execute("""
         SELECT
             skill_type,
+            category,
             duration_minutes,
             pages,
             review
+
         FROM language_skill_assessments
+
         WHERE
             id = %s
             AND institution_id = %s
@@ -549,6 +624,7 @@ def approve_language_skill(id):
         )
 
     skill_type = assessment["skill_type"]
+    category = assessment["category"]
     duration = assessment["duration_minutes"]
     pages = assessment["pages"]
     review = assessment["review"]
@@ -556,20 +632,22 @@ def approve_language_skill(id):
     points = 0
     bonus_points = 0
 
-    # Presentation
+    # --------------------------------
+    # PRESENTATION
     # Minimum 5 minutes = 5 points
+    # --------------------------------
 
     if skill_type == "Presentation":
 
         if duration and duration >= 5:
+
             points = 5
 
-    # Hearing
-    # Proposal: two 5-minute sessions
+    # --------------------------------
+    # HEARING
+    # Two 5-minute sessions
     # + written review = 3 points
-    #
-    # Since the current table stores one duration,
-    # require 10 total minutes and a review.
+    # --------------------------------
 
     elif skill_type == "Hearing":
 
@@ -578,38 +656,64 @@ def approve_language_skill(id):
             and duration >= 10
             and review
         ):
+
             points = 3
 
-    # Writing
-    # Same scoring as Writing Section.
-    #
-    # Fiction = 3
-    # Non-Fiction = 5 for 4 pages
-    # +1 for every extra 2 pages
-    #
-    # The current table does not have a
-    # Fiction/Non-Fiction field, so Writing
-    # cannot yet distinguish those categories.
+    # --------------------------------
+    # WRITING
+    # Same scoring structure
+    # as Writing Assessment
+    # --------------------------------
 
     elif skill_type == "Writing":
 
-        points = 0
+        if category == "Fiction":
 
-    # Reading
-    # Same scoring as Reading Section.
-    #
-    # Fiction: 50 pages = 3
-    # Non-Fiction: 25 pages = 5
-    #
-    # Category is not currently stored,
-    # so calculation is left at 0.
+            # Writing fiction base
+            points = 3
+
+        elif category == "Non-Fiction":
+
+            if pages and pages >= 4:
+
+                points = 5
+
+                extra_pages = pages - 4
+
+                points += (
+                    extra_pages // 2
+                )
+
+    # --------------------------------
+    # READING
+    # Same scoring structure
+    # as Reading Assessment
+    # --------------------------------
 
     elif skill_type == "Reading":
 
-        points = 0
+        if category == "Fiction":
+
+            if pages and pages >= 50:
+
+                points = 3
+
+        elif category == "Non-Fiction":
+
+            if pages and pages >= 25:
+
+                points = 5
+
+    # Bonus values are intentionally
+    # kept at 0 because the proposal
+    # does not define their numerical
+    # values.
+
+    bonus_points = 0
 
     cur.execute("""
         UPDATE language_skill_assessments
+
         SET
             status = 'Approved',
             points = %s,
@@ -618,6 +722,7 @@ def approve_language_skill(id):
             reviewed_at = NOW(),
             rejection_reason = NULL,
             updated_at = NOW()
+
         WHERE
             id = %s
             AND institution_id = %s
@@ -675,6 +780,7 @@ def reject_language_skill(id):
 
     cur.execute("""
         UPDATE language_skill_assessments
+
         SET
             status = 'Rejected',
             points = 0,
@@ -683,6 +789,7 @@ def reject_language_skill(id):
             reviewed_at = NOW(),
             rejection_reason = %s,
             updated_at = NOW()
+
         WHERE
             id = %s
             AND institution_id = %s

@@ -1,0 +1,304 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Staff Attendance
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- Header -->
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Staff Attendance
+            </h1>
+
+            <p class="text-slate-500 mt-1">
+                Daily period-wise attendance
+            </p>
+
+        </div>
+
+
+        <div class="flex gap-3">
+
+            <a
+                href="{{ url_for('staff_attendance.staff_attendance_monthly') }}"
+                class="border border-slate-300 hover:bg-slate-50 px-5 py-3 rounded-xl">
+
+                Monthly Attendance
+
+            </a>
+
+
+            <a
+                href="{{ url_for('staff_attendance.staff_leave_requests_page') }}"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+
+                Leave Requests
+
+            </a>
+
+            <a
+    href="{{ url_for('staff_attendance.mark_staff_attendance_page_route') }}"
+    class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+
+    Mark Attendance
+
+</a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Date Selection -->
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+
+        <form
+            method="GET"
+            action="{{ url_for('staff_attendance.staff_attendance_list') }}"
+            class="flex flex-col md:flex-row md:items-end gap-4">
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Select Date
+                </label>
+
+                <input
+                    type="date"
+                    name="date"
+                    value="{{ attendance_date }}"
+                    required
+                    class="border border-slate-300 rounded-xl px-4 py-3">
+
+            </div>
+
+
+            
+
+        </form>
+
+    </div>
+
+
+    <!-- Saved Attendance -->
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+        <div class="px-6 py-5 border-b bg-slate-50">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Attendance List
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                {{ attendance_date }}
+            </p>
+
+        </div>
+
+
+        {% if staff and periods %}
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full border-collapse">
+
+                <thead class="bg-slate-100">
+
+                    <tr>
+
+                        <th
+                            class="text-left px-5 py-4 border-b whitespace-nowrap">
+
+                            Staff
+
+                        </th>
+
+
+                        <th
+                            class="text-left px-5 py-4 border-b whitespace-nowrap">
+
+                            Employee ID
+
+                        </th>
+
+
+                        {% for period in periods %}
+
+                        <th
+                            class="text-center px-5 py-4 border-b whitespace-nowrap">
+
+                            P{{ period }}
+
+                        </th>
+
+                        {% endfor %}
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y">
+
+                    {% for member in staff %}
+
+                    <tr class="hover:bg-slate-50">
+
+                        <!-- Staff -->
+
+                        <td class="px-5 py-4">
+
+                            <div class="font-semibold text-slate-800">
+
+                                {{ member.full_name }}
+
+                            </div>
+
+                            {% if member.role %}
+
+                            <div class="text-sm text-slate-500">
+
+                                {{ member.role }}
+
+                            </div>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Employee ID -->
+
+                        <td class="px-5 py-4 text-slate-600">
+
+                            {{ member.username }}
+
+                        </td>
+
+
+                        <!-- Periods -->
+
+                        {% for period in periods %}
+
+                        {% set record =
+                            attendance_map.get(
+                                (member.id, period)
+                            )
+                        %}
+
+
+                        <td class="px-5 py-4 text-center">
+
+                            {% if record %}
+
+                                {% if record.status == "Present" %}
+
+                                <span
+                                    class="inline-flex min-w-20 justify-center bg-green-100 text-green-700 px-3 py-2 rounded-lg text-sm font-medium">
+
+                                    Present
+
+                                </span>
+
+
+                                {% elif record.status == "Absent" %}
+
+                                <span
+                                    class="inline-flex min-w-20 justify-center bg-red-100 text-red-700 px-3 py-2 rounded-lg text-sm font-medium">
+
+                                    Absent
+
+                                </span>
+
+
+                                {% elif record.status == "Leave" %}
+
+                                    {% if record.leave_status == "Approved" %}
+
+                                    <span
+                                        class="inline-flex min-w-20 justify-center bg-green-100 text-green-700 px-3 py-2 rounded-lg text-sm font-medium">
+
+                                        Leave
+
+                                    </span>
+
+                                    {% elif record.leave_status == "Rejected" %}
+
+                                    <span
+                                        class="inline-flex min-w-20 justify-center bg-red-100 text-red-700 px-3 py-2 rounded-lg text-sm font-medium">
+
+                                        Rejected
+
+                                    </span>
+
+                                    {% else %}
+
+                                    <span
+                                        class="inline-flex min-w-20 justify-center bg-yellow-100 text-yellow-700 px-3 py-2 rounded-lg text-sm font-medium">
+
+                                        Leave
+
+                                    </span>
+
+                                    {% endif %}
+
+                                {% endif %}
+
+                            {% else %}
+
+                            <span class="text-slate-300">
+                                —
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        {% endfor %}
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% else %}
+
+        <div class="text-center py-16">
+
+            <div class="text-4xl mb-3">
+                📋
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-700">
+                No attendance records found
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                No staff attendance has been saved for this date.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

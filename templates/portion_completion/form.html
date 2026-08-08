@@ -1,0 +1,274 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Portion Completion
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <div class="mb-6">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Portion Completion
+        </h1>
+
+        <p class="text-slate-500 mt-1">
+            Mark completed portions for your class
+        </p>
+
+    </div>
+
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'portion_completion.save_portion_completion_route'
+            ) }}"
+            class="space-y-6">
+
+
+            <!-- Date -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Date
+                </label>
+
+                <input
+                    type="date"
+                    name="completion_date"
+                    value="{{ completion_date }}"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+
+            </div>
+
+
+            <!-- Class -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Class
+                </label>
+
+                <select
+                    name="class_id"
+                    id="class_id"
+                    required
+                    onchange="loadSubjects()"
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+
+                    <option value="">
+                        Select Class
+                    </option>
+
+                    {% for class_item in classes %}
+
+                    <option
+                        value="{{ class_item.id }}"
+                        {% if class_id|string == class_item.id|string %}
+                            selected
+                        {% endif %}>
+
+                        {{ class_item.class_name }}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- Subject -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Subject
+                </label>
+
+                <select
+                    name="subject_id"
+                    id="subject_id"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+
+                    <option value="">
+                        Select Subject
+                    </option>
+
+                    {% for subject in subjects %}
+
+                    <option
+                        value="{{ subject.id }}"
+                        {% if subject_id|string == subject.id|string %}
+                            selected
+                        {% endif %}>
+
+                        {{ subject.subject_name }}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- Completed Portion -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+
+                    Completed Portion
+
+                </label>
+
+                <textarea
+                    name="completed_portion"
+                    rows="4"
+                    required
+                    placeholder="Example: Chapter 4, Pages 25–32"
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+
+                <p class="text-sm text-slate-500 mt-2">
+                    Enter the portion completed for this class and subject.
+                </p>
+
+            </div>
+
+
+            <!-- Remarks -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+
+                    Remarks
+                    <span class="text-slate-400">
+                        (Optional)
+                    </span>
+
+                </label>
+
+                <textarea
+                    name="remarks"
+                    rows="3"
+                    placeholder="Optional remarks"
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+
+            </div>
+
+
+            <!-- Submit -->
+
+            <div class="flex justify-end">
+
+                <button
+                    type="submit"
+                    id="savePortionButton"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-medium">
+
+                    Save Portion
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function loadSubjects() {
+
+    const classId =
+        document.getElementById(
+            "class_id"
+        ).value;
+
+
+    if (!classId) {
+
+        window.location.href =
+            "{{ url_for(
+                'portion_completion.portion_completion_page_route'
+            ) }}";
+
+        return;
+
+    }
+
+
+    const currentDate =
+        document.querySelector(
+            'input[name="completion_date"]'
+        ).value;
+
+
+    window.location.href =
+        "{{ url_for(
+            'portion_completion.portion_completion_page_route'
+        ) }}" +
+        "?class_id=" +
+        encodeURIComponent(classId) +
+        "&date=" +
+        encodeURIComponent(currentDate);
+
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const form =
+            document.querySelector("form");
+
+        const button =
+            document.getElementById(
+                "savePortionButton"
+            );
+
+
+        if (form && button) {
+
+            form.addEventListener(
+                "submit",
+                function () {
+
+                    button.disabled = true;
+
+                    button.innerText =
+                        "Saving...";
+
+                    button.classList.add(
+                        "opacity-70",
+                        "cursor-not-allowed"
+                    );
+
+                }
+            );
+
+        }
+
+    }
+);
+
+</script>
+
+{% endblock %}

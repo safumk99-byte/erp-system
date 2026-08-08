@@ -1,7 +1,7 @@
 {% extends "layouts/dashboard.html" %}
 
 {% block title %}
-Edit Language Skill
+Edit Paper Presentation
 {% endblock %}
 
 {% block page_content %}
@@ -11,18 +11,21 @@ Edit Language Skill
     <div class="mb-8">
 
         <h1 class="text-3xl font-bold text-slate-800">
-            Edit Language Skill
+            Edit Paper Presentation
         </h1>
 
         <p class="text-slate-500 mt-2">
-            Update pending language assessment
+            Update pending paper presentation
         </p>
+
     </div>
 
 
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
 
-        <form method="POST">
+        <form
+            method="POST"
+            enctype="multipart/form-data">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -43,7 +46,7 @@ Edit Language Skill
 
                         <option
                             value="{{ student.id }}"
-                            {% if student.id == assessment.student_id %}
+                            {% if student.id == presentation.student_id %}
                                 selected
                             {% endif %}>
 
@@ -59,180 +62,134 @@ Edit Language Skill
                 </div>
 
 
-                <!-- Language -->
+                <!-- Topic -->
 
-                <div>
+                <div class="md:col-span-2">
 
                     <label class="block mb-2 font-medium">
-                        Language
+                        Topic
                     </label>
 
                     <input
                         type="text"
-                        name="language_name"
+                        name="topic"
                         required
-                        value="{{ assessment.language_name }}"
+                        value="{{ presentation.topic }}"
                         class="w-full border rounded-xl px-4 py-3">
 
                 </div>
 
 
-                <!-- Skill -->
+                <!-- Level -->
 
                 <div>
 
                     <label class="block mb-2 font-medium">
-                        Skill
+                        Presentation Level
                     </label>
 
                     <select
-                        name="skill_type"
+                        name="presentation_level"
+                        id="presentationLevel"
                         required
                         class="w-full border rounded-xl px-4 py-3">
 
                         <option
-                            value="Presentation"
-                            {% if assessment.skill_type == "Presentation" %}
+                            value="State"
+                            {% if presentation.presentation_level == "State" %}
                                 selected
                             {% endif %}>
-                            Presentation
+                            State Level — 8 Points
                         </option>
 
                         <option
-                            value="Writing"
-                            {% if assessment.skill_type == "Writing" %}
+                            value="National"
+                            {% if presentation.presentation_level == "National" %}
                                 selected
                             {% endif %}>
-                            Writing
+                            National Level — 10 Points
                         </option>
 
                         <option
-                            value="Hearing"
-                            {% if assessment.skill_type == "Hearing" %}
+                            value="International"
+                            {% if presentation.presentation_level == "International" %}
                                 selected
                             {% endif %}>
-                            Hearing
+                            International Level — 20 Points
                         </option>
 
                         <option
-                            value="Reading"
-                            {% if assessment.skill_type == "Reading" %}
+                            value="Others"
+                            {% if presentation.presentation_level == "Others" %}
                                 selected
                             {% endif %}>
-                            Reading
+                            Others — 5 Points
                         </option>
 
                     </select>
 
                 </div>
 
-                 
+
+                <!-- Affiliation -->
 
                 <div>
 
-    <label class="block mb-2 font-medium">
-        Category
-    </label>
-
-    <select
-        name="category"
-        class="w-full border rounded-xl px-4 py-3">
-
-        <option
-            value=""
-            {% if not assessment.category %}
-                selected
-            {% endif %}>
-            Not Applicable
-        </option>
-
-        <option
-            value="Fiction"
-            {% if assessment.category == "Fiction" %}
-                selected
-            {% endif %}>
-            Fiction
-        </option>
-
-        <option
-            value="Non-Fiction"
-            {% if assessment.category == "Non-Fiction" %}
-                selected
-            {% endif %}>
-            Non-Fiction
-        </option>
-
-    </select>
-
-</div>
-
-                <!-- Title -->
-
-                <div class="md:col-span-2">
-
                     <label class="block mb-2 font-medium">
-                        Title / Topic
+                        Affiliated University / College
                     </label>
 
                     <input
                         type="text"
-                        name="title"
-                        value="{{ assessment.title or '' }}"
+                        name="affiliated_institution"
+                        id="affiliatedInstitution"
+                        value="{{ presentation.affiliated_institution or '' }}"
+                        placeholder="Required for Others"
                         class="w-full border rounded-xl px-4 py-3">
 
                 </div>
 
 
-                <!-- Duration -->
+                <!-- Verification -->
 
                 <div>
 
                     <label class="block mb-2 font-medium">
-                        Duration (Minutes)
+                        Verification Value
                     </label>
 
                     <input
-                        type="number"
-                        name="duration_minutes"
-                        min="1"
-                        value="{{ assessment.duration_minutes or '' }}"
+                        type="text"
+                        name="verification_value"
+                        value="{{ presentation.verification_value or '' }}"
                         class="w-full border rounded-xl px-4 py-3">
 
                 </div>
 
 
-                <!-- Pages -->
+                <!-- Certificate -->
 
                 <div>
 
                     <label class="block mb-2 font-medium">
-                        Pages
+                        Replace Certificate
                     </label>
 
                     <input
-                        type="number"
-                        name="pages"
-                        min="1"
-                        value="{{ assessment.pages or '' }}"
+                        type="file"
+                        name="certificate_file"
+                        accept=".pdf,.jpg,.jpeg,.png"
                         class="w-full border rounded-xl px-4 py-3">
 
+                    {% if presentation.certificate_file %}
+
+                    <p class="text-xs text-green-600 mt-2">
+                        Existing certificate uploaded
+                    </p>
+
+                    {% endif %}
+
                 </div>
-
-            </div>
-
-
-            <!-- Review -->
-
-            <div class="mt-6">
-
-                <label class="block mb-2 font-medium">
-                    Written Review
-                </label>
-
-                <textarea
-                    name="review"
-                    rows="5"
-                    class="w-full border rounded-xl px-4 py-3">{{ assessment.review or '' }}</textarea>
 
             </div>
 
@@ -248,7 +205,7 @@ Edit Language Skill
                 <textarea
                     name="description"
                     rows="5"
-                    class="w-full border rounded-xl px-4 py-3">{{ assessment.description or '' }}</textarea>
+                    class="w-full border rounded-xl px-4 py-3">{{ presentation.description or '' }}</textarea>
 
             </div>
 
@@ -256,7 +213,7 @@ Edit Language Skill
             <div class="flex justify-end gap-4 mt-8">
 
                 <a
-                    href="{{ url_for('language.language_list') }}"
+                    href="{{ url_for('paper_presentation.paper_presentation_list') }}"
                     class="px-6 py-3 rounded-xl border">
 
                     Cancel
@@ -267,7 +224,7 @@ Edit Language Skill
                     type="submit"
                     class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl">
 
-                    Update Assessment
+                    Update
 
                 </button>
 
@@ -278,5 +235,43 @@ Edit Language Skill
     </div>
 
 </div>
+
+
+<script>
+
+const level =
+    document.getElementById(
+        "presentationLevel"
+    );
+
+const affiliation =
+    document.getElementById(
+        "affiliatedInstitution"
+    );
+
+
+function updateAffiliation() {
+
+    if (level.value === "Others") {
+
+        affiliation.required = true;
+
+    } else {
+
+        affiliation.required = false;
+
+    }
+
+}
+
+
+level.addEventListener(
+    "change",
+    updateAffiliation
+);
+
+updateAffiliation();
+
+</script>
 
 {% endblock %}
