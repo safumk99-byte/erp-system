@@ -1,0 +1,318 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Writing
+{% endblock %}
+
+{% block page_content %}
+
+<div class="flex items-center justify-between mb-6">
+
+    <div>
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Writing
+        </h1>
+
+        <p class="text-slate-500 mt-1">
+            Writing Skill Assessment
+        </p>
+
+    </div>
+
+    <a
+        href="{{ url_for('writing.create_writing') }}"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+
+        + Add Writing
+
+    </a>
+
+</div>
+
+
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+    <div class="overflow-x-auto">
+
+        <table class="w-full">
+
+            <thead class="bg-slate-100">
+
+                <tr>
+
+                    <th class="text-left px-6 py-4">
+                        Student
+                    </th>
+
+                    <th class="text-left px-6 py-4">
+                        Title
+                    </th>
+
+                    <th class="text-left px-6 py-4">
+                        Type
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Pages
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Points
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Status
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Actions
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% if writings %}
+
+                {% for writing in writings %}
+
+                <tr class="border-t hover:bg-slate-50">
+
+                    <!-- Student -->
+
+                    <td class="px-6 py-5">
+
+                        <div class="font-medium text-slate-800">
+
+                            {{ writing.full_name }}
+
+                        </div>
+
+                        <div class="text-sm text-slate-500">
+
+                            {{ writing.admission_no }}
+
+                        </div>
+
+                    </td>
+
+
+                    <!-- Title -->
+
+                    <td class="px-6 py-5">
+
+                        <div class="font-medium">
+
+                            {{ writing.title }}
+
+                        </div>
+
+                        <div class="text-sm text-slate-500 mt-1">
+
+                            {{ writing.content[:80] }}
+
+                            {% if writing.content|length > 80 %}
+                                ...
+                            {% endif %}
+
+                        </div>
+
+                    </td>
+
+
+                    <!-- Type -->
+
+                    <td class="px-6 py-5">
+
+                        {% if writing.writing_type == "Fiction" %}
+
+                            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
+
+                                Fiction
+
+                            </span>
+
+                        {% else %}
+
+                            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+
+                                Non-Fiction
+
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Pages -->
+
+                    <td class="px-6 py-5 text-center">
+
+                        {{ writing.pages }}
+
+                    </td>
+
+
+                    <!-- Points -->
+
+                    <td class="px-6 py-5 text-center font-semibold">
+
+                        {{ writing.points }}
+
+                    </td>
+
+
+                    <!-- Status -->
+
+                    <td class="px-6 py-5 text-center">
+
+                        {% if writing.status == "Approved" %}
+
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+
+                                Approved
+
+                            </span>
+
+                        {% elif writing.status == "Rejected" %}
+
+                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+
+                                Rejected
+
+                            </span>
+
+                        {% else %}
+
+                            <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+
+                                Pending
+
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Actions -->
+
+                    <td class="px-6 py-5">
+
+                        {% if writing.status == "Pending" %}
+
+                            <div class="flex justify-center gap-2">
+
+                                <a
+    href="{{ url_for(
+        'writing.edit_writing_submission',
+        id=writing.id
+    ) }}"
+    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm">
+
+    Edit
+
+</a>
+
+                                <!-- Approve -->
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'writing.approve_writing_submission',
+                                        id=writing.id
+                                    ) }}">
+
+                                    <button
+                                        type="submit"
+                                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+
+                                        Approve
+
+                                    </button>
+
+                                </form>
+
+
+                                <!-- Reject -->
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'writing.reject_writing_submission',
+                                        id=writing.id
+                                    ) }}">
+
+                                    <input
+                                        type="text"
+                                        name="rejection_reason"
+                                        placeholder="Reason"
+                                        required
+                                        class="border rounded-lg px-3 py-2 text-sm w-32">
+
+                                    <button
+                                        type="submit"
+                                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+
+                                        Reject
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        {% elif writing.status == "Approved" %}
+
+                            <span class="text-green-600 text-sm">
+
+                                Approved
+
+                            </span>
+
+                        {% else %}
+
+                            <div class="text-sm text-red-600">
+
+                                {{ writing.rejection_reason }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            {% else %}
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        class="text-center py-12 text-slate-500">
+
+                        No writing submissions found.
+
+                    </td>
+
+                </tr>
+
+            {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

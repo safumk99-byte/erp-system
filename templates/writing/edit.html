@@ -1,0 +1,186 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Edit Writing
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <div class="mb-8">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Edit Writing
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Update writing submission
+        </p>
+
+    </div>
+
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+
+        <form method="POST">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Student -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block mb-2 font-medium">
+                        Student
+                    </label>
+
+                    <select
+                        name="student_id"
+                        required
+                        class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                        {% for student in students %}
+
+                        <option
+                            value="{{ student.id }}"
+                            {% if student.id == writing.student_id %}
+                                selected
+                            {% endif %}>
+
+                            {{ student.admission_no }}
+                            -
+                            {{ student.full_name }}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- Title -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block mb-2 font-medium">
+                        Title
+                    </label>
+
+                    <input
+                        type="text"
+                        name="title"
+                        required
+                        value="{{ writing.title }}"
+                        class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                </div>
+
+
+                <!-- Writing Type -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Writing Type
+                    </label>
+
+                    <select
+                        name="writing_type"
+                        required
+                        class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                        <option
+                            value="Fiction"
+                            {% if writing.writing_type == "Fiction" %}
+                                selected
+                            {% endif %}>
+
+                            Fiction
+
+                        </option>
+
+                        <option
+                            value="Non-Fiction"
+                            {% if writing.writing_type == "Non-Fiction" %}
+                                selected
+                            {% endif %}>
+
+                            Non-Fiction
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Pages -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Pages
+                    </label>
+
+                    <input
+                        type="number"
+                        name="pages"
+                        min="1"
+                        required
+                        value="{{ writing.pages }}"
+                        class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                </div>
+
+            </div>
+
+
+            <!-- Content -->
+
+            <div class="mt-6">
+
+                <label class="block mb-2 font-medium">
+                    Writing Content
+                </label>
+
+                <textarea
+                    name="content"
+                    rows="10"
+                    required
+                    class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ writing.content }}</textarea>
+
+            </div>
+
+
+            <!-- Buttons -->
+
+            <div class="flex justify-end gap-4 mt-8">
+
+                <a
+                    href="{{ url_for('writing.writing_list') }}"
+                    class="px-6 py-3 rounded-xl border border-slate-300 hover:bg-slate-50">
+
+                    Cancel
+
+                </a>
+
+                <button
+                    type="submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl">
+
+                    Update Writing
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

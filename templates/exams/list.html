@@ -45,8 +45,9 @@ Exams
 
         </form>
 
-        <a href="{{ url_for('exams.create_exam') }}"
-           class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+        <a
+            href="{{ url_for('exams.create_exam') }}"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
 
             + Create Exam
 
@@ -56,180 +57,282 @@ Exams
 
 </div>
 
+
 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
-    <table class="w-full">
+    <div class="overflow-x-auto">
 
-        <thead class="bg-slate-100">
+        <table class="w-full">
 
-            <tr>
+            <thead class="bg-slate-100">
 
-                <th class="text-left px-6 py-4">
-                    Exam
-                </th>
+                <tr>
 
-                <th class="text-left px-6 py-4">
-                    Class
-                </th>
+                    <th class="text-left px-6 py-4">
+                        Exam
+                    </th>
 
-                <th class="text-left px-6 py-4">
-                    Type
-                </th>
+                    <th class="text-left px-6 py-4">
+                        Class
+                    </th>
 
-                <th class="text-left px-6 py-4">
-                    Subjects
-                </th>
+                    <th class="text-left px-6 py-4">
+                        Type
+                    </th>
 
-                <th class="text-left px-6 py-4">
-                    Total
-                </th>
+                    <th class="text-left px-6 py-4">
+                        Subjects
+                    </th>
 
-                <th class="text-left px-6 py-4">
-                    Date
-                </th>
+                    <th class="text-left px-6 py-4">
+                        Total
+                    </th>
 
-                <th class="text-left px-6 py-4">
-                    Status
-                </th>
+                    <th class="text-left px-6 py-4">
+                        Date
+                    </th>
 
-                <th class="text-center px-6 py-4">
-                    Actions
-                </th>
+                    <th class="text-left px-6 py-4">
+                        Status
+                    </th>
 
-            </tr>
+                    <th class="text-center px-6 py-4">
+                        Actions
+                    </th>
 
-        </thead>
+                </tr>
 
-        <tbody>
+            </thead>
 
-        {% if exams %}
 
-            {% for exam in exams %}
+            <tbody>
 
-            <tr class="border-t hover:bg-slate-50">
+            {% if exams %}
 
-                <td class="px-6 py-4 font-medium">
+                {% for exam in exams %}
 
-                    {{ exam.exam_name }}
+                <tr class="border-t hover:bg-slate-50 align-top">
 
-                </td>
+                    <!-- Exam -->
 
-                <td class="px-6 py-4">
+                    <td class="px-6 py-5">
 
-                    {{ exam.class_name }}
+                        <div class="font-semibold text-slate-800">
 
-                </td>
+                            {{ exam.exam_name }}
 
-                <td class="px-6 py-4">
+                        </div>
 
-                    {{ exam.exam_type }}
+                    </td>
 
-                </td>
 
-                <td class="px-6 py-4">
+                    <!-- Class -->
 
-                    {{ exam.subjects }}
+                    <td class="px-6 py-5">
 
-                </td>
+                        {{ exam.class_name }}
 
-                <td class="px-6 py-4">
+                    </td>
 
-                    {{ exam.total_mark }}
 
-                </td>
+                    <!-- Type -->
 
-                <td class="px-6 py-4">
+                    <td class="px-6 py-5">
 
-                    {{ exam.exam_date }}
+                        {% if exam.exam_type == "Academic" %}
 
-                </td>
+                            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
 
-                <td class="px-6 py-4">
+                                Academic
 
-                    {% if exam.is_active %}
+                            </span>
 
-                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                        {% else %}
 
-                            Active
+                            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
 
-                        </span>
+                                Kithab
 
-                    {% else %}
+                            </span>
 
-                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                        {% endif %}
 
-                            Inactive
+                    </td>
 
-                        </span>
 
-                    {% endif %}
+                    <!-- Subjects -->
 
-                </td>
+                    <td class="px-6 py-5">
 
-                <td class="px-6 py-4 text-center">
+                        <div class="flex flex-col gap-2">
 
-                    <a href="{{ url_for('exams.exam_marks', id=exam.id) }}"
-                       class="text-green-600 hover:underline">
+                            {% if exam.subjects %}
 
-                        Marks
+                                {% for subject in exam.subjects.split(', ') %}
 
-                    </a>
+                                    <div class="flex items-center justify-between gap-4">
 
-                    <span class="mx-2 text-slate-300">|</span>
+                                        <span class="text-slate-700">
 
-                    <a href="{{ url_for('exams.update_exam', id=exam.id) }}"
-                       class="text-indigo-600 hover:underline">
+                                            {{ subject }}
 
-                        Edit
+                                        </span>
 
-                    </a>
+                                    </div>
 
-                    <span class="mx-2 text-slate-300">|</span>
+                                {% endfor %}
 
-                    {% if exam.is_active %}
+                            {% else %}
 
-                        <a href="{{ url_for('exams.toggle_exam_status', id=exam.id) }}"
-                           class="text-red-600 hover:underline">
+                                <span class="text-slate-400">
 
-                            Deactivate
+                                    No subjects
 
-                        </a>
+                                </span>
 
-                    {% else %}
+                            {% endif %}
 
-                        <a href="{{ url_for('exams.toggle_exam_status', id=exam.id) }}"
-                           class="text-green-600 hover:underline">
+                        </div>
 
-                            Activate
+                    </td>
 
-                        </a>
 
-                    {% endif %}
+                    <!-- Total -->
 
-                </td>
+                    <td class="px-6 py-5">
 
-            </tr>
+                        {{ exam.total_mark }}
 
-            {% endfor %}
+                    </td>
 
-        {% else %}
 
-            <tr>
+                    <!-- Date -->
 
-                <td colspan="8"
-                    class="text-center py-10 text-slate-500">
+                    <td class="px-6 py-5">
 
-                    No exams found.
+                        {{ exam.exam_date }}
 
-                </td>
+                    </td>
 
-            </tr>
 
-        {% endif %}
+                    <!-- Status -->
 
-        </tbody>
+                    <td class="px-6 py-5">
 
-    </table>
+                        {% if exam.is_active %}
+
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+
+                                Active
+
+                            </span>
+
+                        {% else %}
+
+                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+
+                                Inactive
+
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Actions -->
+
+                    <td class="px-6 py-5">
+
+                        <div class="flex flex-col items-center gap-2">
+
+                            <!-- Enter Marks -->
+
+                            {% if exam.subject_ids %}
+
+                                {% for subject in exam.subject_ids %}
+
+                                    <a
+                                        href="{{ url_for(
+                                            'exams.exam_marks',
+                                            id=exam.id,
+                                            subject_id=subject.id
+                                        ) }}"
+                                        class="w-full text-center bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-4 py-2 rounded-lg text-sm font-medium">
+
+                                        Enter {{ subject.name }} Marks
+
+                                    </a>
+
+                                {% endfor %}
+
+                            {% endif %}
+
+
+                            <!-- Edit -->
+
+                            <a
+                                href="{{ url_for('exams.update_exam', id=exam.id) }}"
+                                class="text-indigo-600 hover:underline">
+
+                                Edit
+
+                            </a>
+
+
+                            <!-- Activate / Deactivate -->
+
+                            {% if exam.is_active %}
+
+                                <a
+                                    href="{{ url_for('exams.toggle_exam_status', id=exam.id) }}"
+                                    class="text-red-600 hover:underline">
+
+                                    Deactivate
+
+                                </a>
+
+                            {% else %}
+
+                                <a
+                                    href="{{ url_for('exams.toggle_exam_status', id=exam.id) }}"
+                                    class="text-green-600 hover:underline">
+
+                                    Activate
+
+                                </a>
+
+                            {% endif %}
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            {% else %}
+
+                <tr>
+
+                    <td
+                        colspan="8"
+                        class="text-center py-10 text-slate-500">
+
+                        No exams found.
+
+                    </td>
+
+                </tr>
+
+            {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
 
 </div>
 

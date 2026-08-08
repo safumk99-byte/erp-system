@@ -1,0 +1,168 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Edit Speaking
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <div class="mb-8">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Edit Speaking
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Update speaking submission
+        </p>
+
+    </div>
+
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+
+        <form method="POST">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Student -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block mb-2 font-medium">
+                        Student
+                    </label>
+
+                    <select
+                        name="student_id"
+                        required
+                        class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                        {% for student in students %}
+
+                        <option
+                            value="{{ student.id }}"
+                            {% if student.id == speaking.student_id %}
+                                selected
+                            {% endif %}>
+
+                            {{ student.admission_no }}
+                            -
+                            {{ student.full_name }}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- Presentation Title -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block mb-2 font-medium">
+                        Presentation Title
+                    </label>
+
+                    <input
+                        type="text"
+                        name="title"
+                        required
+                        value="{{ speaking.title }}"
+                        class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                </div>
+
+
+                <!-- Date -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Presentation Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="presentation_date"
+                        value="{{ speaking.presentation_date or '' }}"
+                        class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                </div>
+
+
+                <!-- Duration -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Duration (Minutes)
+                    </label>
+
+                    <input
+                        type="number"
+                        name="duration_minutes"
+                        min="1"
+                        required
+                        value="{{ speaking.duration_minutes }}"
+                        class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                    <p class="text-sm text-slate-500 mt-2">
+                        Minimum 5 minutes required for points.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- Description -->
+
+            <div class="mt-6">
+
+                <label class="block mb-2 font-medium">
+                    Description
+                </label>
+
+                <textarea
+                    name="description"
+                    rows="6"
+                    class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ speaking.description or '' }}</textarea>
+
+            </div>
+
+
+            <!-- Buttons -->
+
+            <div class="flex justify-end gap-4 mt-8">
+
+                <a
+                    href="{{ url_for('speaking.speaking_list') }}"
+                    class="px-6 py-3 rounded-xl border border-slate-300 hover:bg-slate-50">
+
+                    Cancel
+
+                </a>
+
+                <button
+                    type="submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl">
+
+                    Update Speaking
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

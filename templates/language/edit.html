@@ -1,0 +1,243 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Edit Language Skill
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <div class="mb-8">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Edit Language Skill
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Update pending language assessment
+        </p>
+    </div>
+
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+
+        <form method="POST">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Student -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block mb-2 font-medium">
+                        Student
+                    </label>
+
+                    <select
+                        name="student_id"
+                        required
+                        class="w-full border rounded-xl px-4 py-3">
+
+                        {% for student in students %}
+
+                        <option
+                            value="{{ student.id }}"
+                            {% if student.id == assessment.student_id %}
+                                selected
+                            {% endif %}>
+
+                            {{ student.admission_no }} -
+                            {{ student.full_name }}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- Language -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Language
+                    </label>
+
+                    <input
+                        type="text"
+                        name="language_name"
+                        required
+                        value="{{ assessment.language_name }}"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                </div>
+
+
+                <!-- Skill -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Skill
+                    </label>
+
+                    <select
+                        name="skill_type"
+                        required
+                        class="w-full border rounded-xl px-4 py-3">
+
+                        <option
+                            value="Presentation"
+                            {% if assessment.skill_type == "Presentation" %}
+                                selected
+                            {% endif %}>
+                            Presentation
+                        </option>
+
+                        <option
+                            value="Writing"
+                            {% if assessment.skill_type == "Writing" %}
+                                selected
+                            {% endif %}>
+                            Writing
+                        </option>
+
+                        <option
+                            value="Hearing"
+                            {% if assessment.skill_type == "Hearing" %}
+                                selected
+                            {% endif %}>
+                            Hearing
+                        </option>
+
+                        <option
+                            value="Reading"
+                            {% if assessment.skill_type == "Reading" %}
+                                selected
+                            {% endif %}>
+                            Reading
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Title -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block mb-2 font-medium">
+                        Title / Topic
+                    </label>
+
+                    <input
+                        type="text"
+                        name="title"
+                        value="{{ assessment.title or '' }}"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                </div>
+
+
+                <!-- Duration -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Duration (Minutes)
+                    </label>
+
+                    <input
+                        type="number"
+                        name="duration_minutes"
+                        min="1"
+                        value="{{ assessment.duration_minutes or '' }}"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                </div>
+
+
+                <!-- Pages -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium">
+                        Pages
+                    </label>
+
+                    <input
+                        type="number"
+                        name="pages"
+                        min="1"
+                        value="{{ assessment.pages or '' }}"
+                        class="w-full border rounded-xl px-4 py-3">
+
+                </div>
+
+            </div>
+
+
+            <!-- Review -->
+
+            <div class="mt-6">
+
+                <label class="block mb-2 font-medium">
+                    Written Review
+                </label>
+
+                <textarea
+                    name="review"
+                    rows="5"
+                    class="w-full border rounded-xl px-4 py-3">{{ assessment.review or '' }}</textarea>
+
+            </div>
+
+
+            <!-- Description -->
+
+            <div class="mt-6">
+
+                <label class="block mb-2 font-medium">
+                    Description
+                </label>
+
+                <textarea
+                    name="description"
+                    rows="5"
+                    class="w-full border rounded-xl px-4 py-3">{{ assessment.description or '' }}</textarea>
+
+            </div>
+
+
+            <div class="flex justify-end gap-4 mt-8">
+
+                <a
+                    href="{{ url_for('language.language_list') }}"
+                    class="px-6 py-3 rounded-xl border">
+
+                    Cancel
+
+                </a>
+
+                <button
+                    type="submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl">
+
+                    Update Assessment
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

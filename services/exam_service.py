@@ -24,113 +24,96 @@ def list_exams():
     if search:
 
         cur.execute("""
-
             SELECT
-
                 e.*,
-
-                c.class_name,
-
-                STRING_AGG(
-                    s.subject_name,
-                    ', '
-                    ORDER BY s.subject_name
-                ) AS subjects
-
+                c.class_name
             FROM exams e
 
             JOIN classes c
-
                 ON e.class_id = c.id
 
-            LEFT JOIN exam_subjects es
-
-                ON e.id = es.exam_id
-
-            LEFT JOIN subjects s
-
-                ON es.subject_id = s.id
-
             WHERE
-
                 e.institution_id = %s
-
                 AND e.exam_name ILIKE %s
-
-            GROUP BY
-
-                e.id,
-                c.class_name
 
             ORDER BY e.id DESC
 
         """, (
-
             session["institution_id"],
             f"%{search}%"
-
         ))
 
     else:
 
         cur.execute("""
-
             SELECT
-
                 e.*,
-
-                c.class_name,
-
-                STRING_AGG(
-                    s.subject_name,
-                    ', '
-                    ORDER BY s.subject_name
-                ) AS subjects
-
+                c.class_name
             FROM exams e
 
             JOIN classes c
-
                 ON e.class_id = c.id
 
-            LEFT JOIN exam_subjects es
-
-                ON e.id = es.exam_id
-
-            LEFT JOIN subjects s
-
-                ON es.subject_id = s.id
-
             WHERE
-
                 e.institution_id = %s
-
-            GROUP BY
-
-                e.id,
-                c.class_name
 
             ORDER BY e.id DESC
 
         """, (
-
             session["institution_id"],
-
         ))
 
     exams = cur.fetchall()
+
+    # Add subjects to every exam
+    exam_list = []
+
+    for exam in exams:
+
+        cur.execute("""
+            SELECT
+                s.id,
+                s.subject_name
+            FROM exam_subjects es
+
+            JOIN subjects s
+                ON es.subject_id = s.id
+
+            WHERE
+                es.exam_id = %s
+
+            ORDER BY s.subject_name
+
+        """, (
+            exam["id"],
+        ))
+
+        subjects = cur.fetchall()
+
+        exam_data = dict(exam)
+
+        exam_data["subjects"] = ", ".join(
+            subject["subject_name"]
+            for subject in subjects
+        )
+
+        exam_data["subject_ids"] = [
+            {
+                "id": subject["id"],
+                "name": subject["subject_name"]
+            }
+            for subject in subjects
+        ]
+
+        exam_list.append(exam_data)
 
     cur.close()
     conn.close()
 
     return render_template(
-
         "exams/list.html",
-
-        exams=exams,
-
+        exams=exam_list,
         search=search
-
     )
     
 def add_exam():
@@ -555,30 +538,46 @@ def toggle_exam(id):
         url_for("exams.exam_list")
     )
     
-def enter_marks(id):
+def enter_marks(id, subject_id):
 
     conn = get_connection()
     cur = conn.cursor()
 
-    # Exam Details
+    # Exam + Subject details
     cur.execute("""
         SELECT
-            e.*,
+            e.id,
+            e.exam_name,
+            e.exam_type,
+            e.exam_date,
+            e.total_mark,
+            e.class_id,
+
             c.class_name,
+
+            s.id AS subject_id,
             s.subject_name
+
         FROM exams e
+
         JOIN classes c
             ON e.class_id = c.id
-        LEFT JOIN exam_subjects es
+
+        JOIN exam_subjects es
             ON e.id = es.exam_id
-        LEFT JOIN subjects s
+
+        JOIN subjects s
             ON es.subject_id = s.id
+
         WHERE
-            e.id=%s
-            AND e.institution_id=%s
+            e.id = %s
+            AND es.subject_id = %s
+            AND e.institution_id = %s
+
         LIMIT 1
     """, (
         id,
+        subject_id,
         session["institution_id"]
     ))
 
@@ -586,13 +585,13 @@ def enter_marks(id):
 
     if not exam:
 
-        flash(
-            "Exam not found.",
-            "error"
-        )
-
         cur.close()
         conn.close()
+
+        flash(
+            "Exam or subject not found.",
+            "error"
+        )
 
         return redirect(
             url_for("exams.exam_list")
@@ -612,10 +611,11 @@ def enter_marks(id):
         FROM students st
 
         LEFT JOIN exam_marks em
-
             ON st.id = em.student_id
 
             AND em.exam_id = %s
+
+            AND em.subject_id = %s
 
         WHERE
 
@@ -628,13 +628,10 @@ def enter_marks(id):
         ORDER BY st.full_name
 
     """, (
-
         id,
-
+        subject_id,
         session["institution_id"],
-
         exam["class_id"]
-
     ))
 
     students = cur.fetchall()
@@ -643,45 +640,77 @@ def enter_marks(id):
     conn.close()
 
     return render_template(
-
         "exams/marks.html",
-
         exam=exam,
-
         students=students
-
     )
     
-def save_marks(id):
+def save_marks(id, subject_id):
 
     conn = get_connection()
     cur = conn.cursor()
+
+    # Verify exam + subject
+    cur.execute("""
+        SELECT
+            e.total_mark
+
+        FROM exams e
+
+        JOIN exam_subjects es
+            ON e.id = es.exam_id
+
+        WHERE
+            e.id = %s
+            AND es.subject_id = %s
+            AND e.institution_id = %s
+
+        LIMIT 1
+    """, (
+        id,
+        subject_id,
+        session["institution_id"]
+    ))
+
+    exam = cur.fetchone()
+
+    if not exam:
+
+        cur.close()
+        conn.close()
+
+        flash(
+            "Exam or subject not found.",
+            "error"
+        )
+
+        return redirect(
+            url_for("exams.exam_list")
+        )
+
+    total_mark = float(exam["total_mark"])
 
     student_ids = request.form.getlist(
         "student_id"
     )
 
-    total_mark = float(
-        request.form["total_mark"]
-    )
-
     for student_id in student_ids:
 
-        mark = request.form.get(
+        mark_value = request.form.get(
             f"mark_{student_id}",
             ""
         ).strip()
 
-        if mark == "":
-
+        if mark_value == "":
             continue
 
-        mark = float(mark)
+        try:
+            mark = float(mark_value)
 
-        if mark > total_mark:
+        except ValueError:
 
             flash(
-                "Entered mark exceeds maximum mark.",
+                "Invalid mark entered.",
                 "error"
             )
 
@@ -691,7 +720,26 @@ def save_marks(id):
             return redirect(
                 url_for(
                     "exams.exam_marks",
-                    id=id
+                    id=id,
+                    subject_id=subject_id
+                )
+            )
+
+        if mark < 0 or mark > total_mark:
+
+            flash(
+                f"Mark must be between 0 and {total_mark}.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return redirect(
+                url_for(
+                    "exams.exam_marks",
+                    id=id,
+                    subject_id=subject_id
                 )
             )
 
@@ -717,14 +765,18 @@ def save_marks(id):
         else:
             grade = "D"
 
+        # Check existing mark
         cur.execute("""
             SELECT id
             FROM exam_marks
+
             WHERE
-                exam_id=%s
-                AND student_id=%s
+                exam_id = %s
+                AND subject_id = %s
+                AND student_id = %s
         """, (
             id,
+            subject_id,
             student_id
         ))
 
@@ -734,21 +786,18 @@ def save_marks(id):
 
             cur.execute("""
                 UPDATE exam_marks
+
                 SET
+                    mark = %s,
+                    grade = %s,
+                    entered_by = %s,
+                    updated_at = NOW()
 
-                    mark=%s,
-
-                    grade=%s,
-
-                    entered_by=%s,
-
-                    updated_at=NOW()
-
-                WHERE id=%s
+                WHERE id = %s
             """, (
                 mark,
                 grade,
-                session["user_id"],
+                session.get("user_id"),
                 existing["id"]
             ))
 
@@ -757,39 +806,30 @@ def save_marks(id):
             cur.execute("""
                 INSERT INTO exam_marks
                 (
-
                     exam_id,
-
+                    subject_id,
                     student_id,
-
                     mark,
-
                     grade,
-
                     entered_by
-
                 )
 
                 VALUES
                 (
-
                     %s,
-
                     %s,
-
                     %s,
-
                     %s,
-
+                    %s,
                     %s
-
                 )
             """, (
                 id,
+                subject_id,
                 student_id,
                 mark,
                 grade,
-                session["user_id"]
+                session.get("user_id")
             ))
 
     conn.commit()
@@ -805,7 +845,8 @@ def save_marks(id):
     return redirect(
         url_for(
             "exams.exam_marks",
-            id=id
+            id=id,
+            subject_id=subject_id
         )
     ) 
     

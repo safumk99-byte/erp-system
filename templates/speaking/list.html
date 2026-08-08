@@ -1,0 +1,298 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Speaking
+{% endblock %}
+
+{% block page_content %}
+
+<div class="flex items-center justify-between mb-6">
+
+    <div>
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Speaking
+        </h1>
+
+        <p class="text-slate-500 mt-1">
+            Speaking Skill Assessment
+        </p>
+
+    </div>
+
+    <a
+        href="{{ url_for('speaking.create_speaking') }}"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+
+        + Add Speaking
+
+    </a>
+
+</div>
+
+
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+    <div class="overflow-x-auto">
+
+        <table class="w-full">
+
+            <thead class="bg-slate-100">
+
+                <tr>
+
+                    <th class="text-left px-6 py-4">
+                        Student
+                    </th>
+
+                    <th class="text-left px-6 py-4">
+                        Presentation
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Date
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Duration
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Points
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Status
+                    </th>
+
+                    <th class="text-center px-6 py-4">
+                        Actions
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% if speakings %}
+
+                {% for speaking in speakings %}
+
+                <tr class="border-t hover:bg-slate-50">
+
+                    <!-- Student -->
+
+                    <td class="px-6 py-5">
+
+                        <div class="font-medium text-slate-800">
+                            {{ speaking.full_name }}
+                        </div>
+
+                        <div class="text-sm text-slate-500">
+                            {{ speaking.admission_no }}
+                        </div>
+
+                    </td>
+
+
+                    <!-- Presentation -->
+
+                    <td class="px-6 py-5">
+
+                        <div class="font-medium">
+                            {{ speaking.title }}
+                        </div>
+
+                        {% if speaking.description %}
+
+                        <div class="text-sm text-slate-500 mt-1">
+
+                            {{ speaking.description[:80] }}
+
+                            {% if speaking.description|length > 80 %}
+                                ...
+                            {% endif %}
+
+                        </div>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Date -->
+
+                    <td class="px-6 py-5 text-center">
+
+                        {% if speaking.presentation_date %}
+
+                            {{ speaking.presentation_date }}
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Duration -->
+
+                    <td class="px-6 py-5 text-center">
+
+                        {{ speaking.duration_minutes }} min
+
+                    </td>
+
+
+                    <!-- Points -->
+
+                    <td class="px-6 py-5 text-center font-semibold">
+
+                        {{ speaking.points }}
+
+                    </td>
+
+
+                    <!-- Status -->
+
+                    <td class="px-6 py-5 text-center">
+
+                        {% if speaking.status == "Approved" %}
+
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                                Approved
+                            </span>
+
+                        {% elif speaking.status == "Rejected" %}
+
+                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                                Rejected
+                            </span>
+
+                        {% else %}
+
+                            <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+                                Pending
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Actions -->
+
+                    <td class="px-6 py-5">
+
+                        {% if speaking.status == "Pending" %}
+
+                            <div class="flex justify-center gap-2">
+
+                                <a
+    href="{{ url_for(
+        'speaking.edit_speaking_submission',
+        id=speaking.id
+    ) }}"
+    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm">
+
+    Edit
+
+</a>
+
+                                <!-- Approve -->
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'speaking.approve_speaking_submission',
+                                        id=speaking.id
+                                    ) }}">
+
+                                    <button
+                                        type="submit"
+                                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+
+                                        Approve
+
+                                    </button>
+
+                                </form>
+
+
+                                <!-- Reject -->
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'speaking.reject_speaking_submission',
+                                        id=speaking.id
+                                    ) }}">
+
+                                    <input
+                                        type="text"
+                                        name="rejection_reason"
+                                        placeholder="Reason"
+                                        required
+                                        class="border rounded-lg px-3 py-2 text-sm w-32">
+
+                                    <button
+                                        type="submit"
+                                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+
+                                        Reject
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        {% elif speaking.status == "Approved" %}
+
+                            <span class="text-green-600 text-sm">
+                                Approved
+                            </span>
+
+                        {% else %}
+
+                            <div class="text-sm text-red-600">
+                                {{ speaking.rejection_reason }}
+                            </div>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            {% else %}
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        class="text-center py-12 text-slate-500">
+
+                        No speaking submissions found.
+
+                    </td>
+
+                </tr>
+
+            {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

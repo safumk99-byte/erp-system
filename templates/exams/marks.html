@@ -52,9 +52,13 @@ Enter Marks
 
     </div>
 
-    <form
-        method="POST"
-        action="{{ url_for('exams.save_exam_marks', id=exam.id) }}">
+   <form
+    method="POST"
+    action="{{ url_for(
+        'exams.save_exam_marks',
+        id=exam.id,
+        subject_id=exam.subject_id
+    ) }}">
 
         <input
             type="hidden"

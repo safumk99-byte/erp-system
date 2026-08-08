@@ -51,20 +51,23 @@ def toggle_exam_status(id):
     return toggle_exam(id)
 
 
-@exams.route("/exams/<int:id>/marks")
+@exams.route("/exams/<int:id>/marks/<int:subject_id>")
 @login_required
 @role_required("institution_admin", "staff")
-def exam_marks(id):
+def exam_marks(id, subject_id):
 
-    return enter_marks(id)
+    return enter_marks(id, subject_id)
 
 
-@exams.route("/exams/<int:id>/marks", methods=["POST"])
+@exams.route(
+    "/exams/<int:id>/marks/<int:subject_id>",
+    methods=["POST"]
+)
 @login_required
 @role_required("institution_admin", "staff")
-def save_exam_marks(id):
+def save_exam_marks(id, subject_id):
 
-    return save_marks(id)
+    return save_marks(id, subject_id)
 
 @exams.route(
     "/exams/class-subjects/<int:class_id>"

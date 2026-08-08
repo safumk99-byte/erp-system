@@ -11,6 +11,11 @@ from routes.subjects import subjects
 from routes.parents import parents
 from routes.attendance import attendance
 from routes.exams import exams
+from routes.reading import reading
+from routes.speaking import speaking
+from routes.writing import writing
+from routes.publication import publication
+from routes.language import language
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
@@ -26,7 +31,11 @@ app.register_blueprint(subjects)
 app.register_blueprint(parents)
 app.register_blueprint(attendance)
 app.register_blueprint(exams)
-
+app.register_blueprint(reading)
+app.register_blueprint(speaking)
+app.register_blueprint(writing)
+app.register_blueprint(publication)
+app.register_blueprint(language)
 
 
 @app.route("/login")
