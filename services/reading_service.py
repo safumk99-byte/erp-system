@@ -10,12 +10,153 @@ from flask import (
 from database.db import get_connection
 
 
+# =========================================================
+# Verify Student Access
+# =========================================================
+
+def _student_is_allowed(cur, student_id):
+
+    role = session.get("role")
+
+    # -----------------------------------------------------
+    # Institution Admin
+    # -----------------------------------------------------
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                id
+            FROM students
+
+            WHERE
+                id = %s
+                AND institution_id = %s
+                AND is_active = TRUE
+        """, (
+            student_id,
+            session["institution_id"]
+        ))
+
+    # -----------------------------------------------------
+    # Staff
+    # -----------------------------------------------------
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                s.id
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.id = %s
+                AND s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            student_id,
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        return False
+
+    return cur.fetchone() is not None
+
+
+# =========================================================
+# Get Allowed Students
+# =========================================================
+
+def _get_students(cur):
+
+    role = session.get("role")
+
+    # -----------------------------------------------------
+    # Institution Admin
+    # -----------------------------------------------------
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                id,
+                admission_no,
+                full_name
+
+            FROM students
+
+            WHERE
+                institution_id = %s
+                AND is_active = TRUE
+
+            ORDER BY full_name
+        """, (
+            session["institution_id"],
+        ))
+
+    # -----------------------------------------------------
+    # Staff
+    # -----------------------------------------------------
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT DISTINCT
+                s.id,
+                s.admission_no,
+                s.full_name
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+
+            ORDER BY s.full_name
+        """, (
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        return []
+
+    return cur.fetchall()
+
+
+# =========================================================
+# List Readings
+# =========================================================
+
 def list_readings():
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
+    role = session.get("role")
+
+    query = """
         SELECT
             r.*,
             s.full_name,
@@ -28,12 +169,50 @@ def list_readings():
 
         WHERE
             r.institution_id = %s
+            AND s.institution_id = %s
+    """
 
-        ORDER BY r.id DESC
-
-    """, (
+    params = [
         session["institution_id"],
-    ))
+        session["institution_id"]
+    ]
+
+
+    # -----------------------------------------------------
+    # Staff → Assigned Students Only
+    # -----------------------------------------------------
+
+    if role == "staff":
+
+        query += """
+            AND EXISTS (
+                SELECT 1
+
+                FROM staff_classes sc
+
+                WHERE
+                    sc.institution_id = %s
+                    AND sc.staff_id = %s
+                    AND sc.class_id = s.class_id
+                    AND sc.is_active = TRUE
+            )
+        """
+
+        params.extend([
+            session["institution_id"],
+            session["user_id"]
+        ])
+
+
+    query += """
+        ORDER BY r.id DESC
+    """
+
+
+    cur.execute(
+        query,
+        tuple(params)
+    )
 
     readings = cur.fetchall()
 
@@ -46,29 +225,16 @@ def list_readings():
     )
 
 
+# =========================================================
+# Add Reading
+# =========================================================
+
 def add_reading():
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT
-            id,
-            admission_no,
-            full_name
-
-        FROM students
-
-        WHERE
-            institution_id = %s
-            AND is_active = TRUE
-
-        ORDER BY full_name
-    """, (
-        session["institution_id"],
-    ))
-
-    students = cur.fetchall()
+    students = _get_students(cur)
 
     if request.method == "POST":
 
@@ -88,6 +254,34 @@ def add_reading():
             "review"
         ].strip()
 
+
+        # -------------------------------------------------
+        # Verify Student Access
+        # -------------------------------------------------
+
+        if not _student_is_allowed(
+            cur,
+            student_id
+        ):
+
+            flash(
+                "You do not have access to this student.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return render_template(
+                "reading/add.html",
+                students=students
+            )
+
+
+        # -------------------------------------------------
+        # Validation
+        # -------------------------------------------------
+
         if not book_title:
 
             flash(
@@ -103,6 +297,7 @@ def add_reading():
                 students=students
             )
 
+
         if not review:
 
             flash(
@@ -117,6 +312,7 @@ def add_reading():
                 "reading/add.html",
                 students=students
             )
+
 
         try:
 
@@ -137,6 +333,7 @@ def add_reading():
                 students=students
             )
 
+
         if pages <= 0:
 
             flash(
@@ -152,10 +349,12 @@ def add_reading():
                 students=students
             )
 
+
         # Points will be calculated
         # after approval.
 
         points = 0
+
 
         cur.execute("""
             INSERT INTO reading_submissions
@@ -191,15 +390,18 @@ def add_reading():
             points
         ))
 
+
         conn.commit()
 
         cur.close()
         conn.close()
 
+
         flash(
             "Reading submission added successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -207,8 +409,10 @@ def add_reading():
             )
         )
 
+
     cur.close()
     conn.close()
+
 
     return render_template(
         "reading/add.html",
@@ -216,28 +420,87 @@ def add_reading():
     )
 
 
+# =========================================================
+# Approve Reading
+# =========================================================
+
 def approve_reading(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT
-            reading_type,
-            pages
+    role = session.get("role")
 
-        FROM reading_submissions
 
-        WHERE
-            id = %s
-            AND institution_id = %s
+    # -----------------------------------------------------
+    # Get Reading + Verify Student Access
+    # -----------------------------------------------------
 
-    """, (
-        id,
-        session["institution_id"]
-    ))
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                r.reading_type,
+                r.pages
+
+            FROM reading_submissions r
+
+            JOIN students s
+                ON r.student_id = s.id
+
+            WHERE
+                r.id = %s
+                AND r.institution_id = %s
+                AND s.institution_id = %s
+                AND r.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                r.reading_type,
+                r.pages
+
+            FROM reading_submissions r
+
+            JOIN students s
+                ON r.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                r.id = %s
+                AND r.institution_id = %s
+                AND s.institution_id = %s
+                AND r.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
 
     reading = cur.fetchone()
+
 
     if not reading:
 
@@ -245,7 +508,7 @@ def approve_reading(id):
         conn.close()
 
         flash(
-            "Reading submission not found.",
+            "Reading submission not found or you do not have permission to approve it.",
             "error"
         )
 
@@ -255,10 +518,12 @@ def approve_reading(id):
             )
         )
 
+
     reading_type = reading["reading_type"]
     pages = reading["pages"]
 
     points = 0
+
 
     if reading_type == "Fiction":
 
@@ -269,6 +534,7 @@ def approve_reading(id):
 
         if pages >= 25:
             points = 5
+
 
     cur.execute("""
         UPDATE reading_submissions
@@ -284,6 +550,7 @@ def approve_reading(id):
         WHERE
             id = %s
             AND institution_id = %s
+            AND status = 'Pending'
 
     """, (
         points,
@@ -292,15 +559,18 @@ def approve_reading(id):
         session["institution_id"]
     ))
 
+
     conn.commit()
 
     cur.close()
     conn.close()
 
+
     flash(
         "Reading submission approved.",
         "success"
     )
+
 
     return redirect(
         url_for(
@@ -309,15 +579,22 @@ def approve_reading(id):
     )
 
 
+# =========================================================
+# Reject Reading
+# =========================================================
+
 def reject_reading(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
+    role = session.get("role")
+
     reason = request.form.get(
         "rejection_reason",
         ""
     ).strip()
+
 
     if not reason:
 
@@ -335,6 +612,92 @@ def reject_reading(id):
             )
         )
 
+
+    # -----------------------------------------------------
+    # Verify Reading Access
+    # -----------------------------------------------------
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                r.id
+
+            FROM reading_submissions r
+
+            JOIN students s
+                ON r.student_id = s.id
+
+            WHERE
+                r.id = %s
+                AND r.institution_id = %s
+                AND s.institution_id = %s
+                AND r.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                r.id
+
+            FROM reading_submissions r
+
+            JOIN students s
+                ON r.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                r.id = %s
+                AND r.institution_id = %s
+                AND s.institution_id = %s
+                AND r.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
+
+    reading = cur.fetchone()
+
+
+    if not reading:
+
+        cur.close()
+        conn.close()
+
+        flash(
+            "Reading submission not found or you do not have permission to reject it.",
+            "error"
+        )
+
+        return redirect(
+            url_for(
+                "reading.reading_list"
+            )
+        )
+
+
     cur.execute("""
         UPDATE reading_submissions
 
@@ -349,6 +712,7 @@ def reject_reading(id):
         WHERE
             id = %s
             AND institution_id = %s
+            AND status = 'Pending'
 
     """, (
         session.get("user_id"),
@@ -357,43 +721,107 @@ def reject_reading(id):
         session["institution_id"]
     ))
 
+
     conn.commit()
 
     cur.close()
     conn.close()
+
 
     flash(
         "Reading submission rejected.",
         "success"
     )
 
+
     return redirect(
         url_for(
             "reading.reading_list"
         )
     )
-    
+
+
+# =========================================================
+# Edit Reading
+# =========================================================
+
 def edit_reading(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
-    # Get existing submission
-    cur.execute("""
-        SELECT *
-        FROM reading_submissions
+    role = session.get("role")
 
-        WHERE
-            id = %s
-            AND institution_id = %s
-            AND status = 'Pending'
 
-    """, (
-        id,
-        session["institution_id"]
-    ))
+    # -----------------------------------------------------
+    # Get Existing Submission
+    # -----------------------------------------------------
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                r.*
+
+            FROM reading_submissions r
+
+            JOIN students s
+                ON r.student_id = s.id
+
+            WHERE
+                r.id = %s
+                AND r.institution_id = %s
+                AND s.institution_id = %s
+                AND r.status = 'Pending'
+
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                r.*
+
+            FROM reading_submissions r
+
+            JOIN students s
+                ON r.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                r.id = %s
+                AND r.institution_id = %s
+                AND s.institution_id = %s
+                AND r.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
 
     reading = cur.fetchone()
+
 
     if not reading:
 
@@ -411,26 +839,17 @@ def edit_reading(id):
             )
         )
 
-    # Students
-    cur.execute("""
-        SELECT
-            id,
-            admission_no,
-            full_name
 
-        FROM students
+    # -----------------------------------------------------
+    # Allowed Students
+    # -----------------------------------------------------
 
-        WHERE
-            institution_id = %s
-            AND is_active = TRUE
+    students = _get_students(cur)
 
-        ORDER BY full_name
 
-    """, (
-        session["institution_id"],
-    ))
-
-    students = cur.fetchall()
+    # -----------------------------------------------------
+    # POST
+    # -----------------------------------------------------
 
     if request.method == "POST":
 
@@ -450,6 +869,35 @@ def edit_reading(id):
             "review"
         ].strip()
 
+
+        # -------------------------------------------------
+        # Verify New Student Access
+        # -------------------------------------------------
+
+        if not _student_is_allowed(
+            cur,
+            student_id
+        ):
+
+            flash(
+                "You do not have access to this student.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return render_template(
+                "reading/edit.html",
+                reading=reading,
+                students=students
+            )
+
+
+        # -------------------------------------------------
+        # Validation
+        # -------------------------------------------------
+
         if not book_title or not review:
 
             flash(
@@ -465,6 +913,7 @@ def edit_reading(id):
                 reading=reading,
                 students=students
             )
+
 
         try:
 
@@ -486,6 +935,7 @@ def edit_reading(id):
                 students=students
             )
 
+
         if pages <= 0:
 
             flash(
@@ -501,6 +951,11 @@ def edit_reading(id):
                 reading=reading,
                 students=students
             )
+
+
+        # -------------------------------------------------
+        # Update
+        # -------------------------------------------------
 
         cur.execute("""
             UPDATE reading_submissions
@@ -527,16 +982,18 @@ def edit_reading(id):
             id,
             session["institution_id"]
         ))
-
+        
         conn.commit()
 
         cur.close()
         conn.close()
 
+
         flash(
             "Reading submission updated successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -544,11 +1001,17 @@ def edit_reading(id):
             )
         )
 
+
+    # -----------------------------------------------------
+    # GET
+    # -----------------------------------------------------
+
     cur.close()
     conn.close()
+
 
     return render_template(
         "reading/edit.html",
         reading=reading,
         students=students
-    )    
+    )

@@ -117,8 +117,76 @@ def login_user(login_type):
         session["role_id"] = user["role_id"]
         session["full_name"] = user["full_name"]
 
+
+        # -------------------------
+        # Student Dashboard
+        # -------------------------
+
+        if user["role_name"] == "student":
+
+            # Get student record linked to this user
+
+            conn = get_connection()
+            cur = conn.cursor()
+
+            cur.execute("""
+                SELECT
+                    id,
+                    full_name
+
+                FROM students
+
+                WHERE
+                    user_id = %s
+                    AND institution_id = %s
+                    AND is_active = TRUE
+            """, (
+                user["id"],
+                user["institution_id"]
+            ))
+
+            student = cur.fetchone()
+
+            cur.close()
+            conn.close()
+
+
+            if not student:
+
+                session.clear()
+
+                flash(
+                    "Student profile not found.",
+                    "error"
+                )
+
+                return redirect(
+                    url_for(
+                        "auth.student_login"
+                    )
+                )
+
+
+            session["student_id"] = student["id"]
+
+            session["student_name"] = student["full_name"]
+
+
+            return redirect(
+                url_for(
+                    "dashboard.dashboard"
+                )
+                    )
+
+
+        # -------------------------
+        # Other Users
+        # -------------------------
+
         return redirect(
-            url_for("dashboard.dashboard")
+            url_for(
+                "dashboard.dashboard"
+            )
         )
 
     return render_template(

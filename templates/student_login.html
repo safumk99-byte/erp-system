@@ -1,0 +1,83 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Student Login
+{% endblock %}
+
+{% block page_content %}
+
+<div class="min-h-[70vh] flex items-center justify-center">
+
+    <div class="w-full max-w-md">
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+
+            <div class="text-center mb-8">
+
+                <h1 class="text-3xl font-bold text-slate-800">
+                    Student Login
+                </h1>
+
+                <p class="text-slate-500 mt-2">
+                    Sign in to access your student dashboard
+                </p>
+
+            </div>
+
+
+            <form
+                method="POST"
+                class="space-y-5">
+
+
+                <div>
+
+                    <label class="block mb-2 font-medium text-slate-700">
+                        Admission Number
+                    </label>
+
+                    <input
+                        type="text"
+                        name="username"
+                        required
+                        autocomplete="username"
+                        placeholder="Example: ALF-0001"
+                        class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+
+                </div>
+
+
+                <div>
+
+                    <label class="block mb-2 font-medium text-slate-700">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        placeholder="Enter your password"
+                        class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium">
+
+                    Login
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

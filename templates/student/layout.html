@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        Student Portal
+        {% endblock %}
+        - ALIF ERP
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for(
+            'static',
+            filename='css/output.css'
+        ) }}">
+
+</head>
+
+
+<body class="bg-slate-50 min-h-screen">
+
+    <div class="min-h-screen flex">
+
+
+        <!-- Sidebar -->
+
+        <aside
+            class="w-64 bg-slate-900 text-white hidden md:flex flex-col">
+
+
+            <!-- Logo -->
+
+            <div class="px-6 py-6 border-b border-slate-800">
+
+                <h1 class="text-2xl font-bold">
+                    ALIF ERP
+                </h1>
+
+                <p class="text-xs text-slate-400 mt-1">
+                    Student Portal
+                </p>
+
+            </div>
+
+
+            <!-- Student Info -->
+
+            <div class="px-6 py-5 border-b border-slate-800">
+
+                <p class="font-semibold">
+
+                    {{ session.get(
+                        "student_name",
+                        "Student"
+                    ) }}
+
+                </p>
+
+                <p class="text-xs text-slate-400 mt-1">
+                    Student
+                </p>
+
+            </div>
+
+
+            <!-- Navigation -->
+
+            <nav class="flex-1 px-4 py-5 space-y-2">
+
+
+                <!-- Dashboard -->
+
+                <a
+                    href="{{ url_for(
+                        'dashboard.dashboard'
+                    ) }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+                    <span>▦</span>
+
+                    <span>
+                        Dashboard
+                    </span>
+
+                </a>
+
+
+                <!-- My Progress -->
+
+                <a
+                    href="#"
+                    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+                    <span>▣</span>
+
+                    <span>
+                        My Progress
+                    </span>
+
+                </a>
+
+
+                <!-- Leave -->
+
+                <a
+                    href="{{ url_for(
+                        'student_leave.student_leave_page_route'
+                    ) }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+                    <span>▤</span>
+
+                    <span>
+                        Leave Application
+                    </span>
+
+                </a>
+
+            </nav>
+
+
+            <!-- Logout -->
+
+            <div class="p-4 border-t border-slate-800">
+
+                <a
+                    href="{{ url_for(
+                        'auth.logout'
+                    ) }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-slate-800 transition">
+
+                    <span>↪</span>
+
+                    <span>
+                        Logout
+                    </span>
+
+                </a>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Main -->
+
+        <main class="flex-1">
+
+
+            <!-- Header -->
+
+            <header
+                class="bg-white border-b border-slate-200 px-6 py-5">
+
+                <div class="flex items-center justify-between">
+
+                    <div>
+
+                        <h2 class="text-xl font-semibold text-slate-800">
+
+                            {% block page_heading %}
+                            Student Dashboard
+                            {% endblock %}
+
+                        </h2>
+
+                        <p class="text-sm text-slate-500">
+
+                            Welcome back,
+                            {{ session.get(
+                                "student_name",
+                                "Student"
+                            ) }}
+
+                        </p>
+
+                    </div>
+
+
+                    <div
+                        class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold">
+
+                        {{ session.get(
+                            "student_name",
+                            "S"
+                        )[0]|upper }}
+
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <!-- Content -->
+
+            <section class="p-6">
+
+                {% with messages = get_flashed_messages(
+                    with_categories=true
+                ) %}
+
+                    {% if messages %}
+
+                        {% for category, message in messages %}
+
+                        <div
+                            class="mb-4 px-4 py-3 rounded-xl
+                            {% if category == 'success' %}
+                                bg-green-100 text-green-800
+                            {% else %}
+                                bg-red-100 text-red-800
+                            {% endif %}">
+
+                            {{ message }}
+
+                        </div>
+
+                        {% endfor %}
+
+                    {% endif %}
+
+                {% endwith %}
+
+
+                {% block page_content %}
+
+                {% endblock %}
+
+            </section>
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,95 @@
+{% extends "student/layout.html" %}
+
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+
+{% block page_heading %}
+Student Dashboard
+{% endblock %}
+
+
+{% block page_content %}
+
+<div class="max-w-6xl mx-auto">
+
+
+    <div class="mb-8">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+
+            Welcome,
+            {{ session.get(
+                "student_name",
+                "Student"
+            ) }}
+
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Manage your academic information and leave applications.
+        </p>
+
+    </div>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+
+        <!-- My Progress -->
+
+        <a
+            href="#"
+            class="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-md transition">
+
+            <div
+                class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-xl mb-4">
+
+                📚
+
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                My Progress
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-2">
+                View your academic progress and records.
+            </p>
+
+        </a>
+
+
+        <!-- Leave Application -->
+
+        <a
+            href="{{ url_for(
+                'student_leave.student_leave_page_route'
+            ) }}"
+            class="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-md transition">
+
+            <div
+                class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-xl mb-4">
+
+                📅
+
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Leave Application
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Apply for leave and track your applications.
+            </p>
+
+        </a>
+
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -5,13 +5,22 @@ Attendance
 {% endblock %}
 
 {% block styles %}
-<link rel="stylesheet"
-      href="{{ url_for('static', filename='css/attendance.css') }}">
+
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/attendance.css') }}"
+>
+
 {% endblock %}
+
 
 {% block page_content %}
 
 <div class="max-w-7xl mx-auto">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
 
     <div class="mb-8">
 
@@ -25,19 +34,27 @@ Attendance
 
     </div>
 
+
     {% include "components/alert.html" %}
 
-    <!-- Filter -->
+
+    <!-- =====================================================
+         FILTER
+    ====================================================== -->
 
     <form
         method="GET"
-        class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+        class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8"
+    >
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+
+
+            <!-- Date -->
 
             <div>
 
-                <label class="block mb-2 font-medium">
+                <label class="block mb-2 font-medium text-slate-700">
                     Date
                 </label>
 
@@ -45,19 +62,24 @@ Attendance
                     type="date"
                     name="date"
                     value="{{ attendance_date }}"
-                    class="w-full border rounded-xl px-4 py-3">
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
 
             </div>
 
+
+            <!-- Class -->
+
             <div>
 
-                <label class="block mb-2 font-medium">
+                <label class="block mb-2 font-medium text-slate-700">
                     Class
                 </label>
 
                 <select
                     name="class_id"
-                    class="w-full border rounded-xl px-4 py-3">
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
 
                     <option value="">
                         Select Class
@@ -67,7 +89,10 @@ Attendance
 
                     <option
                         value="{{ class_item.id }}"
-                        {% if class_id|string == class_item.id|string %}selected{% endif %}>
+                        {% if class_id|string == class_item.id|string %}
+                            selected
+                        {% endif %}
+                    >
 
                         {{ class_item.class_name }}
 
@@ -79,10 +104,54 @@ Attendance
 
             </div>
 
+
+            <!-- Period -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Period
+                </label>
+
+                <select
+                    name="period_number"
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+
+                    {% set selected_period = request.args.get(
+                        "period_number",
+                        "1"
+                    ) %}
+
+
+                    {% for period in range(1, 9) %}
+
+                    <option
+                        value="{{ period }}"
+                        {% if selected_period|string == period|string %}
+                            selected
+                        {% endif %}
+                    >
+
+                        Period {{ period }}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- Load -->
+
             <div class="flex items-end">
 
                 <button
-                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3">
+                    type="submit"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3 font-medium transition"
+                >
 
                     Load Students
 
@@ -94,282 +163,424 @@ Attendance
 
     </form>
 
-{% if students %}
 
-<form
-    method="POST"
-    action="{{ url_for('attendance.save_attendance') }}">
 
-    <input
-        type="hidden"
-        name="attendance_date"
-        value="{{ attendance_date }}">
+    {% if students %}
 
-    <input
-        type="hidden"
-        name="class_id"
-        value="{{ class_id }}">
 
-    <!-- Live Summary -->
+    <!-- =====================================================
+         ATTENDANCE FORM
+    ====================================================== -->
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <form
+        method="POST"
+        action="{{ url_for('attendance.save_attendance') }}"
+    >
 
-        <div class="rounded-xl bg-green-500 text-white p-4 text-center">
+        <!-- Hidden Date -->
 
-            <div class="text-sm">
-                Present
-            </div>
+        <input
+            type="hidden"
+            name="attendance_date"
+            value="{{ attendance_date }}"
+        >
 
-            <div
-                id="presentCount"
-                class="text-2xl font-bold">
 
-                0
+        <!-- Hidden Class -->
 
-            </div>
+        <input
+            type="hidden"
+            name="class_id"
+            value="{{ class_id }}"
+        >
 
-        </div>
 
-        <div class="rounded-xl bg-purple-500 text-white p-4 text-center">
+        <!-- Hidden Period -->
 
-            <div class="text-sm">
-                Late
-            </div>
+        <input
+            type="hidden"
+            name="period_number"
+            value="{{ request.args.get('period_number', '1') }}"
+        >
 
-            <div
-                id="lateCount"
-                class="text-2xl font-bold">
 
-                0
 
-            </div>
+        <!-- =================================================
+             SUMMARY
+        ================================================== -->
 
-        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
 
-        <div class="rounded-xl bg-yellow-400 text-black p-4 text-center">
 
-            <div class="text-sm">
-                Leave
-            </div>
+            <!-- Present -->
 
             <div
-                id="leaveCount"
-                class="text-2xl font-bold">
-
-                0
-
-            </div>
-
-        </div>
-
-        <div class="rounded-xl bg-red-500 text-white p-4 text-center">
-
-            <div class="text-sm">
-                Absent
-            </div>
-
-            <div
-                id="absentCount"
-                class="text-2xl font-bold">
-
-                0
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- Grid -->
-
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-
-        <div class="flex justify-between items-center mb-6">
-
-            <h2 class="text-xl font-semibold">
-
-                Students
-
-            </h2>
-
-            <button
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl">
-
-                Save Attendance
-
-            </button>
-
-        </div>
-
-        <div class="grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-3">
-            {% for student in students %}
-
-                <input
-                    type="hidden"
-                    name="student_id"
-                    value="{{ student.id }}">
-
-                <input
-                    type="hidden"
-                    id="status_{{ student.id }}"
-                    name="status_{{ student.id }}"
-                    value="{{ student.status }}">
-
-                <button
-
-                    id="box_{{ student.id }}"
-
-                    type="button"
-
-                    class="attendance-box
-                           w-14
-                           h-14
-                           rounded-xl
-                           text-white
-                           font-bold
-                           text-lg
-                           shadow
-                           transition-all
-                           duration-200"
-
-                    data-id="{{ student.id }}"
-
-                    data-status="{{ student.status }}"
-
-                    data-name="{{ student.full_name }}"
-
-                    data-admission="{{ student.admission_no }}"
-
-                    data-class="{{ student.class_name }}"
-
-                    data-parent="{{ student.parent_name }}"
-
-                    data-phone="{{ student.parent_phone }}"
-
-                    data-photo="{{ student.photo or '' }}">
-
-                    {{ "%02d"|format(loop.index) }}
-
-                </button>
-
-            {% endfor %}
-
-        </div>
-
-    </div>
-
-</form>
-
-<!-- Student Popup -->
-
-<div
-
-    id="studentPopup"
-
-    class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-
-    <div
-        class="bg-white rounded-2xl w-96 p-6 relative">
-
-        <button
-
-            id="closePopup"
-
-            class="absolute top-4 right-4 text-slate-500 text-xl">
-
-            ✕
-
-        </button>
-
-        <div class="flex flex-col items-center">
-
-            <img
-
-                id="popupPhoto"
-
-                src=""
-
-                class="w-24 h-24 rounded-full object-cover border mb-4">
-
-            <h2
-
-                id="popupName"
-
-                class="text-2xl font-bold">
-
-            </h2>
-
-            <p class="text-slate-500">
-
-                <span id="popupAdmission"></span>
-
-            </p>
-
-        </div>
-
-        <div class="mt-6 space-y-3">
-
-            <div>
-
-                <strong>Class</strong>
-
-                <div id="popupClass"></div>
-
-            </div>
-
-            <div>
-
-                <strong>Parent</strong>
-
-                <div id="popupParent"></div>
-
-            </div>
-
-            <div>
-
-                <strong>Phone</strong>
-
-                <div id="popupPhone"></div>
-
-            </div>
-
-            <div>
-
-                <strong>Today's Status</strong>
+                class="rounded-xl bg-green-500 text-white p-4 text-center shadow"
+            >
+
+                <div class="text-sm">
+                    Present
+                </div>
 
                 <div
-                    id="popupStatus"
-                    class="font-semibold text-lg">
+                    id="presentCount"
+                    class="text-2xl font-bold"
+                >
+                    0
+                </div>
 
+            </div>
+
+
+            <!-- Late -->
+
+            <div
+                class="rounded-xl bg-purple-500 text-white p-4 text-center shadow"
+            >
+
+                <div class="text-sm">
+                    Late
+                </div>
+
+                <div
+                    id="lateCount"
+                    class="text-2xl font-bold"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <!-- Leave -->
+
+            <div
+                class="rounded-xl bg-yellow-400 text-black p-4 text-center shadow"
+            >
+
+                <div class="text-sm">
+                    Leave
+                </div>
+
+                <div
+                    id="leaveCount"
+                    class="text-2xl font-bold"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <!-- Absent -->
+
+            <div
+                class="rounded-xl bg-red-500 text-white p-4 text-center shadow"
+            >
+
+                <div class="text-sm">
+                    Absent
+                </div>
+
+                <div
+                    id="absentCount"
+                    class="text-2xl font-bold"
+                >
+                    0
                 </div>
 
             </div>
 
         </div>
 
-        <div class="mt-8">
 
-            <a
 
-                id="viewStudent"
+        <!-- =================================================
+             STUDENT GRID
+        ================================================== -->
 
-                href="#"
+        <div
+            class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6"
+        >
 
-                class="block text-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3">
 
-                View Student
+            <!-- Header -->
 
-            </a>
+            <div class="flex justify-between items-center mb-6">
+
+                <div>
+
+                    <h2 class="text-xl font-semibold text-slate-800">
+                        Students
+                    </h2>
+
+                    <p class="text-sm text-slate-500 mt-1">
+
+                        Period
+                        {{ request.args.get("period_number", "1") }}
+
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition"
+                >
+
+                    Save Attendance
+
+                </button>
+
+            </div>
+
+
+
+            <!-- Student Boxes -->
+
+            <div
+                class="grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-3"
+            >
+
+                {% for student in students %}
+
+
+                <!-- Student ID -->
+
+                <input
+                    type="hidden"
+                    name="student_id"
+                    value="{{ student.id }}"
+                >
+
+
+                <!-- Student Status -->
+
+                <input
+                    type="hidden"
+                    id="status_{{ student.id }}"
+                    name="status_{{ student.id }}"
+                    value="{{ student.status }}"
+                >
+
+
+                <!-- Student Box -->
+
+                <button
+                    id="box_{{ student.id }}"
+                    type="button"
+                    class="attendance-box w-14 h-14 rounded-xl text-white font-bold text-lg shadow transition-all duration-200"
+                    data-id="{{ student.id }}"
+                    data-status="{{ student.status }}"
+                    data-name="{{ student.full_name }}"
+                    data-admission="{{ student.admission_no }}"
+                    data-class="{{ student.class_name }}"
+                    data-parent="{{ student.parent_name }}"
+                    data-phone="{{ student.parent_phone }}"
+                    data-photo="{{ student.photo or '' }}"
+                >
+
+                    {{ "%02d"|format(loop.index) }}
+
+                </button>
+
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+    </form>
+
+
+
+    <!-- =====================================================
+         STUDENT POPUP
+    ====================================================== -->
+
+    <div
+        id="studentPopup"
+        class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+    >
+
+        <div
+            class="bg-white rounded-2xl w-full max-w-md p-6 relative shadow-xl"
+        >
+
+
+            <!-- Close -->
+
+            <button
+                id="closePopup"
+                type="button"
+                class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 text-xl"
+            >
+
+                ✕
+
+            </button>
+
+
+            <!-- Student Header -->
+
+            <div class="flex flex-col items-center">
+
+
+                <img
+                    id="popupPhoto"
+                    src=""
+                    alt="Student"
+                    class="w-24 h-24 rounded-full object-cover border mb-4"
+                >
+
+
+                <h2
+                    id="popupName"
+                    class="text-2xl font-bold text-slate-800"
+                >
+                </h2>
+
+
+                <p class="text-slate-500">
+
+                    <span id="popupAdmission"></span>
+
+                </p>
+
+            </div>
+
+
+
+            <!-- Details -->
+
+            <div class="mt-6 space-y-4">
+
+
+                <div>
+
+                    <strong class="text-slate-700">
+                        Class
+                    </strong>
+
+                    <div
+                        id="popupClass"
+                        class="text-slate-600"
+                    >
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <strong class="text-slate-700">
+                        Parent
+                    </strong>
+
+                    <div
+                        id="popupParent"
+                        class="text-slate-600"
+                    >
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <strong class="text-slate-700">
+                        Phone
+                    </strong>
+
+                    <div
+                        id="popupPhone"
+                        class="text-slate-600"
+                    >
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <strong class="text-slate-700">
+                        Today's Status
+                    </strong>
+
+                    <div
+                        id="popupStatus"
+                        class="font-semibold text-lg"
+                    >
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- View Student -->
+
+            <div class="mt-8">
+
+                <a
+                    id="viewStudent"
+                    href="#"
+                    class="block text-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3 transition"
+                >
+
+                    View Student
+
+                </a>
+
+            </div>
 
         </div>
 
     </div>
 
+
+    {% else %}
+
+
+    <!-- =====================================================
+         EMPTY STATE
+    ====================================================== -->
+
+    <div
+        class="bg-white rounded-2xl border border-slate-200 shadow-sm p-10 text-center"
+    >
+
+        <div class="text-5xl mb-4">
+            📋
+        </div>
+
+        <h2 class="text-xl font-semibold text-slate-800">
+            No Students Loaded
+        </h2>
+
+        <p class="text-slate-500 mt-2">
+            Select a date, class and period to load students.
+        </p>
+
+    </div>
+
+
+    {% endif %}
+
 </div>
 
-{% endif %}
+{% endblock %}
 
-</div>
+
+
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+
+<script
+    src="{{ url_for('static', filename='js/attendance.js') }}"
+></script>
+
 {% endblock %}

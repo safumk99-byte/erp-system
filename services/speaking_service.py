@@ -10,12 +10,138 @@ from flask import (
 from database.db import get_connection
 
 
+# =========================================================
+# Get Allowed Students
+# =========================================================
+
+def _get_students(cur):
+
+    role = session.get("role")
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                id,
+                admission_no,
+                full_name
+
+            FROM students
+
+            WHERE
+                institution_id = %s
+                AND is_active = TRUE
+
+            ORDER BY full_name
+        """, (
+            session["institution_id"],
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT DISTINCT
+                s.id,
+                s.admission_no,
+                s.full_name
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+
+            ORDER BY s.full_name
+        """, (
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        return []
+
+    return cur.fetchall()
+
+
+# =========================================================
+# Verify Student Access
+# =========================================================
+
+def _student_is_allowed(cur, student_id):
+
+    role = session.get("role")
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                id
+
+            FROM students
+
+            WHERE
+                id = %s
+                AND institution_id = %s
+                AND is_active = TRUE
+        """, (
+            student_id,
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                s.id
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.id = %s
+                AND s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            student_id,
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        return False
+
+    return cur.fetchone() is not None
+
+
+# =========================================================
+# List Speakings
+# =========================================================
+
 def list_speakings():
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
+    role = session.get("role")
+
+    query = """
         SELECT
             sp.*,
             s.full_name,
@@ -28,12 +154,50 @@ def list_speakings():
 
         WHERE
             sp.institution_id = %s
+            AND s.institution_id = %s
+    """
 
-        ORDER BY sp.id DESC
-
-    """, (
+    params = [
         session["institution_id"],
-    ))
+        session["institution_id"]
+    ]
+
+
+    # -----------------------------------------------------
+    # Staff → Assigned Students Only
+    # -----------------------------------------------------
+
+    if role == "staff":
+
+        query += """
+            AND EXISTS (
+                SELECT 1
+
+                FROM staff_classes sc
+
+                WHERE
+                    sc.institution_id = %s
+                    AND sc.staff_id = %s
+                    AND sc.class_id = s.class_id
+                    AND sc.is_active = TRUE
+            )
+        """
+
+        params.extend([
+            session["institution_id"],
+            session["user_id"]
+        ])
+
+
+    query += """
+        ORDER BY sp.id DESC
+    """
+
+
+    cur.execute(
+        query,
+        tuple(params)
+    )
 
     speakings = cur.fetchall()
 
@@ -46,30 +210,17 @@ def list_speakings():
     )
 
 
+# =========================================================
+# Add Speaking
+# =========================================================
+
 def add_speaking():
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT
-            id,
-            admission_no,
-            full_name
+    students = _get_students(cur)
 
-        FROM students
-
-        WHERE
-            institution_id = %s
-            AND is_active = TRUE
-
-        ORDER BY full_name
-
-    """, (
-        session["institution_id"],
-    ))
-
-    students = cur.fetchall()
 
     if request.method == "POST":
 
@@ -92,6 +243,34 @@ def add_speaking():
             ""
         ).strip()
 
+
+        # -------------------------------------------------
+        # Verify Student Access
+        # -------------------------------------------------
+
+        if not _student_is_allowed(
+            cur,
+            student_id
+        ):
+
+            flash(
+                "You do not have access to this student.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return render_template(
+                "speaking/add.html",
+                students=students
+            )
+
+
+        # -------------------------------------------------
+        # Validation
+        # -------------------------------------------------
+
         if not title:
 
             flash(
@@ -106,6 +285,7 @@ def add_speaking():
                 "speaking/add.html",
                 students=students
             )
+
 
         try:
 
@@ -128,6 +308,7 @@ def add_speaking():
                 students=students
             )
 
+
         if duration_minutes <= 0:
 
             flash(
@@ -143,10 +324,12 @@ def add_speaking():
                 students=students
             )
 
+
         # Points are calculated only
         # after approval.
 
         points = 0
+
 
         cur.execute("""
             INSERT INTO speaking_submissions
@@ -183,15 +366,18 @@ def add_speaking():
             points
         ))
 
+
         conn.commit()
 
         cur.close()
         conn.close()
 
+
         flash(
             "Speaking submission added successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -199,8 +385,10 @@ def add_speaking():
             )
         )
 
+
     cur.close()
     conn.close()
+
 
     return render_template(
         "speaking/add.html",
@@ -208,27 +396,85 @@ def add_speaking():
     )
 
 
+# =========================================================
+# Approve Speaking
+# =========================================================
+
 def approve_speaking(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT
-            duration_minutes
+    role = session.get("role")
 
-        FROM speaking_submissions
 
-        WHERE
-            id = %s
-            AND institution_id = %s
+    # -----------------------------------------------------
+    # Verify Speaking + Student Access
+    # -----------------------------------------------------
 
-    """, (
-        id,
-        session["institution_id"]
-    ))
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                sp.duration_minutes
+
+            FROM speaking_submissions sp
+
+            JOIN students s
+                ON sp.student_id = s.id
+
+            WHERE
+                sp.id = %s
+                AND sp.institution_id = %s
+                AND s.institution_id = %s
+                AND sp.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                sp.duration_minutes
+
+            FROM speaking_submissions sp
+
+            JOIN students s
+                ON sp.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                sp.id = %s
+                AND sp.institution_id = %s
+                AND s.institution_id = %s
+                AND sp.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
 
     speaking = cur.fetchone()
+
 
     if not speaking:
 
@@ -236,7 +482,7 @@ def approve_speaking(id):
         conn.close()
 
         flash(
-            "Speaking submission not found.",
+            "Speaking submission not found or you do not have permission to approve it.",
             "error"
         )
 
@@ -246,14 +492,17 @@ def approve_speaking(id):
             )
         )
 
+
     duration_minutes = speaking[
         "duration_minutes"
     ]
 
     points = 0
 
+
     if duration_minutes >= 5:
         points = 5
+
 
     cur.execute("""
         UPDATE speaking_submissions
@@ -269,6 +518,7 @@ def approve_speaking(id):
         WHERE
             id = %s
             AND institution_id = %s
+            AND status = 'Pending'
 
     """, (
         points,
@@ -277,15 +527,18 @@ def approve_speaking(id):
         session["institution_id"]
     ))
 
+
     conn.commit()
 
     cur.close()
     conn.close()
 
+
     flash(
         "Speaking submission approved.",
         "success"
     )
+
 
     return redirect(
         url_for(
@@ -294,15 +547,22 @@ def approve_speaking(id):
     )
 
 
+# =========================================================
+# Reject Speaking
+# =========================================================
+
 def reject_speaking(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
+    role = session.get("role")
+
     reason = request.form.get(
         "rejection_reason",
         ""
     ).strip()
+
 
     if not reason:
 
@@ -320,6 +580,92 @@ def reject_speaking(id):
             )
         )
 
+
+    # -----------------------------------------------------
+    # Verify Speaking + Student Access
+    # -----------------------------------------------------
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                sp.id
+
+            FROM speaking_submissions sp
+
+            JOIN students s
+                ON sp.student_id = s.id
+
+            WHERE
+                sp.id = %s
+                AND sp.institution_id = %s
+                AND s.institution_id = %s
+                AND sp.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                sp.id
+
+            FROM speaking_submissions sp
+
+            JOIN students s
+                ON sp.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                sp.id = %s
+                AND sp.institution_id = %s
+                AND s.institution_id = %s
+                AND sp.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
+
+    speaking = cur.fetchone()
+
+
+    if not speaking:
+
+        cur.close()
+        conn.close()
+
+        flash(
+            "Speaking submission not found or you do not have permission to reject it.",
+            "error"
+        )
+
+        return redirect(
+            url_for(
+                "speaking.speaking_list"
+            )
+        )
+
+
     cur.execute("""
         UPDATE speaking_submissions
 
@@ -334,6 +680,7 @@ def reject_speaking(id):
         WHERE
             id = %s
             AND institution_id = %s
+            AND status = 'Pending'
 
     """, (
         session.get("user_id"),
@@ -342,43 +689,107 @@ def reject_speaking(id):
         session["institution_id"]
     ))
 
+
     conn.commit()
 
     cur.close()
     conn.close()
+
 
     flash(
         "Speaking submission rejected.",
         "success"
     )
 
+
     return redirect(
         url_for(
             "speaking.speaking_list"
         )
     )
-    
+
+
+# =========================================================
+# Edit Speaking
+# =========================================================
+
 def edit_speaking(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
-    # Get existing pending submission
-    cur.execute("""
-        SELECT *
-        FROM speaking_submissions
+    role = session.get("role")
 
-        WHERE
-            id = %s
-            AND institution_id = %s
-            AND status = 'Pending'
 
-    """, (
-        id,
-        session["institution_id"]
-    ))
+    # -----------------------------------------------------
+    # Get Existing Pending Submission
+    # -----------------------------------------------------
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                sp.*
+
+            FROM speaking_submissions sp
+
+            JOIN students s
+                ON sp.student_id = s.id
+
+            WHERE
+                sp.id = %s
+                AND sp.institution_id = %s
+                AND s.institution_id = %s
+                AND sp.status = 'Pending'
+
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                sp.*
+
+            FROM speaking_submissions sp
+
+            JOIN students s
+                ON sp.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                sp.id = %s
+                AND sp.institution_id = %s
+                AND s.institution_id = %s
+                AND sp.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
 
     speaking = cur.fetchone()
+
 
     if not speaking:
 
@@ -396,26 +807,17 @@ def edit_speaking(id):
             )
         )
 
-    # Students
-    cur.execute("""
-        SELECT
-            id,
-            admission_no,
-            full_name
 
-        FROM students
+    # -----------------------------------------------------
+    # Allowed Students
+    # -----------------------------------------------------
 
-        WHERE
-            institution_id = %s
-            AND is_active = TRUE
+    students = _get_students(cur)
 
-        ORDER BY full_name
 
-    """, (
-        session["institution_id"],
-    ))
-
-    students = cur.fetchall()
+    # -----------------------------------------------------
+    # POST
+    # -----------------------------------------------------
 
     if request.method == "POST":
 
@@ -438,6 +840,35 @@ def edit_speaking(id):
             ""
         ).strip()
 
+
+        # -------------------------------------------------
+        # Verify New Student Access
+        # -------------------------------------------------
+
+        if not _student_is_allowed(
+            cur,
+            student_id
+        ):
+
+            flash(
+                "You do not have access to this student.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return render_template(
+                "speaking/edit.html",
+                speaking=speaking,
+                students=students
+            )
+
+
+        # -------------------------------------------------
+        # Validation
+        # -------------------------------------------------
+
         if not title:
 
             flash(
@@ -453,6 +884,7 @@ def edit_speaking(id):
                 speaking=speaking,
                 students=students
             )
+
 
         try:
 
@@ -476,6 +908,7 @@ def edit_speaking(id):
                 students=students
             )
 
+
         if duration_minutes <= 0:
 
             flash(
@@ -491,6 +924,11 @@ def edit_speaking(id):
                 speaking=speaking,
                 students=students
             )
+
+
+        # -------------------------------------------------
+        # Update
+        # -------------------------------------------------
 
         cur.execute("""
             UPDATE speaking_submissions
@@ -518,15 +956,18 @@ def edit_speaking(id):
             session["institution_id"]
         ))
 
+
         conn.commit()
 
         cur.close()
         conn.close()
 
+
         flash(
             "Speaking submission updated successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -534,11 +975,17 @@ def edit_speaking(id):
             )
         )
 
+
+    # -----------------------------------------------------
+    # GET
+    # -----------------------------------------------------
+
     cur.close()
     conn.close()
+
 
     return render_template(
         "speaking/edit.html",
         speaking=speaking,
         students=students
-    )    
+    )

@@ -1,0 +1,475 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Student Profile
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-6xl mx-auto">
+
+    <!-- Header -->
+
+    <div class="mb-8">
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+            <div>
+
+                <h1 class="text-3xl font-bold text-slate-800">
+                    Student Profile
+                </h1>
+
+                <p class="text-slate-500 mt-2">
+                    View student information and account details.
+                </p>
+
+            </div>
+
+            <div class="flex gap-3">
+
+                <a
+                    href="{{ url_for('students.update_student', id=student.id) }}"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+
+                    Edit Student
+
+                </a>
+
+                <a
+                    href="{{ url_for('students.student_list') }}"
+                    class="border border-slate-300 px-5 py-3 rounded-xl hover:bg-slate-50">
+
+                    Back
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {% include "components/alert.html" %}
+
+
+    <!-- Profile Card -->
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+        <!-- Top -->
+
+        <div class="p-8">
+
+            <div class="flex flex-col md:flex-row gap-8 items-start">
+
+                <!-- Photo -->
+
+                <div class="shrink-0">
+
+                    {% if student.photo %}
+
+                        <img
+                            src="{{ student.photo }}"
+                            alt="{{ student.full_name }}"
+                            class="w-32 h-32 rounded-2xl object-cover border border-slate-200 shadow-sm">
+
+                    {% else %}
+
+                        <div
+                            class="w-32 h-32 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center">
+
+                            <span class="text-4xl font-bold text-slate-400">
+
+                                {{ student.full_name[:1]|upper }}
+
+                            </span>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Basic Information -->
+
+                <div class="flex-1">
+
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+
+                        <h2 class="text-2xl font-bold text-slate-800">
+
+                            {{ student.full_name }}
+
+                        </h2>
+
+
+                        {% if student.is_active %}
+
+                            <span
+                                class="inline-flex w-fit px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
+
+                                Active
+
+                            </span>
+
+                        {% else %}
+
+                            <span
+                                class="inline-flex w-fit px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700">
+
+                                Inactive
+
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <p class="text-slate-500 mt-2">
+
+                        Admission No:
+                        <span class="font-semibold text-slate-700">
+
+                            {{ student.admission_no }}
+
+                        </span>
+
+                    </p>
+
+
+                    <p class="text-slate-500 mt-1">
+
+                        Class:
+                        <span class="font-semibold text-slate-700">
+
+                            {{ student.class_name or "Not Assigned" }}
+
+                        </span>
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Student Information -->
+
+        <div class="border-t border-slate-200 p-8">
+
+            <h3 class="text-xl font-semibold text-slate-800 mb-6">
+
+                Student Information
+
+            </h3>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+
+                <!-- Admission -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Admission Number
+                    </p>
+
+                    <p class="font-semibold text-slate-800 mt-1">
+                        {{ student.admission_no }}
+                    </p>
+
+                </div>
+
+
+                <!-- Gender -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Gender
+                    </p>
+
+                    <p class="font-semibold text-slate-800 mt-1">
+
+                        {{ student.gender or "Not provided" }}
+
+                    </p>
+
+                </div>
+
+
+                <!-- DOB -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Date of Birth
+                    </p>
+
+                    <p class="font-semibold text-slate-800 mt-1">
+
+                        {{ student.date_of_birth or "Not provided" }}
+
+                    </p>
+
+                </div>
+
+
+                <!-- Class -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Class
+                    </p>
+
+                    <p class="font-semibold text-slate-800 mt-1">
+
+                        {{ student.class_name or "Not Assigned" }}
+
+                    </p>
+
+                </div>
+
+
+                <!-- Account -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Student Login
+                    </p>
+
+                    {% if student.user_active %}
+
+                        <p class="font-semibold text-green-600 mt-1">
+                            Active
+                        </p>
+
+                    {% elif student.user_id %}
+
+                        <p class="font-semibold text-red-600 mt-1">
+                            Inactive
+                        </p>
+
+                    {% else %}
+
+                        <p class="font-semibold text-slate-500 mt-1">
+                            Not Available
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Student Status -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Student Status
+                    </p>
+
+                    {% if student.is_active %}
+
+                        <p class="font-semibold text-green-600 mt-1">
+                            Active
+                        </p>
+
+                    {% else %}
+
+                        <p class="font-semibold text-red-600 mt-1">
+                            Inactive
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Parent Information -->
+
+        <div class="border-t border-slate-200 p-8">
+
+            <h3 class="text-xl font-semibold text-slate-800 mb-6">
+
+                Parent Information
+
+            </h3>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
+                <!-- Parent Name -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Parent Name
+                    </p>
+
+                    <p class="font-semibold text-slate-800 mt-1">
+
+                        {{ student.parent_name or "Not provided" }}
+
+                    </p>
+
+                </div>
+
+
+                <!-- Parent Phone -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Parent Phone
+                    </p>
+
+                    {% if student.parent_phone %}
+
+                        <a
+                            href="tel:{{ student.parent_phone }}"
+                            class="font-semibold text-indigo-600 hover:text-indigo-700 mt-1 inline-block">
+
+                            {{ student.parent_phone }}
+
+                        </a>
+
+                    {% else %}
+
+                        <p class="font-semibold text-slate-500 mt-1">
+                            Not provided
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Address -->
+
+                <div class="md:col-span-2">
+
+                    <p class="text-sm text-slate-500">
+                        Address
+                    </p>
+
+                    <p class="font-semibold text-slate-800 mt-1 whitespace-pre-line">
+
+                        {{ student.address or "Not provided" }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Account Information -->
+
+        <div class="border-t border-slate-200 p-8">
+
+            <h3 class="text-xl font-semibold text-slate-800 mb-6">
+
+                Account Information
+
+            </h3>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        User ID
+                    </p>
+
+                    <p class="font-semibold text-slate-800 mt-1">
+
+                        {{ student.user_id or "Not available" }}
+
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Parent User ID
+                    </p>
+
+                    <p class="font-semibold text-slate-800 mt-1">
+
+                        {{ student.parent_user_id or "Not available" }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Actions -->
+
+        <div class="border-t border-slate-200 p-8">
+
+            <div class="flex flex-col sm:flex-row gap-3">
+
+                <a
+                    href="{{ url_for('students.update_student', id=student.id) }}"
+                    class="text-center bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl">
+
+                    Edit Student
+
+                </a>
+
+
+                <a
+                    href="{{ url_for('students.toggle_student', id=student.id) }}"
+                    class="text-center border border-slate-300 hover:bg-slate-50 px-6 py-3 rounded-xl">
+
+                    {% if student.is_active %}
+                        Deactivate Student
+                    {% else %}
+                        Activate Student
+                    {% endif %}
+
+                </a>
+
+
+                <a
+                    href="{{ url_for('students.student_list') }}"
+                    class="text-center border border-slate-300 hover:bg-slate-50 px-6 py-3 rounded-xl">
+
+                    Back to Students
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

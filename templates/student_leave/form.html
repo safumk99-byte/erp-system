@@ -1,0 +1,268 @@
+{% extends "student/layout.html" %}
+
+{% block title %}
+Student Leave
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-5xl mx-auto">
+
+    <div class="mb-6">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Leave Application
+        </h1>
+
+        <p class="text-slate-500 mt-1">
+            Submit a leave request for review
+        </p>
+
+    </div>
+
+
+    <!-- Application Form -->
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'student_leave.submit_student_leave_route'
+            ) }}"
+            id="leaveForm"
+            class="space-y-6">
+
+
+            <!-- Leave Date -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Leave Date
+                </label>
+
+                <input
+                    type="date"
+                    name="leave_date"
+                    min="{{ today }}"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+
+            </div>
+
+
+            <!-- Reason -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Reason for Leave
+                </label>
+
+                <textarea
+                    name="reason"
+                    rows="5"
+                    required
+                    placeholder="Enter the reason for leave..."
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+
+            </div>
+
+
+            <!-- Notice -->
+
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+
+                <p class="text-sm text-blue-800">
+                    Your leave application will be reviewed by the authorized staff.
+                    Attendance will be updated after approval.
+                </p>
+
+            </div>
+
+
+            <!-- Submit -->
+
+            <div class="flex justify-end">
+
+                <button
+                    type="submit"
+                    id="submitLeaveButton"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-medium">
+
+                    Submit Leave Application
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- Previous Requests -->
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+        <div class="px-6 py-5 border-b bg-slate-50">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                My Leave Applications
+            </h2>
+
+        </div>
+
+
+        {% if leave_requests %}
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full">
+
+                <thead class="bg-slate-50 border-b">
+
+                    <tr>
+
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Date
+                        </th>
+
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Reason
+                        </th>
+
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Status
+                        </th>
+
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Remarks
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y">
+
+                    {% for item in leave_requests %}
+
+                    <tr class="hover:bg-slate-50">
+
+                        <td class="px-6 py-5 whitespace-nowrap text-slate-700">
+                            {{ item.leave_date }}
+                        </td>
+
+
+                        <td class="px-6 py-5 text-slate-700">
+                            {{ item.reason }}
+                        </td>
+
+
+                        <td class="px-6 py-5">
+
+                            {% if item.status == "Approved" %}
+
+                            <span class="inline-flex bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                                Approved
+                            </span>
+
+                            {% elif item.status == "Rejected" %}
+
+                            <span class="inline-flex bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                                Rejected
+                            </span>
+
+                            {% else %}
+
+                            <span class="inline-flex bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-sm">
+                                Pending
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td class="px-6 py-5 text-slate-500">
+                            {{ item.review_remarks or "—" }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="text-center py-12">
+
+            <h2 class="text-lg font-semibold text-slate-700">
+                No leave applications
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Your submitted leave applications will appear here.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const form =
+            document.getElementById(
+                "leaveForm"
+            );
+
+        const button =
+            document.getElementById(
+                "submitLeaveButton"
+            );
+
+
+        if (form && button) {
+
+            form.addEventListener(
+                "submit",
+                function () {
+
+                    button.disabled = true;
+
+                    button.innerText =
+                        "Submitting...";
+
+                    button.classList.add(
+                        "opacity-70",
+                        "cursor-not-allowed"
+                    );
+
+                }
+            );
+
+        }
+
+    }
+);
+
+</script>
+
+{% endblock %}

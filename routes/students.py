@@ -7,7 +7,8 @@ from services.student_service import (
     list_students,
     add_student,
     edit_student,
-    toggle_student_status
+    toggle_student_status,
+    student_profile
 )
 
 students = Blueprint(
@@ -44,3 +45,14 @@ def update_student(id):
 def toggle_student(id):
 
     return toggle_student_status(id)
+
+# =========================================================
+# Student Profile
+# =========================================================
+
+@students.route("/students/<int:id>")
+@login_required
+@role_required("institution_admin", "staff")
+def view_student(id):
+
+    return student_profile(id)

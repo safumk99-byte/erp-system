@@ -24,24 +24,129 @@ ALLOWED_CERTIFICATE_EXTENSIONS = {
 }
 
 
+# =========================================================
+# Student Access Helper
+# =========================================================
+
+def _student_is_allowed(cur, student_id):
+
+    role = session.get("role")
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                id
+
+            FROM students
+
+            WHERE
+                id = %s
+                AND institution_id = %s
+                AND is_active = TRUE
+        """, (
+            student_id,
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                s.id
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.id = %s
+                AND s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            student_id,
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        return False
+
+    return cur.fetchone() is not None
+
+
+# =========================================================
+# Get Students
+# =========================================================
+
 def get_students(cur):
 
-    cur.execute("""
-        SELECT
-            id,
-            admission_no,
-            full_name
-        FROM students
-        WHERE
-            institution_id = %s
-            AND is_active = TRUE
-        ORDER BY full_name
-    """, (
-        session["institution_id"],
-    ))
+    role = session.get("role")
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                id,
+                admission_no,
+                full_name
+
+            FROM students
+
+            WHERE
+                institution_id = %s
+                AND is_active = TRUE
+
+            ORDER BY full_name
+        """, (
+            session["institution_id"],
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT DISTINCT
+                s.id,
+                s.admission_no,
+                s.full_name
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+
+            ORDER BY s.full_name
+        """, (
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        return []
 
     return cur.fetchall()
 
+
+# =========================================================
+# Calculate Paper Points
+# =========================================================
 
 def calculate_paper_points(level):
 
@@ -59,6 +164,10 @@ def calculate_paper_points(level):
 
     return 0
 
+
+# =========================================================
+# Save Certificate
+# =========================================================
 
 def save_certificate(file):
 
@@ -121,12 +230,18 @@ def save_certificate(file):
     ).replace("\\", "/")
 
 
+# =========================================================
+# List Paper Presentations
+# =========================================================
+
 def list_paper_presentations():
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
+    role = session.get("role")
+
+    query = """
         SELECT
             p.*,
             s.full_name,
@@ -139,11 +254,50 @@ def list_paper_presentations():
 
         WHERE
             p.institution_id = %s
+            AND s.institution_id = %s
+    """
 
-        ORDER BY p.id DESC
-    """, (
+    params = [
         session["institution_id"],
-    ))
+        session["institution_id"]
+    ]
+
+
+    # -----------------------------------------------------
+    # Staff → Assigned Students Only
+    # -----------------------------------------------------
+
+    if role == "staff":
+
+        query += """
+            AND EXISTS (
+                SELECT 1
+
+                FROM staff_classes sc
+
+                WHERE
+                    sc.institution_id = %s
+                    AND sc.staff_id = %s
+                    AND sc.class_id = s.class_id
+                    AND sc.is_active = TRUE
+            )
+        """
+
+        params.extend([
+            session["institution_id"],
+            session["user_id"]
+        ])
+
+
+    query += """
+        ORDER BY p.id DESC
+    """
+
+
+    cur.execute(
+        query,
+        tuple(params)
+    )
 
     presentations = cur.fetchall()
 
@@ -156,12 +310,17 @@ def list_paper_presentations():
     )
 
 
+# =========================================================
+# Add Paper Presentation
+# =========================================================
+
 def add_paper_presentation():
 
     conn = get_connection()
     cur = conn.cursor()
 
     students = get_students(cur)
+
 
     if request.method == "POST":
 
@@ -197,6 +356,30 @@ def add_paper_presentation():
             "certificate_file"
         )
 
+
+        # -------------------------------------------------
+        # Verify Student Access
+        # -------------------------------------------------
+
+        if not _student_is_allowed(
+            cur,
+            student_id
+        ):
+
+            flash(
+                "You do not have access to this student.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return render_template(
+                "paper_presentation/add.html",
+                students=students
+            )
+
+
         if not topic:
 
             flash(
@@ -211,6 +394,7 @@ def add_paper_presentation():
                 "paper_presentation/add.html",
                 students=students
             )
+
 
         if presentation_level not in (
             "State",
@@ -232,9 +416,10 @@ def add_paper_presentation():
                 students=students
             )
 
-        # Proposal specifically requires
-        # recognized university/college affiliation
-        # for Others.
+
+        # -------------------------------------------------
+        # Others requires affiliation
+        # -------------------------------------------------
 
         if (
             presentation_level == "Others"
@@ -253,6 +438,7 @@ def add_paper_presentation():
                 "paper_presentation/add.html",
                 students=students
             )
+
 
         try:
 
@@ -274,6 +460,7 @@ def add_paper_presentation():
                 "paper_presentation/add.html",
                 students=students
             )
+
 
         cur.execute("""
             INSERT INTO paper_presentations
@@ -314,15 +501,18 @@ def add_paper_presentation():
             description
         ))
 
+
         conn.commit()
 
         cur.close()
         conn.close()
 
+
         flash(
             "Paper presentation added successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -330,8 +520,10 @@ def add_paper_presentation():
             )
         )
 
+
     cur.close()
     conn.close()
+
 
     return render_template(
         "paper_presentation/add.html",
@@ -339,25 +531,85 @@ def add_paper_presentation():
     )
 
 
+# =========================================================
+# Edit Paper Presentation
+# =========================================================
+
 def edit_paper_presentation(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT *
-        FROM paper_presentations
+    role = session.get("role")
 
-        WHERE
-            id = %s
-            AND institution_id = %s
-            AND status = 'Pending'
-    """, (
-        id,
-        session["institution_id"]
-    ))
+
+    # -----------------------------------------------------
+    # Get Existing Presentation
+    # -----------------------------------------------------
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                p.*
+
+            FROM paper_presentations p
+
+            JOIN students s
+                ON p.student_id = s.id
+
+            WHERE
+                p.id = %s
+                AND p.institution_id = %s
+                AND s.institution_id = %s
+                AND p.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                p.*
+
+            FROM paper_presentations p
+
+            JOIN students s
+                ON p.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                p.id = %s
+                AND p.institution_id = %s
+                AND s.institution_id = %s
+                AND p.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
 
     presentation = cur.fetchone()
+
 
     if not presentation:
 
@@ -375,7 +627,9 @@ def edit_paper_presentation(id):
             )
         )
 
+
     students = get_students(cur)
+
 
     if request.method == "POST":
 
@@ -411,6 +665,31 @@ def edit_paper_presentation(id):
             "certificate_file"
         )
 
+
+        # -------------------------------------------------
+        # Verify New Student Access
+        # -------------------------------------------------
+
+        if not _student_is_allowed(
+            cur,
+            student_id
+        ):
+
+            flash(
+                "You do not have access to this student.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return render_template(
+                "paper_presentation/edit.html",
+                presentation=presentation,
+                students=students
+            )
+
+
         if not topic:
 
             flash(
@@ -426,6 +705,7 @@ def edit_paper_presentation(id):
                 presentation=presentation,
                 students=students
             )
+
 
         if presentation_level not in (
             "State",
@@ -448,6 +728,7 @@ def edit_paper_presentation(id):
                 students=students
             )
 
+
         if (
             presentation_level == "Others"
             and not affiliated_institution
@@ -467,9 +748,11 @@ def edit_paper_presentation(id):
                 students=students
             )
 
+
         certificate_path = presentation[
             "certificate_file"
         ]
+
 
         if (
             certificate_file
@@ -498,6 +781,7 @@ def edit_paper_presentation(id):
                     students=students
                 )
 
+
         cur.execute("""
             UPDATE paper_presentations
 
@@ -515,6 +799,7 @@ def edit_paper_presentation(id):
                 id = %s
                 AND institution_id = %s
                 AND status = 'Pending'
+
         """, (
             student_id,
             topic,
@@ -527,15 +812,18 @@ def edit_paper_presentation(id):
             session["institution_id"]
         ))
 
+
         conn.commit()
 
         cur.close()
         conn.close()
 
+
         flash(
             "Paper presentation updated successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -543,38 +831,91 @@ def edit_paper_presentation(id):
             )
         )
 
+
     cur.close()
     conn.close()
+
 
     return render_template(
         "paper_presentation/edit.html",
         presentation=presentation,
         students=students
     )
-
-
+    
 def approve_paper_presentation(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT
-            presentation_level,
-            affiliated_institution
+    role = session.get("role")
 
-        FROM paper_presentations
+    # ---------------------------------
+    # Verify presentation access
+    # ---------------------------------
 
-        WHERE
-            id = %s
-            AND institution_id = %s
-            AND status = 'Pending'
-    """, (
-        id,
-        session["institution_id"]
-    ))
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                p.presentation_level,
+                p.affiliated_institution
+
+            FROM paper_presentations p
+
+            WHERE
+                p.id = %s
+                AND p.institution_id = %s
+                AND p.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                p.presentation_level,
+                p.affiliated_institution
+
+            FROM paper_presentations p
+
+            JOIN students s
+                ON p.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                p.id = %s
+                AND p.institution_id = %s
+
+                AND s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+
+                AND p.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
 
     presentation = cur.fetchone()
+
 
     if not presentation:
 
@@ -582,7 +923,7 @@ def approve_paper_presentation(id):
         conn.close()
 
         flash(
-            "Paper presentation not found or already reviewed.",
+            "Paper presentation not found or you do not have permission.",
             "error"
         )
 
@@ -592,6 +933,7 @@ def approve_paper_presentation(id):
             )
         )
 
+
     level = presentation[
         "presentation_level"
     ]
@@ -599,6 +941,11 @@ def approve_paper_presentation(id):
     affiliated_institution = presentation[
         "affiliated_institution"
     ]
+
+
+    # ---------------------------------
+    # Others requires affiliation
+    # ---------------------------------
 
     if (
         level == "Others"
@@ -619,9 +966,19 @@ def approve_paper_presentation(id):
             )
         )
 
+
+    # ---------------------------------
+    # Calculate points
+    # ---------------------------------
+
     points = calculate_paper_points(
         level
     )
+
+
+    # ---------------------------------
+    # Approve
+    # ---------------------------------
 
     cur.execute("""
         UPDATE paper_presentations
@@ -645,48 +1002,145 @@ def approve_paper_presentation(id):
         session["institution_id"]
     ))
 
+
     conn.commit()
 
     cur.close()
     conn.close()
+
 
     flash(
         f"Paper presentation approved. Points: {points}",
         "success"
     )
 
+
     return redirect(
         url_for(
             "paper_presentation.paper_presentation_list"
         )
     )
-
-
+    
 def reject_paper_presentation(id):
 
     conn = get_connection()
     cur = conn.cursor()
+
+    role = session.get("role")
 
     reason = request.form.get(
         "rejection_reason",
         ""
     ).strip()
 
+
+    # ---------------------------------
+    # Validate rejection reason
+    # ---------------------------------
+
     if not reason:
+
+        cur.close()
+        conn.close()
 
         flash(
             "Rejection reason is required.",
             "error"
         )
 
+        return redirect(
+            url_for(
+                "paper_presentation.paper_presentation_list"
+            )
+        )
+
+
+    # ---------------------------------
+    # Verify presentation access
+    # ---------------------------------
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                p.id
+
+            FROM paper_presentations p
+
+            WHERE
+                p.id = %s
+                AND p.institution_id = %s
+                AND p.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                p.id
+
+            FROM paper_presentations p
+
+            JOIN students s
+                ON p.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                p.id = %s
+                AND p.institution_id = %s
+
+                AND s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+
+                AND p.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
         cur.close()
         conn.close()
+
+        return "Unauthorized", 403
+
+
+    presentation = cur.fetchone()
+
+
+    if not presentation:
+
+        cur.close()
+        conn.close()
+
+        flash(
+            "Paper presentation not found or you do not have permission.",
+            "error"
+        )
 
         return redirect(
             url_for(
                 "paper_presentation.paper_presentation_list"
             )
         )
+
+
+    # ---------------------------------
+    # Reject
+    # ---------------------------------
 
     cur.execute("""
         UPDATE paper_presentations
@@ -710,18 +1164,21 @@ def reject_paper_presentation(id):
         session["institution_id"]
     ))
 
+
     conn.commit()
 
     cur.close()
     conn.close()
+
 
     flash(
         "Paper presentation rejected.",
         "success"
     )
 
+
     return redirect(
         url_for(
             "paper_presentation.paper_presentation_list"
         )
-    )
+    )        

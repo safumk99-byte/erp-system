@@ -7,7 +7,9 @@ from services.staff_service import (
     list_staff,
     add_staff,
     edit_staff,
-    toggle_staff_status
+    toggle_staff_status,
+    assign_staff_classes,
+    assign_staff_subjects
 )
 
 staff = Blueprint(
@@ -44,3 +46,32 @@ def update_staff(id):
 def toggle_staff(id):
 
     return toggle_staff_status(id)
+
+# -------------------------
+# Staff Class Assignment
+# -------------------------
+
+@staff.route(
+    "/staff/<int:id>/assign-classes",
+    methods=["GET", "POST"]
+)
+@login_required
+@role_required("institution_admin")
+def assign_classes(id):
+
+    return assign_staff_classes(id)
+
+
+# -------------------------
+# Staff Subject Assignment
+# -------------------------
+
+@staff.route(
+    "/staff/<int:id>/assign-subjects",
+    methods=["GET", "POST"]
+)
+@login_required
+@role_required("institution_admin")
+def assign_subjects(id):
+
+    return assign_staff_subjects(id)

@@ -1,219 +1,125 @@
-/* ==========================================
-   Attendance Box
-========================================== */
+/* =========================================================
+   Attendance Page
+   ========================================================= */
 
-.attendance-box{
+.attendance-box {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 
-    width:56px;
-    height:56px;
+    width: 56px !important;
+    height: 56px !important;
 
-    border-radius:14px;
+    border-radius: 12px !important;
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    background-color: #4f46e5 !important;
+    color: #ffffff !important;
 
-    font-size:18px;
-    font-weight:700;
+    font-size: 18px !important;
+    font-weight: 700 !important;
 
-    cursor:pointer;
+    border: 2px solid #3730a3 !important;
 
-    user-select:none;
+    cursor: pointer !important;
 
-    transition:all .18s ease;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15) !important;
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        background-color 0.15s ease !important;
+}
+
+
+/* Hover */
+
+.attendance-box:hover {
+    transform: translateY(-2px) !important;
 
     box-shadow:
-        0 2px 8px rgba(0,0,0,.12);
-
+        0 6px 12px rgba(0, 0, 0, 0.18) !important;
 }
 
-.attendance-box:hover{
 
-    transform:translateY(-2px);
+/* =========================================================
+   Present
+   ========================================================= */
+
+.attendance-box.present {
+    background-color: #16a34a !important;
+    border-color: #15803d !important;
+    color: #ffffff !important;
+}
+
+
+/* =========================================================
+   Late
+   ========================================================= */
+
+.attendance-box.late {
+    background-color: #2563eb !important;
+    border-color: #1d4ed8 !important;
+    color: #ffffff !important;
+}
+
+
+/* =========================================================
+   Leave
+   ========================================================= */
+
+.attendance-box.leave {
+    background-color: #eab308 !important;
+    border-color: #ca8a04 !important;
+    color: #111827 !important;
+}
+
+
+/* =========================================================
+   Absent
+   ========================================================= */
+
+.attendance-box.absent {
+    background-color: #dc2626 !important;
+    border-color: #b91c1c !important;
+    color: #ffffff !important;
+}
+
+
+/* =========================================================
+   Active / Selected
+   ========================================================= */
+
+.attendance-box.selected {
+    transform: scale(1.05) !important;
 
     box-shadow:
-        0 8px 18px rgba(0,0,0,.18);
-
+        0 0 0 3px rgba(79, 70, 229, 0.25),
+        0 6px 12px rgba(0, 0, 0, 0.18) !important;
 }
 
-.attendance-box:active{
 
-    transform:scale(.92);
+/* =========================================================
+   Student Grid
+   ========================================================= */
 
+.attendance-box-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* ==========================================
-   Status Colors
-========================================== */
 
-.bg-green-500{
-
-    background:#22c55e;
-
-    color:#fff;
-
-}
-
-.bg-purple-500{
-
-    background:#8b5cf6;
-
-    color:#fff;
-
-}
-
-.bg-yellow-400{
-
-    background:#facc15;
-
-    color:#111827;
-
-}
-
-.bg-red-500{
-
-    background:#ef4444;
-
-    color:#fff;
-
-}
-
-/* ==========================================
-   Popup Background
-========================================== */
-
-#studentPopup{
-
-    backdrop-filter:blur(3px);
-
-    animation:fadeIn .2s ease;
-
-}
-
-/* ==========================================
-   Popup Card
-========================================== */
-
-#studentPopup > div{
-
-    animation:popupIn .22s ease;
-
-}
-
-/* ==========================================
-   Student Photo
-========================================== */
-
-#popupPhoto{
-
-    width:96px;
-    height:96px;
-
-    object-fit:cover;
-
-    border-radius:50%;
-
-    border:4px solid #e5e7eb;
-
-}
-
-/* ==========================================
-   Summary Cards
-========================================== */
-
-.summary-card{
-
-    border-radius:16px;
-
-    padding:18px;
-
-    color:#fff;
-
-    text-align:center;
-
-    box-shadow:
-        0 4px 12px rgba(0,0,0,.12);
-
-}
-
-/* ==========================================
-   Scroll
-========================================== */
-
-::-webkit-scrollbar{
-
-    width:8px;
-
-}
-
-::-webkit-scrollbar-thumb{
-
-    background:#cbd5e1;
-
-    border-radius:10px;
-
-}
-
-::-webkit-scrollbar-thumb:hover{
-
-    background:#94a3b8;
-
-}
-
-/* ==========================================
-   Animation
-========================================== */
-
-@keyframes popupIn{
-
-    from{
-
-        opacity:0;
-
-        transform:scale(.9);
-
-    }
-
-    to{
-
-        opacity:1;
-
-        transform:scale(1);
-
-    }
-
-}
-
-@keyframes fadeIn{
-
-    from{
-
-        opacity:0;
-
-    }
-
-    to{
-
-        opacity:1;
-
-    }
-
-}
-
-/* ==========================================
+/* =========================================================
    Mobile
-========================================== */
+   ========================================================= */
 
-@media(max-width:640px){
+@media (max-width: 640px) {
 
-    .attendance-box{
+    .attendance-box {
+        width: 48px !important;
+        height: 48px !important;
 
-        width:50px;
-
-        height:50px;
-
-        font-size:16px;
-
+        font-size: 16px !important;
     }
 
 }

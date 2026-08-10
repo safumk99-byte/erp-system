@@ -1,0 +1,213 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Staff Dashboard
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- Header -->
+
+    <div class="mb-8">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Welcome, {{ session.get("full_name", "Staff") }}
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Staff Dashboard
+        </p>
+
+    </div>
+
+
+    <!-- Quick Access -->
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+
+        <!-- Students -->
+
+        <a
+            href="{{ url_for('students.student_list') }}"
+            class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+
+            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
+
+                <i data-lucide="users" class="w-6 h-6"></i>
+
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Students
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-2">
+                View and manage students.
+            </p>
+
+        </a>
+
+
+        <!-- Attendance -->
+
+        <a
+            href="{{ url_for('attendance.attendance_list') }}"
+            class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+
+            <div class="w-12 h-12 rounded-xl bg-green-100 text-green-600 flex items-center justify-center mb-4">
+
+                <i data-lucide="calendar-check-2" class="w-6 h-6"></i>
+
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Student Attendance
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Mark and view student attendance.
+            </p>
+
+        </a>
+
+
+        <!-- Student Leave -->
+
+        <a
+            href="{{ url_for(
+                'student_leave.student_leave_requests_route'
+            ) }}"
+            class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+
+            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
+
+                <i data-lucide="calendar-check" class="w-6 h-6"></i>
+
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Student Leave Requests
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Review and approve student leave applications.
+            </p>
+
+        </a>
+
+
+        <!-- My Attendance -->
+
+        <a
+            href="{{ url_for(
+                'staff_attendance.staff_attendance_list'
+            ) }}"
+            class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+
+            <div class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-4">
+
+                <i data-lucide="user-check" class="w-6 h-6"></i>
+
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                My Attendance
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-2">
+                View your staff attendance.
+            </p>
+
+        </a>
+
+
+        <!-- My Leave -->
+
+        <a
+            href="{{ url_for(
+                'staff_attendance.staff_leave_requests_page'
+            ) }}"
+            class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+
+            <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4">
+
+                <i data-lucide="calendar-clock" class="w-6 h-6"></i>
+
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                My Leave
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Manage your staff leave requests.
+            </p>
+
+        </a>
+
+
+        <!-- Portion Completion -->
+
+        <a
+            href="{{ url_for(
+                'portion_completion.portion_completion_list_route'
+            ) }}"
+            class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+
+            <div class="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center mb-4">
+
+                <i data-lucide="book-open-check" class="w-6 h-6"></i>
+
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Portion Completion
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Record and monitor completed portions.
+            </p>
+
+        </a>
+
+
+        <!-- Mentoring -->
+
+        <a
+            href="{{ url_for(
+                'mentoring.mentoring_list_route'
+            ) }}"
+            class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+
+            <div class="w-12 h-12 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center mb-4">
+
+                <i data-lucide="heart-handshake" class="w-6 h-6"></i>
+
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Mentoring
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-2">
+                View and manage student mentoring records.
+            </p>
+
+        </a>
+
+
+    </div>
+
+</div>
+
+
+<script>
+    if (typeof lucide !== "undefined") {
+        lucide.createIcons();
+    }
+</script>
+
+{% endblock %}

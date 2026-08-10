@@ -12,12 +12,20 @@ from flask import (
 from database.db import get_connection
 
 
+# =========================================================
+# Mentoring Categories
+# =========================================================
+
 MENTORING_CATEGORIES = {
     "Behavioural",
     "Academic",
     "Personal Development"
 }
 
+
+# =========================================================
+# 1. Mentoring Page
+# =========================================================
 
 def mentoring_page():
 
@@ -29,37 +37,166 @@ def mentoring_page():
     conn = get_connection()
     cur = conn.cursor()
 
-    # Active students
+    role = session.get("role")
 
-    cur.execute("""
-        SELECT
-            id,
-            admission_no,
-            full_name
 
-        FROM students
+    # =====================================================
+    # Get Allowed Students
+    # =====================================================
 
-        WHERE
-            institution_id = %s
-            AND is_active = TRUE
+    if role == "institution_admin":
 
-        ORDER BY full_name
-    """, (
-        session["institution_id"],
-    ))
+        cur.execute("""
+            SELECT
+                id,
+                admission_no,
+                full_name
+
+            FROM students
+
+            WHERE
+                institution_id = %s
+                AND is_active = TRUE
+
+            ORDER BY full_name
+        """, (
+            session["institution_id"],
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT DISTINCT
+                s.id,
+                s.admission_no,
+                s.full_name
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+
+            ORDER BY s.full_name
+        """, (
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
 
     students = cur.fetchall()
+
+
+    # =====================================================
+    # Verify Selected Student
+    # =====================================================
+
+    if student_id:
+
+        if role == "institution_admin":
+
+            cur.execute("""
+                SELECT
+                    id
+
+                FROM students
+
+                WHERE
+                    id = %s
+                    AND institution_id = %s
+                    AND is_active = TRUE
+            """, (
+                student_id,
+                session["institution_id"]
+            ))
+
+        elif role == "staff":
+
+            cur.execute("""
+                SELECT
+                    s.id
+
+                FROM students s
+
+                JOIN staff_classes sc
+                    ON sc.class_id = s.class_id
+
+                WHERE
+                    s.id = %s
+                    AND s.institution_id = %s
+                    AND s.is_active = TRUE
+
+                    AND sc.institution_id = %s
+                    AND sc.staff_id = %s
+                    AND sc.is_active = TRUE
+            """, (
+                student_id,
+                session["institution_id"],
+                session["institution_id"],
+                session["user_id"]
+            ))
+
+        else:
+
+            cur.close()
+            conn.close()
+
+            return "Unauthorized", 403
+
+
+        valid_student = cur.fetchone()
+
+
+        if not valid_student:
+
+            cur.close()
+            conn.close()
+
+            flash(
+                "You do not have access to this student.",
+                "error"
+            )
+
+            return redirect(
+                url_for(
+                    "mentoring.mentoring_page_route"
+                )
+            )
+
 
     cur.close()
     conn.close()
 
+
     return render_template(
         "mentoring/form.html",
+
         students=students,
+
         student_id=student_id,
+
         note_date=str(date.today())
     )
 
+
+# =========================================================
+# 2. Save Mentoring Note
+# =========================================================
 
 def save_mentoring_note():
 
@@ -80,6 +217,10 @@ def save_mentoring_note():
         ""
     ).strip()
 
+
+    # =====================================================
+    # Basic Validation
+    # =====================================================
 
     if not student_id:
 
@@ -125,25 +266,81 @@ def save_mentoring_note():
         )
 
 
+    if not note_date:
+
+        flash(
+            "Please select a note date.",
+            "error"
+        )
+
+        return redirect(
+            url_for(
+                "mentoring.mentoring_page_route",
+                student_id=student_id
+            )
+        )
+
+
     conn = get_connection()
     cur = conn.cursor()
 
-    # Verify student belongs to current institution
+    role = session.get("role")
 
-    cur.execute("""
-        SELECT
-            id
 
-        FROM students
+    # =====================================================
+    # Verify Student Access
+    # =====================================================
 
-        WHERE
-            id = %s
-            AND institution_id = %s
-            AND is_active = TRUE
-    """, (
-        student_id,
-        session["institution_id"]
-    ))
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                id
+
+            FROM students
+
+            WHERE
+                id = %s
+                AND institution_id = %s
+                AND is_active = TRUE
+        """, (
+            student_id,
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                s.id
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.id = %s
+                AND s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            student_id,
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
 
     valid_student = cur.fetchone()
 
@@ -154,7 +351,7 @@ def save_mentoring_note():
         conn.close()
 
         flash(
-            "Invalid student.",
+            "You do not have access to this student.",
             "error"
         )
 
@@ -165,7 +362,9 @@ def save_mentoring_note():
         )
 
 
-    # Save mentoring note
+    # =====================================================
+    # Save Mentoring Note
+    # =====================================================
 
     cur.execute("""
         INSERT INTO mentoring_notes
@@ -215,7 +414,12 @@ def save_mentoring_note():
             student_id=student_id
         )
     )
-    
+
+
+# =========================================================
+# 3. Mentoring List
+# =========================================================
+
 def mentoring_list():
 
     student_id = request.args.get(
@@ -231,29 +435,143 @@ def mentoring_list():
     conn = get_connection()
     cur = conn.cursor()
 
-    # Students
+    role = session.get("role")
 
-    cur.execute("""
-        SELECT
-            id,
-            admission_no,
-            full_name
 
-        FROM students
+    # =====================================================
+    # Get Allowed Students
+    # =====================================================
 
-        WHERE
-            institution_id = %s
-            AND is_active = TRUE
+    if role == "institution_admin":
 
-        ORDER BY full_name
-    """, (
-        session["institution_id"],
-    ))
+        cur.execute("""
+            SELECT
+                id,
+                admission_no,
+                full_name
+
+            FROM students
+
+            WHERE
+                institution_id = %s
+                AND is_active = TRUE
+
+            ORDER BY full_name
+        """, (
+            session["institution_id"],
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT DISTINCT
+                s.id,
+                s.admission_no,
+                s.full_name
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+
+            ORDER BY s.full_name
+        """, (
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
 
     students = cur.fetchall()
 
 
-    # Mentoring records
+    # =====================================================
+    # Verify Selected Student
+    # =====================================================
+
+    if student_id:
+
+        if role == "institution_admin":
+
+            cur.execute("""
+                SELECT
+                    id
+
+                FROM students
+
+                WHERE
+                    id = %s
+                    AND institution_id = %s
+                    AND is_active = TRUE
+            """, (
+                student_id,
+                session["institution_id"]
+            ))
+
+        elif role == "staff":
+
+            cur.execute("""
+                SELECT
+                    s.id
+
+                FROM students s
+
+                JOIN staff_classes sc
+                    ON sc.class_id = s.class_id
+
+                WHERE
+                    s.id = %s
+                    AND s.institution_id = %s
+                    AND s.is_active = TRUE
+
+                    AND sc.institution_id = %s
+                    AND sc.staff_id = %s
+                    AND sc.is_active = TRUE
+            """, (
+                student_id,
+                session["institution_id"],
+                session["institution_id"],
+                session["user_id"]
+            ))
+
+        valid_student = cur.fetchone()
+
+
+        if not valid_student:
+
+            cur.close()
+            conn.close()
+
+            flash(
+                "You do not have access to this student.",
+                "error"
+            )
+
+            return redirect(
+                url_for(
+                    "mentoring.mentoring_list_route"
+                )
+            )
+
+
+    # =====================================================
+    # Mentoring Records
+    # =====================================================
 
     query = """
         SELECT
@@ -279,28 +597,44 @@ def mentoring_list():
 
         WHERE
             mn.institution_id = %s
+            AND s.institution_id = %s
     """
 
     params = [
+        session["institution_id"],
         session["institution_id"]
     ]
 
 
-    # Staff can see only their own notes.
-    # Institution admin can see all notes.
+    # =====================================================
+    # Staff Access Control
+    # =====================================================
 
-    user_role = session.get("role")
-
-    if user_role == "staff":
+    if role == "staff":
 
         query += """
-            AND mn.staff_id = %s
+            AND EXISTS (
+                SELECT 1
+
+                FROM staff_classes sc
+
+                WHERE
+                    sc.institution_id = %s
+                    AND sc.staff_id = %s
+                    AND sc.class_id = s.class_id
+                    AND sc.is_active = TRUE
+            )
         """
 
-        params.append(
+        params.extend([
+            session["institution_id"],
             session["user_id"]
-        )
+        ])
 
+
+    # =====================================================
+    # Student Filter
+    # =====================================================
 
     if student_id:
 
@@ -311,7 +645,27 @@ def mentoring_list():
         params.append(student_id)
 
 
+    # =====================================================
+    # Category Filter
+    # =====================================================
+
     if category:
+
+        if category not in MENTORING_CATEGORIES:
+
+            cur.close()
+            conn.close()
+
+            flash(
+                "Invalid mentoring category.",
+                "error"
+            )
+
+            return redirect(
+                url_for(
+                    "mentoring.mentoring_list_route"
+                )
+            )
 
         query += """
             AND mn.category = %s
@@ -319,6 +673,10 @@ def mentoring_list():
 
         params.append(category)
 
+
+    # =====================================================
+    # Order
+    # =====================================================
 
     query += """
         ORDER BY
@@ -349,4 +707,4 @@ def mentoring_list():
         student_id=student_id,
 
         category=category
-    )    
+    )

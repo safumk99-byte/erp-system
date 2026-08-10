@@ -187,58 +187,9 @@
 
 </a>
 
-<a href="{{ url_for('staff_attendance.staff_attendance_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
 
-    <i data-lucide="user-check" class="w-5 h-5"></i>
 
-    <span>Staff Attendance</span>
 
-</a>
-
-<a
-    href="{{ url_for('staff_attendance.staff_leave_requests_page') }}"
-    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="calendar-clock" class="w-5 h-5"></i>
-
-    <span>Leave Requests</span>
-
-</a>
-
-<a
-    href="{{ url_for('portion_completion.portion_completion_page_route') }}"
-    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="book-open-check" class="w-5 h-5"></i>
-
-    <span>Add Portions</span>
-
-</a>
-
-<a
-    href="{{ url_for(
-        'portion_completion.portion_completion_list_route'
-    ) }}"
-    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="book-open-check" class="w-5 h-5"></i>
-
-    <span>Portion Completion</span>
-
-</a>
-
-<a
-    href="{{ url_for(
-        'mentoring.mentoring_list_route'
-    ) }}"
-    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="heart-handshake" class="w-5 h-5"></i>
-
-    <span>Mentoring</span>
-
-</a>
 
         <a href="#"
            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
@@ -258,21 +209,112 @@
 
     {% elif session.get("role") == "staff" %}
 
-        <a href="#"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+    <!-- Students -->
 
-            <i data-lucide="users" class="w-5 h-5"></i>
-            <span>Students</span>
+    <a href="{{ url_for('students.student_list') }}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
 
-        </a>
+        <i data-lucide="users" class="w-5 h-5"></i>
 
-        <a href="#"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+        <span>Students</span>
 
-            <i data-lucide="calendar-check-2" class="w-5 h-5"></i>
-            <span>Attendance</span>
+    </a>
 
-        </a>
+
+    <!-- Attendance -->
+
+    <a href="{{ url_for('attendance.attendance_list') }}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+        <i data-lucide="calendar-check-2" class="w-5 h-5"></i>
+
+        <span>Attendance</span>
+
+    </a>
+
+
+    <!-- Student Leave Requests -->
+
+    <a href="{{ url_for(
+        'student_leave.student_leave_requests_route'
+    ) }}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+        <i data-lucide="calendar-check" class="w-5 h-5"></i>
+
+        <span>Student Leave Requests</span>
+
+    </a>
+
+
+    <!-- Staff Attendance -->
+
+    <a href="{{ url_for(
+        'staff_attendance.staff_attendance_list'
+    ) }}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+        <i data-lucide="user-check" class="w-5 h-5"></i>
+
+        <span>My Attendance</span>
+
+    </a>
+
+
+    <!-- Staff Leave -->
+
+    <a href="{{ url_for(
+        'staff_attendance.staff_leave_requests_page'
+    ) }}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+        <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+
+        <span>My Leave</span>
+
+    </a>
+
+
+    <!-- Add Portions -->
+
+    <a href="{{ url_for(
+        'portion_completion.portion_completion_page_route'
+    ) }}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+        <i data-lucide="book-open-check" class="w-5 h-5"></i>
+
+        <span>Add Portions</span>
+
+    </a>
+
+
+    <!-- Portion Completion -->
+
+    <a href="{{ url_for(
+        'portion_completion.portion_completion_list_route'
+    ) }}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+        <i data-lucide="book-open-check" class="w-5 h-5"></i>
+
+        <span>Portion Completion</span>
+
+    </a>
+
+
+    <!-- Mentoring -->
+
+    <a href="{{ url_for(
+        'mentoring.mentoring_list_route'
+    ) }}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+        <i data-lucide="heart-handshake" class="w-5 h-5"></i>
+
+        <span>Mentoring</span>
+
+    </a>
 
     {% elif session.get("role") == "parent" %}
 
@@ -286,11 +328,29 @@
 
     {% elif session.get("role") == "student" %}
 
-        <a href="#"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+    
 
-            <i data-lucide="book-open" class="w-5 h-5"></i>
-            <span>My Progress</span>
+
+    <a href="#"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+        <i data-lucide="book-open" class="w-5 h-5"></i>
+
+        <span>My Progress</span>
+
+    </a>
+
+
+    <a href="{{ url_for(
+        'student_leave.student_leave_page_route'
+    ) }}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+
+        <i data-lucide="calendar-off" class="w-5 h-5"></i>
+
+        <span>Leave Application</span>
+
+    </a>
 
         </a>
 

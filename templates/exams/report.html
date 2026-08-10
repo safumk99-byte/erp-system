@@ -1,0 +1,550 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Exam Report
+{% endblock %}
+
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+
+    <!-- ================================================= -->
+    <!-- Header -->
+    <!-- ================================================= -->
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+
+                {{ exam.exam_name }}
+
+            </h1>
+
+            <p class="text-slate-500 mt-2">
+
+                Exam Report / Mark Sheet
+
+            </p>
+
+        </div>
+
+
+        <div class="flex gap-3">
+
+            <button
+                onclick="window.print()"
+                class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-3 rounded-xl">
+
+                Print Report
+
+            </button>
+
+
+            <a
+                href="{{ url_for('exams.exam_list') }}"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+
+                Back to Exams
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================================================= -->
+    <!-- Exam Information -->
+    <!-- ================================================= -->
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+
+            <p class="text-sm text-slate-500">
+                Exam
+            </p>
+
+            <p class="font-semibold text-slate-800 mt-1">
+
+                {{ exam.exam_name }}
+
+            </p>
+
+        </div>
+
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+
+            <p class="text-sm text-slate-500">
+                Class
+            </p>
+
+            <p class="font-semibold text-slate-800 mt-1">
+
+                {{ exam.class_name }}
+
+            </p>
+
+        </div>
+
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+
+            <p class="text-sm text-slate-500">
+                Type
+            </p>
+
+            <p class="font-semibold text-slate-800 mt-1">
+
+                {{ exam.exam_type }}
+
+            </p>
+
+        </div>
+
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+
+            <p class="text-sm text-slate-500">
+                Exam Date
+            </p>
+
+            <p class="font-semibold text-slate-800 mt-1">
+
+                {{ exam.exam_date }}
+
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- ================================================= -->
+    <!-- Mark Sheet -->
+    <!-- ================================================= -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+
+        <div class="p-6 border-b border-slate-200">
+
+            <h2 class="text-xl font-semibold text-slate-800">
+
+                Student Mark Sheet
+
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+
+                Maximum mark per subject:
+                {{ exam.total_mark }}
+
+            </p>
+
+        </div>
+
+
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full min-w-max">
+
+
+                <!-- ================================================= -->
+                <!-- Table Header -->
+                <!-- ================================================= -->
+
+                <thead class="bg-slate-100">
+
+                    <tr>
+
+
+                        <th
+                            class="px-5 py-4 text-left whitespace-nowrap">
+
+                            No.
+
+                        </th>
+
+
+                        <th
+                            class="px-5 py-4 text-left whitespace-nowrap">
+
+                            Admission No.
+
+                        </th>
+
+
+                        <th
+                            class="px-5 py-4 text-left whitespace-nowrap">
+
+                            Student
+
+                        </th>
+
+
+                        {% for subject in subjects %}
+
+                        <th
+                            class="px-5 py-4 text-center whitespace-nowrap">
+
+                            {{ subject.subject_name }}
+
+                            <div class="text-xs font-normal text-slate-500">
+
+                                / {{ exam.total_mark }}
+
+                            </div>
+
+                        </th>
+
+                        {% endfor %}
+
+
+                        <th
+                            class="px-5 py-4 text-center whitespace-nowrap">
+
+                            Total
+
+                        </th>
+
+
+                        <th
+                            class="px-5 py-4 text-center whitespace-nowrap">
+
+                            Percentage
+
+                        </th>
+
+
+                        <th
+                            class="px-5 py-4 text-center whitespace-nowrap">
+
+                            Grade
+
+                        </th>
+
+
+                    </tr>
+
+                </thead>
+
+
+
+                <!-- ================================================= -->
+                <!-- Table Body -->
+                <!-- ================================================= -->
+
+                <tbody>
+
+
+                {% if report_rows %}
+
+
+                    {% for row in report_rows %}
+
+                    <tr class="border-t border-slate-200 hover:bg-slate-50">
+
+
+                        <!-- Number -->
+
+                        <td class="px-5 py-4">
+
+                            {{ loop.index }}
+
+                        </td>
+
+
+                        <!-- Admission -->
+
+                        <td class="px-5 py-4 font-medium">
+
+                            {{ row.admission_no }}
+
+                        </td>
+
+
+                        <!-- Student -->
+
+                        <td class="px-5 py-4">
+
+                            <div class="font-semibold text-slate-800">
+
+                                {{ row.full_name }}
+
+                            </div>
+
+                        </td>
+
+
+
+                        <!-- Subject Marks -->
+
+                        {% for subject_result in row.subjects %}
+
+                        <td class="px-5 py-4 text-center">
+
+
+                            {% if subject_result.mark is not none %}
+
+                                <div class="font-semibold">
+
+                                    {{ subject_result.mark }}
+
+                                </div>
+
+
+                                <div class="text-xs text-slate-500">
+
+                                    {{ subject_result.grade }}
+
+                                </div>
+
+                            {% else %}
+
+                                <span class="text-slate-400">
+
+                                    —
+
+                                </span>
+
+                            {% endif %}
+
+
+                        </td>
+
+                        {% endfor %}
+
+
+
+                        <!-- Total -->
+
+                        <td class="px-5 py-4 text-center">
+
+                            {% if row.total_possible > 0 %}
+
+                                <span class="font-bold">
+
+                                    {{ row.total_obtained }}
+
+                                </span>
+
+                                <span class="text-slate-400">
+
+                                    /
+
+                                    {{ row.total_possible }}
+
+                                </span>
+
+                            {% else %}
+
+                                —
+
+                            {% endif %}
+
+                        </td>
+
+
+
+                        <!-- Percentage -->
+
+                        <td class="px-5 py-4 text-center">
+
+                            {% if row.total_possible > 0 %}
+
+                                <span class="font-semibold">
+
+                                    {{ row.percentage }}%
+
+                                </span>
+
+                            {% else %}
+
+                                —
+
+                            {% endif %}
+
+                        </td>
+
+
+
+                        <!-- Grade -->
+
+                        <td class="px-5 py-4 text-center">
+
+
+                            {% if row.grade == "A+" %}
+
+                                <span class="inline-flex bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold">
+
+                                    A+
+
+                                </span>
+
+
+                            {% elif row.grade == "A" %}
+
+                                <span class="inline-flex bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold">
+
+                                    A
+
+                                </span>
+
+
+                            {% elif row.grade == "B+" %}
+
+                                <span class="inline-flex bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold">
+
+                                    B+
+
+                                </span>
+
+
+                            {% elif row.grade == "B" %}
+
+                                <span class="inline-flex bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold">
+
+                                    B
+
+                                </span>
+
+
+                            {% elif row.grade == "C" %}
+
+                                <span class="inline-flex bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-bold">
+
+                                    C
+
+                                </span>
+
+
+                            {% else %}
+
+                                <span class="inline-flex bg-red-100 text-red-700 px-3 py-1 rounded-full font-bold">
+
+                                    D
+
+                                </span>
+
+                            {% endif %}
+
+
+                        </td>
+
+
+                    </tr>
+
+                    {% endfor %}
+
+
+                {% else %}
+
+
+                    <tr>
+
+                        <td
+                            colspan="{{ 6 + subjects|length }}"
+                            class="text-center py-12 text-slate-500">
+
+                            No students found for this exam.
+
+                        </td>
+
+                    </tr>
+
+
+                {% endif %}
+
+
+                </tbody>
+
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+<!-- ===================================================== -->
+<!-- Print CSS -->
+<!-- ===================================================== -->
+
+<style>
+
+@media print {
+
+    body {
+
+        background: white !important;
+
+    }
+
+
+    nav,
+    aside,
+    header,
+    .sidebar {
+
+        display: none !important;
+
+    }
+
+
+    button,
+    a {
+
+        display: none !important;
+
+    }
+
+
+    .shadow-sm {
+
+        box-shadow: none !important;
+
+    }
+
+
+    .border {
+
+        border-color: #ddd !important;
+
+    }
+
+
+    table {
+
+        font-size: 11px;
+
+    }
+
+
+    th,
+    td {
+
+        padding: 6px !important;
+
+    }
+
+}
+
+</style>
+
+
+{% endblock %}

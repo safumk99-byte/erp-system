@@ -10,12 +10,138 @@ from flask import (
 from database.db import get_connection
 
 
+# =========================================================
+# Student Access Helper
+# =========================================================
+
+def _student_is_allowed(cur, student_id):
+
+    role = session.get("role")
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                id
+
+            FROM students
+
+            WHERE
+                id = %s
+                AND institution_id = %s
+                AND is_active = TRUE
+        """, (
+            student_id,
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                s.id
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.id = %s
+                AND s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            student_id,
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        return False
+
+    return cur.fetchone() is not None
+
+
+# =========================================================
+# Get Students
+# =========================================================
+
+def get_students(cur):
+
+    role = session.get("role")
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                id,
+                admission_no,
+                full_name
+
+            FROM students
+
+            WHERE
+                institution_id = %s
+                AND is_active = TRUE
+
+            ORDER BY full_name
+        """, (
+            session["institution_id"],
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT DISTINCT
+                s.id,
+                s.admission_no,
+                s.full_name
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+
+            ORDER BY s.full_name
+        """, (
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        return []
+
+    return cur.fetchall()
+
+
+# =========================================================
+# List Publications
+# =========================================================
+
 def list_publications():
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
+    role = session.get("role")
+
+    query = """
         SELECT
             p.*,
             s.full_name,
@@ -28,12 +154,50 @@ def list_publications():
 
         WHERE
             p.institution_id = %s
+            AND s.institution_id = %s
+    """
 
-        ORDER BY p.id DESC
-
-    """, (
+    params = [
         session["institution_id"],
-    ))
+        session["institution_id"]
+    ]
+
+
+    # -----------------------------------------------------
+    # Staff → Assigned Students Only
+    # -----------------------------------------------------
+
+    if role == "staff":
+
+        query += """
+            AND EXISTS (
+                SELECT 1
+
+                FROM staff_classes sc
+
+                WHERE
+                    sc.institution_id = %s
+                    AND sc.staff_id = %s
+                    AND sc.class_id = s.class_id
+                    AND sc.is_active = TRUE
+            )
+        """
+
+        params.extend([
+            session["institution_id"],
+            session["user_id"]
+        ])
+
+
+    query += """
+        ORDER BY p.id DESC
+    """
+
+
+    cur.execute(
+        query,
+        tuple(params)
+    )
 
     publications = cur.fetchall()
 
@@ -46,30 +210,17 @@ def list_publications():
     )
 
 
+# =========================================================
+# Add Publication
+# =========================================================
+
 def add_publication():
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT
-            id,
-            admission_no,
-            full_name
+    students = get_students(cur)
 
-        FROM students
-
-        WHERE
-            institution_id = %s
-            AND is_active = TRUE
-
-        ORDER BY full_name
-
-    """, (
-        session["institution_id"],
-    ))
-
-    students = cur.fetchall()
 
     if request.method == "POST":
 
@@ -110,6 +261,34 @@ def add_publication():
             ""
         ).strip()
 
+
+        # -------------------------------------------------
+        # Verify Student Access
+        # -------------------------------------------------
+
+        if not _student_is_allowed(
+            cur,
+            student_id
+        ):
+
+            flash(
+                "You do not have access to this student.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return render_template(
+                "publication/add.html",
+                students=students
+            )
+
+
+        # -------------------------------------------------
+        # Title Validation
+        # -------------------------------------------------
+
         if not title:
 
             flash(
@@ -125,11 +304,15 @@ def add_publication():
                 students=students
             )
 
-        # Validate pages when provided
+
+        # -------------------------------------------------
+        # Validate Pages
+        # -------------------------------------------------
 
         if pages:
 
             try:
+
                 pages = int(pages)
 
             except (TypeError, ValueError):
@@ -146,6 +329,7 @@ def add_publication():
                     "publication/add.html",
                     students=students
                 )
+
 
             if pages <= 0:
 
@@ -166,11 +350,18 @@ def add_publication():
 
             pages = None
 
-        # Points are calculated
-        # only after approval.
+
+        # -------------------------------------------------
+        # Points
+        # -------------------------------------------------
 
         points = 0
         bonus_points = 0
+
+
+        # -------------------------------------------------
+        # Insert
+        # -------------------------------------------------
 
         cur.execute("""
             INSERT INTO publications
@@ -222,15 +413,18 @@ def add_publication():
             bonus_points
         ))
 
+
         conn.commit()
 
         cur.close()
         conn.close()
 
+
         flash(
             "Publication added successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -238,8 +432,10 @@ def add_publication():
             )
         )
 
+
     cur.close()
     conn.close()
+
 
     return render_template(
         "publication/add.html",
@@ -247,30 +443,89 @@ def add_publication():
     )
 
 
+# =========================================================
+# Approve Publication
+# =========================================================
+
 def approve_publication(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT
-            publication_type,
-            category,
-            pages
+    role = session.get("role")
 
-        FROM publications
 
-        WHERE
-            id = %s
-            AND institution_id = %s
-            AND status = 'Pending'
+    # -----------------------------------------------------
+    # Verify Publication + Student Access
+    # -----------------------------------------------------
 
-    """, (
-        id,
-        session["institution_id"]
-    ))
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                p.publication_type,
+                p.category,
+                p.pages
+
+            FROM publications p
+
+            JOIN students s
+                ON p.student_id = s.id
+
+            WHERE
+                p.id = %s
+                AND p.institution_id = %s
+                AND s.institution_id = %s
+                AND p.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                p.publication_type,
+                p.category,
+                p.pages
+
+            FROM publications p
+
+            JOIN students s
+                ON p.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                p.id = %s
+                AND p.institution_id = %s
+                AND s.institution_id = %s
+                AND p.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
 
     publication = cur.fetchone()
+
 
     if not publication:
 
@@ -278,7 +533,7 @@ def approve_publication(id):
         conn.close()
 
         flash(
-            "Publication not found or already reviewed.",
+            "Publication not found or you do not have permission to approve it.",
             "error"
         )
 
@@ -287,6 +542,7 @@ def approve_publication(id):
                 "publication.publication_list"
             )
         )
+
 
     publication_type = publication[
         "publication_type"
@@ -302,19 +558,17 @@ def approve_publication(id):
 
     points = 0
 
-    # Article:
-    # Proposal says article points are
-    # identical to Writing Assessment.
-    #
-    # Fiction Article = 3
-    # Non-Fiction = 5 for 4 pages
-    # +1 for every additional 2 pages
+
+    # -----------------------------------------------------
+    # Article
+    # -----------------------------------------------------
 
     if publication_type == "Article":
 
         if category == "Fiction":
 
             if pages and pages >= 1:
+
                 points = 3
 
         elif category == "Non-Fiction":
@@ -329,15 +583,10 @@ def approve_publication(id):
                     extra_pages // 2
                 )
 
-    # Book:
-    # 50 pages = base points.
-    #
-    # Non-Fiction = 20
-    # Fiction = 15
-    #
-    # Proposal does not specify
-    # extra-page calculation for books,
-    # so no extra-page points are added.
+
+    # -----------------------------------------------------
+    # Book
+    # -----------------------------------------------------
 
     elif publication_type == "Book":
 
@@ -351,13 +600,21 @@ def approve_publication(id):
 
                 points = 15
 
-    # ISBN / verification bonus value
-    # is not numerically defined in the proposal.
-    # Therefore bonus remains 0 for now.
+
+    # ISBN / verification bonus is not
+    # numerically defined in the proposal.
 
     bonus_points = 0
 
-    total_points = points + bonus_points
+    total_points = (
+        points
+        + bonus_points
+    )
+
+
+    # -----------------------------------------------------
+    # Update
+    # -----------------------------------------------------
 
     cur.execute("""
         UPDATE publications
@@ -384,10 +641,12 @@ def approve_publication(id):
         session["institution_id"]
     ))
 
+
     conn.commit()
 
     cur.close()
     conn.close()
+
 
     flash(
         f"Publication approved. "
@@ -395,22 +654,29 @@ def approve_publication(id):
         "success"
     )
 
+
     return redirect(
         url_for(
             "publication.publication_list"
         )
     )
-
+    
+# =========================================================
+# Reject Publication
+# =========================================================
 
 def reject_publication(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
+    role = session.get("role")
+
     reason = request.form.get(
         "rejection_reason",
         ""
     ).strip()
+
 
     if not reason:
 
@@ -427,6 +693,96 @@ def reject_publication(id):
                 "publication.publication_list"
             )
         )
+
+
+    # -----------------------------------------------------
+    # Verify Publication + Student Access
+    # -----------------------------------------------------
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                p.id
+
+            FROM publications p
+
+            JOIN students s
+                ON p.student_id = s.id
+
+            WHERE
+                p.id = %s
+                AND p.institution_id = %s
+                AND s.institution_id = %s
+                AND p.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                p.id
+
+            FROM publications p
+
+            JOIN students s
+                ON p.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                p.id = %s
+                AND p.institution_id = %s
+                AND s.institution_id = %s
+                AND p.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
+
+    publication = cur.fetchone()
+
+
+    if not publication:
+
+        cur.close()
+        conn.close()
+
+        flash(
+            "Publication not found or you do not have permission to reject it.",
+            "error"
+        )
+
+        return redirect(
+            url_for(
+                "publication.publication_list"
+            )
+        )
+
+
+    # -----------------------------------------------------
+    # Reject
+    # -----------------------------------------------------
 
     cur.execute("""
         UPDATE publications
@@ -452,43 +808,105 @@ def reject_publication(id):
         session["institution_id"]
     ))
 
+
     conn.commit()
 
     cur.close()
     conn.close()
+
 
     flash(
         "Publication rejected.",
         "success"
     )
 
+
     return redirect(
         url_for(
             "publication.publication_list"
         )
     )
-    
+
+
+# =========================================================
+# Edit Publication
+# =========================================================
+
 def edit_publication(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
-    # Get existing pending publication
-    cur.execute("""
-        SELECT *
-        FROM publications
+    role = session.get("role")
 
-        WHERE
-            id = %s
-            AND institution_id = %s
-            AND status = 'Pending'
 
-    """, (
-        id,
-        session["institution_id"]
-    ))
+    # -----------------------------------------------------
+    # Get Existing Publication
+    # -----------------------------------------------------
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                p.*
+
+            FROM publications p
+
+            JOIN students s
+                ON p.student_id = s.id
+
+            WHERE
+                p.id = %s
+                AND p.institution_id = %s
+                AND s.institution_id = %s
+                AND p.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                p.*
+
+            FROM publications p
+
+            JOIN students s
+                ON p.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                p.id = %s
+                AND p.institution_id = %s
+                AND s.institution_id = %s
+                AND p.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
 
     publication = cur.fetchone()
+
 
     if not publication:
 
@@ -506,26 +924,17 @@ def edit_publication(id):
             )
         )
 
+
+    # -----------------------------------------------------
     # Students
-    cur.execute("""
-        SELECT
-            id,
-            admission_no,
-            full_name
+    # -----------------------------------------------------
 
-        FROM students
+    students = get_students(cur)
 
-        WHERE
-            institution_id = %s
-            AND is_active = TRUE
 
-        ORDER BY full_name
-
-    """, (
-        session["institution_id"],
-    ))
-
-    students = cur.fetchall()
+    # -----------------------------------------------------
+    # POST
+    # -----------------------------------------------------
 
     if request.method == "POST":
 
@@ -566,6 +975,35 @@ def edit_publication(id):
             ""
         ).strip()
 
+
+        # -------------------------------------------------
+        # Verify New Student Access
+        # -------------------------------------------------
+
+        if not _student_is_allowed(
+            cur,
+            student_id
+        ):
+
+            flash(
+                "You do not have access to this student.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return render_template(
+                "publication/edit.html",
+                publication=publication,
+                students=students
+            )
+
+
+        # -------------------------------------------------
+        # Title Validation
+        # -------------------------------------------------
+
         if not title:
 
             flash(
@@ -582,11 +1020,15 @@ def edit_publication(id):
                 students=students
             )
 
-        # Validate pages
+
+        # -------------------------------------------------
+        # Validate Pages
+        # -------------------------------------------------
 
         if pages:
 
             try:
+
                 pages = int(pages)
 
             except (TypeError, ValueError):
@@ -604,6 +1046,7 @@ def edit_publication(id):
                     publication=publication,
                     students=students
                 )
+
 
             if pages <= 0:
 
@@ -624,6 +1067,11 @@ def edit_publication(id):
         else:
 
             pages = None
+
+
+        # -------------------------------------------------
+        # Update
+        # -------------------------------------------------
 
         cur.execute("""
             UPDATE publications
@@ -659,15 +1107,18 @@ def edit_publication(id):
             session["institution_id"]
         ))
 
+
         conn.commit()
 
         cur.close()
         conn.close()
 
+
         flash(
             "Publication updated successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -675,8 +1126,10 @@ def edit_publication(id):
             )
         )
 
+
     cur.close()
     conn.close()
+
 
     return render_template(
         "publication/edit.html",

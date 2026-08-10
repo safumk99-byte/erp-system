@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from flask import (
     render_template,
@@ -15,6 +16,10 @@ from werkzeug.utils import secure_filename
 from database.db import get_connection
 
 
+# =========================================================
+# Constants
+# =========================================================
+
 ALLOWED_CERTIFICATE_EXTENSIONS = {
     "pdf",
     "jpg",
@@ -23,24 +28,163 @@ ALLOWED_CERTIFICATE_EXTENSIONS = {
 }
 
 
+ACHIEVEMENT_CATEGORIES = {
+    "Kithab",
+    "Language",
+    "Writing",
+    "Presentation",
+    "Others"
+}
+
+
+POSITIONS = {
+    "First",
+    "Second",
+    "Third"
+}
+
+
+# =========================================================
+# Get Allowed Students
+# =========================================================
+
 def get_students(cur):
 
-    cur.execute("""
-        SELECT
-            id,
-            admission_no,
-            full_name
-        FROM students
-        WHERE
-            institution_id = %s
-            AND is_active = TRUE
-        ORDER BY full_name
-    """, (
-        session["institution_id"],
-    ))
+    role = session.get("role")
+
+    # -----------------------------------------------------
+    # Institution Admin
+    # -----------------------------------------------------
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                id,
+                admission_no,
+                full_name
+
+            FROM students
+
+            WHERE
+                institution_id = %s
+                AND is_active = TRUE
+
+            ORDER BY full_name
+        """, (
+            session["institution_id"],
+        ))
+
+    # -----------------------------------------------------
+    # Staff
+    # -----------------------------------------------------
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT DISTINCT
+                s.id,
+                s.admission_no,
+                s.full_name
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+
+            ORDER BY s.full_name
+        """, (
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        return []
+
 
     return cur.fetchall()
 
+
+# =========================================================
+# Verify Student Access
+# =========================================================
+
+def _student_is_allowed(cur, student_id):
+
+    role = session.get("role")
+
+    # -----------------------------------------------------
+    # Institution Admin
+    # -----------------------------------------------------
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                id
+
+            FROM students
+
+            WHERE
+                id = %s
+                AND institution_id = %s
+                AND is_active = TRUE
+        """, (
+            student_id,
+            session["institution_id"]
+        ))
+
+    # -----------------------------------------------------
+    # Staff
+    # -----------------------------------------------------
+
+    elif role == "staff":
+
+        cur.execute("""
+            SELECT
+                s.id
+
+            FROM students s
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                s.id = %s
+                AND s.institution_id = %s
+                AND s.is_active = TRUE
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            student_id,
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+    else:
+
+        return False
+
+
+    return cur.fetchone() is not None
+
+
+# =========================================================
+# Calculate Achievement Points
+# =========================================================
 
 def calculate_achievement_points(
     category,
@@ -113,6 +257,10 @@ def calculate_achievement_points(
     return points
 
 
+# =========================================================
+# Save Certificate
+# =========================================================
+
 def save_certificate(file):
 
     if not file:
@@ -155,8 +303,6 @@ def save_certificate(file):
         exist_ok=True
     )
 
-    import uuid
-
     unique_name = (
         str(uuid.uuid4())
         + "."
@@ -176,12 +322,23 @@ def save_certificate(file):
     ).replace("\\", "/")
 
 
+# =========================================================
+# List Achievements
+# =========================================================
+
 def list_achievements():
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
+    role = session.get("role")
+
+
+    # =====================================================
+    # Base Query
+    # =====================================================
+
+    query = """
         SELECT
             a.*,
             s.full_name,
@@ -194,16 +351,56 @@ def list_achievements():
 
         WHERE
             a.institution_id = %s
+            AND s.institution_id = %s
+    """
 
-        ORDER BY a.id DESC
-    """, (
+    params = [
         session["institution_id"],
-    ))
+        session["institution_id"]
+    ]
+
+
+    # =====================================================
+    # Staff Access Control
+    # =====================================================
+
+    if role == "staff":
+
+        query += """
+            AND EXISTS (
+                SELECT 1
+
+                FROM staff_classes sc
+
+                WHERE
+                    sc.institution_id = %s
+                    AND sc.staff_id = %s
+                    AND sc.class_id = s.class_id
+                    AND sc.is_active = TRUE
+            )
+        """
+
+        params.extend([
+            session["institution_id"],
+            session["user_id"]
+        ])
+
+
+    query += """
+        ORDER BY a.id DESC
+    """
+
+
+    cur.execute(
+        query,
+        tuple(params)
+    )
 
     achievements = cur.fetchall()
 
     cur.close()
     conn.close()
+
 
     return render_template(
         "achievement/list.html",
@@ -211,12 +408,30 @@ def list_achievements():
     )
 
 
+# =========================================================
+# Add Achievement
+# =========================================================
+
 def add_achievement():
 
     conn = get_connection()
     cur = conn.cursor()
 
+    role = session.get("role")
+
+    if role not in (
+        "institution_admin",
+        "staff"
+    ):
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
+
     students = get_students(cur)
+
 
     if request.method == "POST":
 
@@ -273,6 +488,34 @@ def add_achievement():
             "certificate_file"
         )
 
+
+        # =============================================
+        # Student Access
+        # =============================================
+
+        if not _student_is_allowed(
+            cur,
+            student_id
+        ):
+
+            flash(
+                "You do not have access to this student.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return render_template(
+                "achievement/add.html",
+                students=students
+            )
+
+
+        # =============================================
+        # Basic Validation
+        # =============================================
+
         if not event_name:
 
             flash(
@@ -287,6 +530,7 @@ def add_achievement():
                 "achievement/add.html",
                 students=students
             )
+
 
         if not title:
 
@@ -303,13 +547,8 @@ def add_achievement():
                 students=students
             )
 
-        if category not in (
-            "Kithab",
-            "Language",
-            "Writing",
-            "Presentation",
-            "Others"
-        ):
+
+        if category not in ACHIEVEMENT_CATEGORIES:
 
             flash(
                 "Invalid achievement category.",
@@ -324,13 +563,14 @@ def add_achievement():
                 students=students
             )
 
+
+        # =============================================
+        # Standard Categories
+        # =============================================
+
         if category != "Others":
 
-            if position not in (
-                "First",
-                "Second",
-                "Third"
-            ):
+            if position not in POSITIONS:
 
                 flash(
                     "Please select the achievement position.",
@@ -347,11 +587,19 @@ def add_achievement():
 
             assigned_points = None
 
+
+        # =============================================
+        # Others
+        # =============================================
+
         else:
 
             position = None
 
-            if assigned_points is None or assigned_points == "":
+            if assigned_points in (
+                None,
+                ""
+            ):
 
                 flash(
                     "Assigned points are required for Others.",
@@ -390,6 +638,7 @@ def add_achievement():
                     students=students
                 )
 
+
             if assigned_points < 0:
 
                 flash(
@@ -404,6 +653,11 @@ def add_achievement():
                     "achievement/add.html",
                     students=students
                 )
+
+
+        # =============================================
+        # Certificate
+        # =============================================
 
         try:
 
@@ -425,6 +679,11 @@ def add_achievement():
                 "achievement/add.html",
                 students=students
             )
+
+
+        # =============================================
+        # Insert Achievement
+        # =============================================
 
         cur.execute("""
             INSERT INTO achievements
@@ -482,15 +741,18 @@ def add_achievement():
             description
         ))
 
+
         conn.commit()
 
         cur.close()
         conn.close()
 
+
         flash(
             "Achievement added successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -498,8 +760,10 @@ def add_achievement():
             )
         )
 
+
     cur.close()
     conn.close()
+
 
     return render_template(
         "achievement/add.html",
@@ -507,25 +771,89 @@ def add_achievement():
     )
 
 
+    # =========================================================
+    # Edit Achievement
+    # =========================================================
+
 def edit_achievement(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT *
-        FROM achievements
+    role = session.get("role")
 
-        WHERE
-            id = %s
-            AND institution_id = %s
-            AND status = 'Pending'
-    """, (
-        id,
-        session["institution_id"]
-    ))
+
+    if role not in (
+        "institution_admin",
+        "staff"
+    ):
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
+
+    # =====================================================
+    # Get Achievement + Verify Student Access
+    # =====================================================
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                a.*
+
+            FROM achievements a
+
+            JOIN students s
+                ON a.student_id = s.id
+
+            WHERE
+                a.id = %s
+                AND a.institution_id = %s
+                AND s.institution_id = %s
+                AND a.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    else:
+
+        cur.execute("""
+            SELECT
+                a.*
+
+            FROM achievements a
+
+            JOIN students s
+                ON a.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                a.id = %s
+                AND a.institution_id = %s
+                AND s.institution_id = %s
+                AND a.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
 
     achievement = cur.fetchone()
+
 
     if not achievement:
 
@@ -533,7 +861,7 @@ def edit_achievement(id):
         conn.close()
 
         flash(
-            "Achievement not found or cannot be edited.",
+            "Achievement not found or you do not have permission to edit it.",
             "error"
         )
 
@@ -543,7 +871,13 @@ def edit_achievement(id):
             )
         )
 
+
     students = get_students(cur)
+
+
+    # =====================================================
+    # POST
+    # =====================================================
 
     if request.method == "POST":
 
@@ -600,13 +934,36 @@ def edit_achievement(id):
             "certificate_file"
         )
 
-        if category not in (
-            "Kithab",
-            "Language",
-            "Writing",
-            "Presentation",
-            "Others"
+
+        # =============================================
+        # Verify New Student Access
+        # =============================================
+
+        if not _student_is_allowed(
+            cur,
+            student_id
         ):
+
+            flash(
+                "You do not have access to this student.",
+                "error"
+            )
+
+            cur.close()
+            conn.close()
+
+            return render_template(
+                "achievement/edit.html",
+                achievement=achievement,
+                students=students
+            )
+
+
+        # =============================================
+        # Validation
+        # =============================================
+
+        if category not in ACHIEVEMENT_CATEGORIES:
 
             flash(
                 "Invalid achievement category.",
@@ -621,6 +978,7 @@ def edit_achievement(id):
                 achievement=achievement,
                 students=students
             )
+
 
         if not event_name or not title:
 
@@ -638,13 +996,10 @@ def edit_achievement(id):
                 students=students
             )
 
+
         if category != "Others":
 
-            if position not in (
-                "First",
-                "Second",
-                "Third"
-            ):
+            if position not in POSITIONS:
 
                 flash(
                     "Please select the achievement position.",
@@ -661,6 +1016,7 @@ def edit_achievement(id):
                 )
 
             assigned_points = None
+
 
         else:
 
@@ -684,6 +1040,7 @@ def edit_achievement(id):
                     achievement=achievement,
                     students=students
                 )
+
 
             try:
 
@@ -710,9 +1067,32 @@ def edit_achievement(id):
                     students=students
                 )
 
+
+            if assigned_points < 0:
+
+                flash(
+                    "Points cannot be negative.",
+                    "error"
+                )
+
+                cur.close()
+                conn.close()
+
+                return render_template(
+                    "achievement/edit.html",
+                    achievement=achievement,
+                    students=students
+                )
+
+
+        # =============================================
+        # Certificate
+        # =============================================
+
         certificate_path = achievement[
             "certificate_file"
         ]
+
 
         if certificate_file and certificate_file.filename:
 
@@ -737,6 +1117,11 @@ def edit_achievement(id):
                     achievement=achievement,
                     students=students
                 )
+
+
+        # =============================================
+        # Update
+        # =============================================
 
         cur.execute("""
             UPDATE achievements
@@ -777,15 +1162,18 @@ def edit_achievement(id):
             session["institution_id"]
         ))
 
+
         conn.commit()
 
         cur.close()
         conn.close()
 
+
         flash(
             "Achievement updated successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -793,8 +1181,14 @@ def edit_achievement(id):
             )
         )
 
+
+    # =====================================================
+    # GET
+    # =====================================================
+
     cur.close()
     conn.close()
+
 
     return render_template(
         "achievement/edit.html",
@@ -803,30 +1197,95 @@ def edit_achievement(id):
     )
 
 
+# =========================================================
+# Approve Achievement
+# =========================================================
+
 def approve_achievement(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT
-            achievement_type,
-            position,
-            assigned_points,
-            certificate_file
+    role = session.get("role")
 
-        FROM achievements
 
-        WHERE
-            id = %s
-            AND institution_id = %s
-            AND status = 'Pending'
-    """, (
-        id,
-        session["institution_id"]
-    ))
+    if role not in (
+        "institution_admin",
+        "staff"
+    ):
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
+
+    # =====================================================
+    # Verify Achievement Access
+    # =====================================================
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                a.achievement_type,
+                a.position,
+                a.assigned_points,
+                a.certificate_file
+
+            FROM achievements a
+
+            JOIN students s
+                ON a.student_id = s.id
+
+            WHERE
+                a.id = %s
+                AND a.institution_id = %s
+                AND s.institution_id = %s
+                AND a.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    else:
+
+        cur.execute("""
+            SELECT
+                a.achievement_type,
+                a.position,
+                a.assigned_points,
+                a.certificate_file
+
+            FROM achievements a
+
+            JOIN students s
+                ON a.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                a.id = %s
+                AND a.institution_id = %s
+                AND s.institution_id = %s
+                AND a.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
 
     achievement = cur.fetchone()
+
 
     if not achievement:
 
@@ -834,7 +1293,7 @@ def approve_achievement(id):
         conn.close()
 
         flash(
-            "Achievement not found or already reviewed.",
+            "Achievement not found or you do not have permission to approve it.",
             "error"
         )
 
@@ -844,25 +1303,21 @@ def approve_achievement(id):
             )
         )
 
-    category = achievement[
-        "achievement_type"
-    ]
 
-    position = achievement[
-        "position"
-    ]
-
-    assigned_points = achievement[
-        "assigned_points"
-    ]
-
-    # Proposal-defined automatic scoring
+    # =====================================================
+    # Calculate Points
+    # =====================================================
 
     points = calculate_achievement_points(
-        category,
-        position,
-        assigned_points
+        achievement["achievement_type"],
+        achievement["position"],
+        achievement["assigned_points"]
     )
+
+
+    # =====================================================
+    # Approve
+    # =====================================================
 
     cur.execute("""
         UPDATE achievements
@@ -887,15 +1342,18 @@ def approve_achievement(id):
         session["institution_id"]
     ))
 
+
     conn.commit()
 
     cur.close()
     conn.close()
 
+
     flash(
         f"Achievement approved. Points: {points}",
         "success"
     )
+
 
     return redirect(
         url_for(
@@ -904,15 +1362,34 @@ def approve_achievement(id):
     )
 
 
+# =========================================================
+# Reject Achievement
+# =========================================================
+
 def reject_achievement(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
+    role = session.get("role")
+
+
+    if role not in (
+        "institution_admin",
+        "staff"
+    ):
+
+        cur.close()
+        conn.close()
+
+        return "Unauthorized", 403
+
+
     reason = request.form.get(
         "rejection_reason",
         ""
     ).strip()
+
 
     if not reason:
 
@@ -929,6 +1406,89 @@ def reject_achievement(id):
                 "achievement.achievement_list"
             )
         )
+
+
+    # =====================================================
+    # Verify Achievement Access
+    # =====================================================
+
+    if role == "institution_admin":
+
+        cur.execute("""
+            SELECT
+                a.id
+
+            FROM achievements a
+
+            JOIN students s
+                ON a.student_id = s.id
+
+            WHERE
+                a.id = %s
+                AND a.institution_id = %s
+                AND s.institution_id = %s
+                AND a.status = 'Pending'
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"]
+        ))
+
+    else:
+
+        cur.execute("""
+            SELECT
+                a.id
+
+            FROM achievements a
+
+            JOIN students s
+                ON a.student_id = s.id
+
+            JOIN staff_classes sc
+                ON sc.class_id = s.class_id
+
+            WHERE
+                a.id = %s
+                AND a.institution_id = %s
+                AND s.institution_id = %s
+                AND a.status = 'Pending'
+
+                AND sc.institution_id = %s
+                AND sc.staff_id = %s
+                AND sc.is_active = TRUE
+        """, (
+            id,
+            session["institution_id"],
+            session["institution_id"],
+            session["institution_id"],
+            session["user_id"]
+        ))
+
+
+    achievement = cur.fetchone()
+
+
+    if not achievement:
+
+        cur.close()
+        conn.close()
+
+        flash(
+            "Achievement not found or you do not have permission to reject it.",
+            "error"
+        )
+
+        return redirect(
+            url_for(
+                "achievement.achievement_list"
+            )
+        )
+
+
+    # =====================================================
+    # Reject
+    # =====================================================
 
     cur.execute("""
         UPDATE achievements
@@ -953,15 +1513,18 @@ def reject_achievement(id):
         session["institution_id"]
     ))
 
+
     conn.commit()
 
     cur.close()
     conn.close()
 
+
     flash(
         "Achievement rejected.",
         "success"
     )
+
 
     return redirect(
         url_for(

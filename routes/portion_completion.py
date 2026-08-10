@@ -3,7 +3,6 @@ from flask import Blueprint
 from services.portion_completion_service import (
     portion_completion_page,
     save_portion_completion,
-    save_portion_completion,
     portion_completion_list
 )
 
@@ -16,6 +15,10 @@ portion_completion = Blueprint(
     __name__
 )
 
+
+# ---------------------------------
+# Portion Completion Page
+# ---------------------------------
 
 @portion_completion.route(
     "/portion-completion"
@@ -30,6 +33,10 @@ def portion_completion_page_route():
     return portion_completion_page()
 
 
+# ---------------------------------
+# Save Portion Completion
+# ---------------------------------
+
 @portion_completion.route(
     "/portion-completion/save",
     methods=["POST"]
@@ -42,6 +49,11 @@ def portion_completion_page_route():
 def save_portion_completion_route():
 
     return save_portion_completion()
+
+
+# ---------------------------------
+# Portion Completion List
+# ---------------------------------
 
 @portion_completion.route(
     "/portion-completion/list"

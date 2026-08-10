@@ -21,6 +21,8 @@ from routes.paper_presentation import paper_presentation
 from routes.staff_attendance import staff_attendance
 from routes.portion_completion import portion_completion
 from routes.mentoring import mentoring
+from routes.student_leave import student_leave
+from routes.student_login import student_login
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
@@ -46,6 +48,8 @@ app.register_blueprint(paper_presentation)
 app.register_blueprint(staff_attendance)
 app.register_blueprint(portion_completion)
 app.register_blueprint(mentoring)
+app.register_blueprint(student_leave)
+app.register_blueprint(student_login)
 
 @app.route("/login")
 def login():
@@ -53,4 +57,5 @@ def login():
 
 
 if __name__ == "__main__":
+    
     app.run(debug=True)
