@@ -1,0 +1,307 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Performance Matrix
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- ================================================= -->
+    <!-- Header -->
+    <!-- ================================================= -->
+
+    <div class="mb-8">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Performance Matrix
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Consolidated student performance from approved modules.
+        </p>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Student Performance -->
+    <!-- ================================================= -->
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200">
+
+        <div class="p-6 border-b border-slate-200">
+
+            <h2 class="text-xl font-semibold text-slate-800">
+                Student Performance
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                CSS shows consolidated approved module points.
+                Exam and attendance are displayed separately.
+            </p>
+
+        </div>
+
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-sm">
+
+                <thead class="bg-slate-50">
+
+                    <tr>
+
+                        <th class="px-6 py-4 text-left">
+                            #
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Admission No.
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Student
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Class
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            CSS Points
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Exam %
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Attendance %
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-slate-100">
+
+                    {% for student in students %}
+
+                    <tr class="hover:bg-slate-50">
+
+                        <td class="px-6 py-4">
+                            {{ loop.index }}
+                        </td>
+
+                        <td class="px-6 py-4 font-medium">
+                            {{ student.admission_no }}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            {{ student.full_name }}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            {{ student.class_name }}
+                        </td>
+
+                        <td class="px-6 py-4">
+
+                            <span class="font-semibold text-indigo-600">
+                                {{ student.css_points }}
+                            </span>
+
+                        </td>
+
+                        <td class="px-6 py-4">
+
+                            {% if student.exam_percentage is not none %}
+
+                                {{ student.exam_percentage }}%
+
+                            {% else %}
+
+                                <span class="text-slate-400">
+                                    No Data
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td class="px-6 py-4">
+
+                            {% if student.attendance_percentage is not none %}
+
+                                {{ student.attendance_percentage }}%
+
+                            {% else %}
+
+                                <span class="text-slate-400">
+                                    No Data
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+
+                        <td
+                            colspan="7"
+                            class="px-6 py-10 text-center text-slate-500"
+                        >
+
+                            No student performance data found.
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Class-wise Matrix -->
+    <!-- ================================================= -->
+
+    <div class="mt-8 bg-white rounded-2xl shadow-sm border border-slate-200">
+
+        <div class="p-6 border-b border-slate-200">
+
+            <h2 class="text-xl font-semibold text-slate-800">
+                Class-wise Performance
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Average consolidated points and performance indicators.
+            </p>
+
+        </div>
+
+
+        <!-- ================================================= -->
+<!-- Class Cards -->
+<!-- ================================================= -->
+
+<div class="mt-8">
+
+    <div class="mb-5">
+
+        <h2 class="text-xl font-semibold text-slate-800">
+            Classes
+        </h2>
+
+        <p class="text-sm text-slate-500 mt-1">
+            Select a class to view detailed performance.
+        </p>
+
+    </div>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {% for item in class_summary %}
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+
+            <div class="flex items-start justify-between">
+
+                <div>
+
+                    <h3 class="text-xl font-bold text-slate-800">
+                        {{ item.class_name }}
+                    </h3>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        {{ item.students }} Students
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="mt-6 grid grid-cols-2 gap-4">
+
+                <div class="bg-slate-50 rounded-xl p-4">
+
+                    <p class="text-xs text-slate-500">
+                        Average CSS
+                    </p>
+
+                    <p class="text-2xl font-bold text-indigo-600 mt-1">
+                        {{ item.average_css }}
+                    </p>
+
+                </div>
+
+
+                <div class="bg-slate-50 rounded-xl p-4">
+
+                    <p class="text-xs text-slate-500">
+                        Students
+                    </p>
+
+                    <p class="text-2xl font-bold text-slate-800 mt-1">
+                        {{ item.students }}
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <a
+                href="{{ url_for(
+                    'performance.class_performance_page',
+                    class_id=item.class_id
+                ) }}"
+                class="mt-6 block text-center bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-xl font-medium"
+            >
+
+                View Class Performance
+
+            </a>
+
+        </div>
+
+        {% else %}
+
+        <div class="col-span-full">
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-10 text-center">
+
+                <p class="text-slate-500">
+                    No classes found.
+                </p>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+    </div>
+
+</div>
+
+{% endblock %}

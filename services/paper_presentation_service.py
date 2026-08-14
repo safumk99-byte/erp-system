@@ -15,6 +15,8 @@ from werkzeug.utils import secure_filename
 
 from database.db import get_connection
 
+from services.notification_service import notify_student_and_parent
+
 
 ALLOWED_CERTIFICATE_EXTENSIONS = {
     "pdf",
@@ -842,12 +844,19 @@ def edit_paper_presentation(id):
         students=students
     )
     
+# =========================================================
+# Approve Paper Presentation
+# =========================================================
+
 def approve_paper_presentation(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
+    user_id = session.get("user_id")
+
 
     # ---------------------------------
     # Verify presentation access
@@ -857,24 +866,35 @@ def approve_paper_presentation(id):
 
         cur.execute("""
             SELECT
+                p.student_id,
                 p.presentation_level,
                 p.affiliated_institution
 
             FROM paper_presentations p
 
+            JOIN students s
+                ON p.student_id = s.id
+
             WHERE
                 p.id = %s
                 AND p.institution_id = %s
+                AND s.institution_id = %s
+                AND s.is_active = TRUE
                 AND p.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"]
+            institution_id,
+            institution_id
         ))
+
 
     elif role == "staff":
 
         cur.execute("""
             SELECT
+                p.student_id,
                 p.presentation_level,
                 p.affiliated_institution
 
@@ -898,13 +918,16 @@ def approve_paper_presentation(id):
                 AND sc.is_active = TRUE
 
                 AND p.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"],
-            session["user_id"]
+            institution_id,
+            institution_id,
+            institution_id,
+            user_id
         ))
+
 
     else:
 
@@ -933,6 +956,10 @@ def approve_paper_presentation(id):
             )
         )
 
+
+    student_id = presentation[
+        "student_id"
+    ]
 
     level = presentation[
         "presentation_level"
@@ -995,22 +1022,44 @@ def approve_paper_presentation(id):
             id = %s
             AND institution_id = %s
             AND status = 'Pending'
+
     """, (
         points,
-        session.get("user_id"),
+        user_id,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
 
+    # ---------------------------------
+    # Notification
+    # ---------------------------------
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Paper Presentation",
+        approved=True,
+        remarks=None,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # ---------------------------------
+    # Commit
+    # ---------------------------------
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
 
     flash(
-        f"Paper presentation approved. Points: {points}",
+        f"Paper presentation approved. "
+        f"Points: {points}. "
+        f"Notification sent.",
         "success"
     )
 
@@ -1020,13 +1069,21 @@ def approve_paper_presentation(id):
             "paper_presentation.paper_presentation_list"
         )
     )
-    
+
+
+# =========================================================
+# Reject Paper Presentation
+# =========================================================
+
 def reject_paper_presentation(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
+    user_id = session.get("user_id")
+
 
     reason = request.form.get(
         "rejection_reason",
@@ -1063,24 +1120,35 @@ def reject_paper_presentation(id):
 
         cur.execute("""
             SELECT
-                p.id
+                p.id,
+                p.student_id
 
             FROM paper_presentations p
+
+            JOIN students s
+                ON p.student_id = s.id
 
             WHERE
                 p.id = %s
                 AND p.institution_id = %s
+                AND s.institution_id = %s
+                AND s.is_active = TRUE
                 AND p.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"]
+            institution_id,
+            institution_id
         ))
+
 
     elif role == "staff":
 
         cur.execute("""
             SELECT
-                p.id
+                p.id,
+                p.student_id
 
             FROM paper_presentations p
 
@@ -1102,13 +1170,16 @@ def reject_paper_presentation(id):
                 AND sc.is_active = TRUE
 
                 AND p.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"],
-            session["user_id"]
+            institution_id,
+            institution_id,
+            institution_id,
+            user_id
         ))
+
 
     else:
 
@@ -1138,6 +1209,11 @@ def reject_paper_presentation(id):
         )
 
 
+    student_id = presentation[
+        "student_id"
+    ]
+
+
     # ---------------------------------
     # Reject
     # ---------------------------------
@@ -1157,22 +1233,42 @@ def reject_paper_presentation(id):
             id = %s
             AND institution_id = %s
             AND status = 'Pending'
+
     """, (
-        session.get("user_id"),
+        user_id,
         reason,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
 
+    # ---------------------------------
+    # Notification
+    # ---------------------------------
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Paper Presentation",
+        approved=False,
+        remarks=reason,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # ---------------------------------
+    # Commit
+    # ---------------------------------
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
 
     flash(
-        "Paper presentation rejected.",
+        "Paper presentation rejected and notification sent.",
         "success"
     )
 

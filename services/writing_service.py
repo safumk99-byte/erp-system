@@ -9,6 +9,8 @@ from flask import (
 
 from database.db import get_connection
 
+from services.notification_service import notify_student_and_parent
+
 
 # =========================================================
 # Get Allowed Students
@@ -417,6 +419,8 @@ def approve_writing(id):
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
+    user_id = session.get("user_id")
 
 
     # -----------------------------------------------------
@@ -427,6 +431,7 @@ def approve_writing(id):
 
         cur.execute("""
             SELECT
+                w.student_id,
                 w.writing_type,
                 w.pages
 
@@ -440,16 +445,20 @@ def approve_writing(id):
                 AND w.institution_id = %s
                 AND s.institution_id = %s
                 AND w.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"]
+            institution_id,
+            institution_id
         ))
+
 
     elif role == "staff":
 
         cur.execute("""
             SELECT
+                w.student_id,
                 w.writing_type,
                 w.pages
 
@@ -470,13 +479,16 @@ def approve_writing(id):
                 AND sc.institution_id = %s
                 AND sc.staff_id = %s
                 AND sc.is_active = TRUE
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"],
-            session["user_id"]
+            institution_id,
+            institution_id,
+            institution_id,
+            user_id
         ))
+
 
     else:
 
@@ -506,8 +518,14 @@ def approve_writing(id):
         )
 
 
+    student_id = writing["student_id"]
     writing_type = writing["writing_type"]
     pages = writing["pages"]
+
+
+    # -----------------------------------------------------
+    # Calculate Points
+    # -----------------------------------------------------
 
     points = 0
 
@@ -515,7 +533,9 @@ def approve_writing(id):
     if writing_type == "Fiction":
 
         if pages >= 1:
+
             points = 3
+
 
     elif writing_type == "Non-Fiction":
 
@@ -529,6 +549,10 @@ def approve_writing(id):
                 extra_pages // 2
             )
 
+
+    # -----------------------------------------------------
+    # Approve Writing
+    # -----------------------------------------------------
 
     cur.execute("""
         UPDATE writing_submissions
@@ -548,20 +572,39 @@ def approve_writing(id):
 
     """, (
         points,
-        session.get("user_id"),
+        user_id,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
 
+    # -----------------------------------------------------
+    # Notification
+    # -----------------------------------------------------
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Writing Skill",
+        approved=True,
+        remarks=None,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # -----------------------------------------------------
+    # Commit
+    # -----------------------------------------------------
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
 
     flash(
-        "Writing submission approved.",
+        "Writing submission approved and notification sent.",
         "success"
     )
 
@@ -583,12 +626,19 @@ def reject_writing(id):
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
+    user_id = session.get("user_id")
+
 
     reason = request.form.get(
         "rejection_reason",
         ""
     ).strip()
 
+
+    # -----------------------------------------------------
+    # Validate Reason
+    # -----------------------------------------------------
 
     if not reason:
 
@@ -615,7 +665,8 @@ def reject_writing(id):
 
         cur.execute("""
             SELECT
-                w.id
+                w.id,
+                w.student_id
 
             FROM writing_submissions w
 
@@ -627,17 +678,21 @@ def reject_writing(id):
                 AND w.institution_id = %s
                 AND s.institution_id = %s
                 AND w.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"]
+            institution_id,
+            institution_id
         ))
+
 
     elif role == "staff":
 
         cur.execute("""
             SELECT
-                w.id
+                w.id,
+                w.student_id
 
             FROM writing_submissions w
 
@@ -656,13 +711,16 @@ def reject_writing(id):
                 AND sc.institution_id = %s
                 AND sc.staff_id = %s
                 AND sc.is_active = TRUE
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"],
-            session["user_id"]
+            institution_id,
+            institution_id,
+            institution_id,
+            user_id
         ))
+
 
     else:
 
@@ -692,6 +750,13 @@ def reject_writing(id):
         )
 
 
+    student_id = writing["student_id"]
+
+
+    # -----------------------------------------------------
+    # Reject Writing
+    # -----------------------------------------------------
+
     cur.execute("""
         UPDATE writing_submissions
 
@@ -709,21 +774,40 @@ def reject_writing(id):
             AND status = 'Pending'
 
     """, (
-        session.get("user_id"),
+        user_id,
         reason,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
 
+    # -----------------------------------------------------
+    # Notification
+    # -----------------------------------------------------
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Writing Skill",
+        approved=False,
+        remarks=reason,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # -----------------------------------------------------
+    # Commit
+    # -----------------------------------------------------
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
 
     flash(
-        "Writing submission rejected.",
+        "Writing submission rejected and notification sent.",
         "success"
     )
 

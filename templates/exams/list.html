@@ -6,258 +6,576 @@ Exams
 
 {% block page_content %}
 
-<div class="flex items-center justify-between mb-6">
+<div class="space-y-8">
 
-    <div>
 
-        <h1 class="text-3xl font-bold text-slate-800">
-            Exams
-        </h1>
+    <!-- =====================================================
+         Header
+    ====================================================== -->
 
-        <p class="text-slate-500 mt-1">
-            Manage Exams
-        </p>
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Exams
+            </h1>
+
+            <p class="text-slate-500 mt-1">
+                Manage examinations, marks and reports.
+            </p>
+
+        </div>
+
+
+        <div class="flex flex-col sm:flex-row gap-3">
+
+            <!-- Search -->
+
+            <form method="GET">
+
+                <div class="flex gap-2">
+
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ search }}"
+                        placeholder="Search exam or class..."
+                        class="border border-slate-300 rounded-xl px-4 py-3 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                    <button
+                        type="submit"
+                        class="bg-slate-800 hover:bg-slate-900 text-white px-5 rounded-xl"
+                    >
+                        Search
+                    </button>
+
+                </div>
+
+            </form>
+
+
+            <!-- Create Exam -->
+
+            <a
+                href="{{ url_for('exams.create_exam') }}"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+
+                <i
+                    data-lucide="plus"
+                    class="w-5 h-5">
+                </i>
+
+                Create Exam
+
+            </a>
+
+        </div>
 
     </div>
 
-    <div class="flex gap-3">
 
-        <form method="GET">
+    <!-- =====================================================
+         Summary Cards
+    ====================================================== -->
 
-            <div class="flex gap-3">
+    {% set total_exams = exams|length %}
 
-                <input
-                    type="text"
-                    name="search"
-                    value="{{ search }}"
-                    placeholder="Search exam..."
-                    class="border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+    {% set active_exams = exams|selectattr('is_active', 'equalto', true)|list|length %}
 
-                <button
-                    type="submit"
-                    class="bg-slate-800 text-white px-6 rounded-xl">
+    {% set upcoming_exams = exams|selectattr('exam_status', 'equalto', 'Upcoming')|list|length %}
 
-                    Search
 
-                </button>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+
+        <!-- Total Exams -->
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Total Exams
+                    </p>
+
+                    <p class="text-3xl font-bold text-slate-800 mt-2">
+                        {{ total_exams }}
+                    </p>
+
+                </div>
+
+                <div class="p-3 rounded-xl bg-indigo-50">
+
+                    <i
+                        data-lucide="clipboard-list"
+                        class="w-6 h-6 text-indigo-600">
+                    </i>
+
+                </div>
 
             </div>
 
-        </form>
+        </div>
 
-        <a
-            href="{{ url_for('exams.create_exam') }}"
-            class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
 
-            + Create Exam
+        <!-- Active Exams -->
 
-        </a>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Active Exams
+                    </p>
+
+                    <p class="text-3xl font-bold text-slate-800 mt-2">
+                        {{ active_exams }}
+                    </p>
+
+                </div>
+
+                <div class="p-3 rounded-xl bg-green-50">
+
+                    <i
+                        data-lucide="circle-check"
+                        class="w-6 h-6 text-green-600">
+                    </i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Upcoming -->
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Upcoming
+                    </p>
+
+                    <p class="text-3xl font-bold text-slate-800 mt-2">
+                        {{ upcoming_exams }}
+                    </p>
+
+                </div>
+
+                <div class="p-3 rounded-xl bg-amber-50">
+
+                    <i
+                        data-lucide="calendar-clock"
+                        class="w-6 h-6 text-amber-600">
+                    </i>
+
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
-</div>
+
+    {% if class_groups %}
+
+    <!-- =====================================================
+         Class-wise Exams
+    ====================================================== -->
+
+    <div class="space-y-5">
+
+        {% for class_group in class_groups %}
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
 
 
-<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <!-- =================================================
+                 Class Header
+            ================================================== -->
 
-    <div class="overflow-x-auto">
+            <button
+                type="button"
+                onclick="toggleClass('class-{{ loop.index }}')"
+                class="w-full flex items-center justify-between px-6 py-5 hover:bg-slate-50 transition"
+            >
 
-        <table class="w-full">
+                <div class="flex items-center gap-4">
 
-            <thead class="bg-slate-100">
+                    <div class="p-3 rounded-xl bg-indigo-50">
 
-                <tr>
+                        <i
+                            data-lucide="graduation-cap"
+                            class="w-6 h-6 text-indigo-600">
+                        </i>
 
-                    <th class="text-left px-6 py-4">
-                        Exam
-                    </th>
-
-                    <th class="text-left px-6 py-4">
-                        Class
-                    </th>
-
-                    <th class="text-left px-6 py-4">
-                        Type
-                    </th>
-
-                    <th class="text-left px-6 py-4">
-                        Subjects
-                    </th>
-
-                    <th class="text-left px-6 py-4">
-                        Total
-                    </th>
-
-                    <th class="text-left px-6 py-4">
-                        Date
-                    </th>
-
-                    <th class="text-left px-6 py-4">
-                        Status
-                    </th>
-
-                    <th class="text-center px-6 py-4">
-                        Actions
-                    </th>
-
-                </tr>
-
-            </thead>
+                    </div>
 
 
-            <tbody>
+                    <div class="text-left">
 
-            {% if exams %}
+                        <h2 class="text-xl font-semibold text-slate-800">
 
-                {% for exam in exams %}
+                            {{ class_group.class_name }}
 
-                <tr class="border-t hover:bg-slate-50 align-top">
-
-                    <!-- Exam -->
-
-                    <td class="px-6 py-5">
-
-                        <div class="font-semibold text-slate-800">
-
-                            {{ exam.exam_name }}
-
-                        </div>
-
-                    </td>
+                        </h2>
 
 
-                    <!-- Class -->
+                        <p class="text-sm text-slate-500 mt-1">
 
-                    <td class="px-6 py-5">
+                            {{ class_group.exam_count }}
 
-                        {{ exam.class_name }}
+                            {% if class_group.exam_count == 1 %}
 
-                    </td>
-
-
-                    <!-- Type -->
-
-                    <td class="px-6 py-5">
-
-                        {% if exam.exam_type == "Academic" %}
-
-                            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-
-                                Academic
-
-                            </span>
-
-                        {% else %}
-
-                            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
-
-                                Kithab
-
-                            </span>
-
-                        {% endif %}
-
-                    </td>
-
-
-                    <!-- Subjects -->
-
-                    <td class="px-6 py-5">
-
-                        <div class="flex flex-col gap-2">
-
-                            {% if exam.subjects %}
-
-                                {% for subject in exam.subjects.split(', ') %}
-
-                                    <div class="flex items-center justify-between gap-4">
-
-                                        <span class="text-slate-700">
-
-                                            {{ subject }}
-
-                                        </span>
-
-                                    </div>
-
-                                {% endfor %}
+                                Exam
 
                             {% else %}
 
-                                <span class="text-slate-400">
+                                Exams
 
-                                    No subjects
+                            {% endif %}
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="flex items-center gap-3">
+
+                    <span class="hidden sm:inline-flex bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">
+
+                        {{ class_group.exam_count }}
+
+                    </span>
+
+
+                    <i
+                        id="icon-class-{{ loop.index }}"
+                        data-lucide="chevron-down"
+                        class="w-5 h-5 text-slate-400 transition-transform">
+                    </i>
+
+                </div>
+
+            </button>
+
+
+            <!-- =================================================
+                 Exams
+            ================================================== -->
+
+            <div
+                id="class-{{ loop.index }}"
+                class="border-t border-slate-200 px-6 py-6 space-y-4"
+            >
+
+                {% for exam in class_group.exams %}
+
+
+                <!-- =================================================
+                     Exam Card
+                ================================================== -->
+
+                <div class="border border-slate-200 rounded-2xl p-5 hover:border-indigo-200 hover:shadow-sm transition">
+
+
+                    <!-- =================================================
+                         Exam Header
+                    ================================================== -->
+
+                    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+
+
+                        <!-- Exam Name -->
+
+                        <div>
+
+                            <div class="flex flex-wrap items-center gap-3">
+
+                                <h3 class="text-lg font-semibold text-slate-800">
+
+                                    {{ exam.exam_name }}
+
+                                </h3>
+
+
+                                <!-- Exam Type -->
+
+                                {% if exam.exam_type == "Academic" %}
+
+                                <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
+
+                                    Academic
 
                                 </span>
+
+                                {% else %}
+
+                                <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium">
+
+                                    {{ exam.exam_type }}
+
+                                </span>
+
+                                {% endif %}
+
+
+                                <!-- Active Status -->
+
+                                {% if exam.is_active %}
+
+                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
+
+                                    Active
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-medium">
+
+                                    Inactive
+
+                                </span>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- Exam Status -->
+
+                            <div class="mt-2">
+
+                                {% if exam.exam_status == "Upcoming" %}
+
+                                <span class="text-sm text-amber-600 font-medium">
+
+                                    Upcoming
+
+                                </span>
+
+                                {% elif exam.exam_status == "Today" %}
+
+                                <span class="text-sm text-indigo-600 font-semibold">
+
+                                    Exam Today
+
+                                </span>
+
+                                {% elif exam.exam_status == "Completed" %}
+
+                                <span class="text-sm text-slate-500">
+
+                                    Completed
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="text-sm text-slate-400">
+
+                                    No Date
+
+                                </span>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Date -->
+
+                        <div class="flex items-center gap-2 text-sm text-slate-600">
+
+                            <i
+                                data-lucide="calendar"
+                                class="w-4 h-4 text-slate-400">
+                            </i>
+
+
+                            <span>
+
+                                {% if exam.exam_date %}
+
+                                    {{ exam.exam_date.strftime("%d %b %Y") }}
+
+                                {% else %}
+
+                                    No date
+
+                                {% endif %}
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         Exam Details
+                    ================================================== -->
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
+
+
+                        <!-- Subjects -->
+
+                        <div class="bg-slate-50 rounded-xl p-4">
+
+                            <div class="flex items-center gap-2 mb-2">
+
+                                <i
+                                    data-lucide="book-open"
+                                    class="w-4 h-4 text-indigo-500">
+                                </i>
+
+
+                                <p class="text-xs text-slate-500 uppercase tracking-wide">
+
+                                    Subjects
+
+                                </p>
+
+                            </div>
+
+
+                            {% if exam.subjects %}
+
+                            <p class="text-sm font-medium text-slate-700">
+
+                                {{ exam.subjects }}
+
+                            </p>
+
+                            {% else %}
+
+                            <p class="text-sm text-slate-400">
+
+                                No subjects
+
+                            </p>
 
                             {% endif %}
 
                         </div>
 
-                    </td>
+
+                        <!-- Total Marks -->
+
+                        <div class="bg-slate-50 rounded-xl p-4">
+
+                            <div class="flex items-center gap-2 mb-2">
+
+                                <i
+                                    data-lucide="target"
+                                    class="w-4 h-4 text-indigo-500">
+                                </i>
 
 
-                    <!-- Total -->
+                                <p class="text-xs text-slate-500 uppercase tracking-wide">
 
-                    <td class="px-6 py-5">
+                                    Total Marks
 
-                        {{ exam.total_mark }}
+                                </p>
 
-                    </td>
-
-
-                    <!-- Date -->
-
-                    <td class="px-6 py-5">
-
-                        {{ exam.exam_date }}
-
-                    </td>
+                            </div>
 
 
-                    <!-- Status -->
+                            <p class="text-lg font-semibold text-slate-800">
 
-                    <td class="px-6 py-5">
+                                {{ exam.total_mark }}
 
-                        {% if exam.is_active %}
+                            </p>
 
-                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-
-                                Active
-
-                            </span>
-
-                        {% else %}
-
-                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
-
-                                Inactive
-
-                            </span>
-
-                        {% endif %}
-
-                    </td>
+                        </div>
 
 
-                    <!-- Actions -->
+                        <!-- Exam Date -->
 
-                    <td class="px-6 py-5">
+                        <div class="bg-slate-50 rounded-xl p-4">
 
-                        <div class="flex flex-col items-center gap-2">
+                            <div class="flex items-center gap-2 mb-2">
 
-                            <!-- Report -->
+                                <i
+                                    data-lucide="calendar-days"
+                                    class="w-4 h-4 text-indigo-500">
+                                </i>
 
-<a
-    href="{{ url_for(
-        'exams.exam_report_page',
-        id=exam.id
-    ) }}"
-    class="w-full text-center bg-green-50 text-green-700 hover:bg-green-100 px-4 py-2 rounded-lg text-sm font-medium">
 
-    View Report
+                                <p class="text-xs text-slate-500 uppercase tracking-wide">
 
-</a>
+                                    Exam Date
+
+                                </p>
+
+                            </div>
+
+
+                            <p class="text-sm font-semibold text-slate-800">
+
+                                {% if exam.exam_date %}
+
+                                    {{ exam.exam_date.strftime("%d %b %Y") }}
+
+                                {% else %}
+
+                                    -
+
+                                {% endif %}
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         Actions
+                    ================================================== -->
+
+                    <div class="mt-5 pt-5 border-t border-slate-200">
+
+                        <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+
+
+                            <!-- View Report -->
+
+                            <a
+                                href="{{ url_for(
+                                    'exams.exam_report_page',
+                                    id=exam.id
+                                ) }}"
+                                class="inline-flex items-center justify-center gap-2 bg-green-50 text-green-700 hover:bg-green-100 px-4 py-2 rounded-lg text-sm font-medium"
+                            >
+
+                                <i
+                                    data-lucide="file-chart-column"
+                                    class="w-4 h-4">
+                                </i>
+
+                                View Report
+
+                            </a>
+
 
                             <!-- Enter Marks -->
 
@@ -265,17 +583,23 @@ Exams
 
                                 {% for subject in exam.subject_ids %}
 
-                                    <a
-                                        href="{{ url_for(
-                                            'exams.exam_marks',
-                                            id=exam.id,
-                                            subject_id=subject.id
-                                        ) }}"
-                                        class="w-full text-center bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-4 py-2 rounded-lg text-sm font-medium">
+                                <a
+                                    href="{{ url_for(
+                                        'exams.exam_marks',
+                                        id=exam.id,
+                                        subject_id=subject.id
+                                    ) }}"
+                                    class="inline-flex items-center justify-center gap-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-4 py-2 rounded-lg text-sm font-medium"
+                                >
 
-                                        Enter {{ subject.name }} Marks
+                                    <i
+                                        data-lucide="pencil-line"
+                                        class="w-4 h-4">
+                                    </i>
 
-                                    </a>
+                                    {{ subject.name }} Marks
+
+                                </a>
 
                                 {% endfor %}
 
@@ -285,8 +609,17 @@ Exams
                             <!-- Edit -->
 
                             <a
-                                href="{{ url_for('exams.update_exam', id=exam.id) }}"
-                                class="text-indigo-600 hover:underline">
+                                href="{{ url_for(
+                                    'exams.update_exam',
+                                    id=exam.id
+                                ) }}"
+                                class="inline-flex items-center justify-center gap-2 border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"
+                            >
+
+                                <i
+                                    data-lucide="edit"
+                                    class="w-4 h-4">
+                                </i>
 
                                 Edit
 
@@ -297,56 +630,198 @@ Exams
 
                             {% if exam.is_active %}
 
-                                <a
-                                    href="{{ url_for('exams.toggle_exam_status', id=exam.id) }}"
-                                    class="text-red-600 hover:underline">
+                            <a
+                                href="{{ url_for(
+                                    'exams.toggle_exam_status',
+                                    id=exam.id
+                                ) }}"
+                                class="inline-flex items-center justify-center gap-2 border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg text-sm font-medium"
+                            >
 
-                                    Deactivate
+                                <i
+                                    data-lucide="power"
+                                    class="w-4 h-4">
+                                </i>
 
-                                </a>
+                                Deactivate
+
+                            </a>
 
                             {% else %}
 
-                                <a
-                                    href="{{ url_for('exams.toggle_exam_status', id=exam.id) }}"
-                                    class="text-green-600 hover:underline">
+                            <a
+                                href="{{ url_for(
+                                    'exams.toggle_exam_status',
+                                    id=exam.id
+                                ) }}"
+                                class="inline-flex items-center justify-center gap-2 border border-green-200 text-green-600 hover:bg-green-50 px-4 py-2 rounded-lg text-sm font-medium"
+                            >
 
-                                    Activate
+                                <i
+                                    data-lucide="power"
+                                    class="w-4 h-4">
+                                </i>
 
-                                </a>
+                                Activate
+
+                            </a>
 
                             {% endif %}
 
+
                         </div>
 
-                    </td>
+                    </div>
 
-                </tr>
+
+                </div>
 
                 {% endfor %}
 
-            {% else %}
+            </div>
 
-                <tr>
+        </div>
 
-                    <td
-                        colspan="8"
-                        class="text-center py-10 text-slate-500">
+        {% endfor %}
 
-                        No exams found.
+    </div>
+{% else %}
 
-                    </td>
+    <!-- =====================================================
+         Empty State
+    ====================================================== -->
 
-                </tr>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+
+        <div class="text-center py-16 px-6">
+
+            <div class="flex justify-center mb-5">
+
+                <div class="p-4 rounded-full bg-slate-100">
+
+                    <i
+                        data-lucide="clipboard-x"
+                        class="w-10 h-10 text-slate-400">
+                    </i>
+
+                </div>
+
+            </div>
+
+
+            <h2 class="text-lg font-semibold text-slate-700">
+                No exams found
+            </h2>
+
+
+            <p class="text-sm text-slate-500 mt-2">
+
+                {% if search %}
+
+                    No exams match your search.
+
+                {% else %}
+
+                    Create your first exam to get started.
+
+                {% endif %}
+
+            </p>
+
+
+            {% if not search %}
+
+            <a
+                href="{{ url_for('exams.create_exam') }}"
+                class="inline-flex items-center gap-2 mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl"
+            >
+
+                <i
+                    data-lucide="plus"
+                    class="w-5 h-5">
+                </i>
+
+                Create Exam
+
+            </a>
 
             {% endif %}
 
-            </tbody>
-
-        </table>
+        </div>
 
     </div>
 
+{% endif %}
+
 </div>
+
+
+<!-- =====================================================
+     Class Toggle Script
+====================================================== -->
+
+<script>
+
+function toggleClass(classId) {
+
+    const container = document.getElementById(classId);
+
+    const number = classId.replace(
+        "class-",
+        ""
+    );
+
+    const icon = document.getElementById(
+        "icon-class-" + number
+    );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    if (container.classList.contains("hidden")) {
+
+        container.classList.remove("hidden");
+
+        if (icon) {
+
+            icon.style.transform =
+                "rotate(0deg)";
+
+        }
+
+    } else {
+
+        container.classList.add("hidden");
+
+        if (icon) {
+
+            icon.style.transform =
+                "rotate(-90deg)";
+
+        }
+
+    }
+
+}
+
+</script>
+
+
+<!-- =====================================================
+     Lucide Icons
+====================================================== -->
+
+<script>
+
+if (typeof lucide !== "undefined") {
+
+    lucide.createIcons();
+
+}
+
+</script>
 
 {% endblock %}

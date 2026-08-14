@@ -30,13 +30,60 @@
         </div>
 
         <!-- Notification -->
-        <button class="relative p-2 rounded-lg hover:bg-slate-100">
 
-            <i data-lucide="bell" class="w-5 h-5"></i>
+<form
+    method="POST"
+    action="{{ url_for('notifications.open_notifications') }}"
+    class="relative"
+>
 
-            <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500"></span>
+    <button
+        type="submit"
+        class="relative p-2 rounded-lg hover:bg-slate-100 transition"
+        title="Notifications"
+    >
 
-        </button>
+        <i data-lucide="bell" class="w-5 h-5"></i>
+
+
+        {% if unread_notification_count > 0 %}
+
+        <span
+            class="
+                absolute
+                -top-1
+                -right-1
+                min-w-[18px]
+                h-[18px]
+                px-1
+                rounded-full
+                bg-red-500
+                text-white
+                text-[10px]
+                font-bold
+                flex
+                items-center
+                justify-center
+            "
+        >
+
+            {% if unread_notification_count > 99 %}
+
+                99+
+
+            {% else %}
+
+                {{ unread_notification_count }}
+
+            {% endif %}
+
+        </span>
+
+        {% endif %}
+
+    </button>
+
+</form>
 
         <!-- User -->
         <div class="flex items-center gap-3">

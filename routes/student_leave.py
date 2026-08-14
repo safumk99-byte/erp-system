@@ -17,14 +17,20 @@ student_leave = Blueprint(
 )
 
 
-@student_leave.route(
-    "/student-leave"
-)
+# =========================================================
+# Student Leave Page
+# =========================================================
+
+@student_leave.route("/student-leave")
 @login_required
 def student_leave_page_route():
 
     return student_leave_page()
 
+
+# =========================================================
+# Submit Leave
+# =========================================================
 
 @student_leave.route(
     "/student-leave/submit",
@@ -35,19 +41,27 @@ def submit_student_leave_route():
 
     return submit_student_leave()
 
+
+# =========================================================
+# Leave Requests
+# =========================================================
+
 @student_leave.route(
     "/student-leave/requests"
 )
 @login_required
 @role_required(
     "institution_admin",
-    "principal",
     "staff"
 )
 def student_leave_requests_route():
 
     return student_leave_requests()
 
+
+# =========================================================
+# Review Leave
+# =========================================================
 
 @student_leave.route(
     "/student-leave/review",
@@ -56,7 +70,6 @@ def student_leave_requests_route():
 @login_required
 @role_required(
     "institution_admin",
-    "principal",
     "staff"
 )
 def review_student_leave_route():

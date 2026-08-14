@@ -6,32 +6,101 @@ Student Dashboard
 
 {% block page_content %}
 
-<div class="max-w-7xl mx-auto">
+<div class="max-w-7xl mx-auto space-y-6">
 
-    <!-- Welcome -->
+    <!-- =====================================================
+         Welcome
+    ====================================================== -->
 
     <div class="mb-8">
 
-        <h1 class="text-3xl font-bold text-slate-800">
-            Welcome, {{ student.full_name }}
-        </h1>
+    <div class="flex items-center gap-5">
 
-        <p class="text-slate-500 mt-2">
-            Your academic dashboard
-        </p>
+        <!-- Student Photo -->
+
+        <div class="shrink-0">
+
+            {% if student.photo %}
+
+                <img
+                    src="{{ url_for(
+                        'students.student_photo',
+                        filename=student.photo
+                    ) }}"
+                    alt="{{ student.full_name }}"
+                    class="w-20 h-20 rounded-2xl object-cover border border-slate-200 shadow-sm"
+                >
+
+            {% else %}
+
+                <div class="w-20 h-20 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center">
+
+                    <i
+                        data-lucide="user"
+                        class="w-9 h-9 text-slate-400">
+                    </i>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- Welcome -->
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Welcome, {{ student.full_name }}
+            </h1>
+
+            <p class="text-slate-500 mt-2">
+                Your academic dashboard
+            </p>
+
+        </div>
 
     </div>
 
+</div>
 
-    <!-- Student Information -->
 
-    <div class="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
+    <!-- =====================================================
+         Student Information
+    ====================================================== -->
 
-        <h2 class="text-lg font-semibold text-slate-800 mb-5">
-            My Information
-        </h2>
+    <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+        <div class="flex items-center gap-4 mb-6">
+
+            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+
+                <i
+                    data-lucide="user-round"
+                    class="w-6 h-6">
+                </i>
+
+            </div>
+
+            <div>
+
+                <h2 class="text-lg font-semibold text-slate-800">
+                    My Information
+                </h2>
+
+                <p class="text-sm text-slate-500">
+                    Your basic student information
+                </p>
+
+            </div>
+
+        </div>
+
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+            <!-- Student Name -->
 
             <div>
 
@@ -46,6 +115,8 @@ Student Dashboard
             </div>
 
 
+            <!-- Admission Number -->
+
             <div>
 
                 <p class="text-sm text-slate-500">
@@ -58,6 +129,8 @@ Student Dashboard
 
             </div>
 
+
+            <!-- Class -->
 
             <div>
 
@@ -76,25 +149,42 @@ Student Dashboard
     </div>
 
 
-    <!-- Attendance -->
+    <!-- =====================================================
+         Attendance
+    ====================================================== -->
 
-    <div class="mb-6">
+    <div>
 
-        <h2 class="text-lg font-semibold text-slate-800 mb-4">
-            Attendance
-        </h2>
+        <div class="flex items-center justify-between mb-4">
+
+            <div>
+
+                <h2 class="text-lg font-semibold text-slate-800">
+                    Attendance
+                </h2>
+
+                <p class="text-sm text-slate-500 mt-1">
+                    Your attendance summary
+                </p>
+
+            </div>
+
+        </div>
 
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
 
 
-            <!-- Total -->
+            <!-- Total Days -->
 
             <div class="bg-white border border-slate-200 rounded-2xl p-6">
 
                 <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center mb-4">
 
-                    <i data-lucide="calendar-days" class="w-5 h-5"></i>
+                    <i
+                        data-lucide="calendar-days"
+                        class="w-5 h-5">
+                    </i>
 
                 </div>
 
@@ -115,7 +205,10 @@ Student Dashboard
 
                 <div class="w-11 h-11 rounded-xl bg-green-100 text-green-600 flex items-center justify-center mb-4">
 
-                    <i data-lucide="circle-check" class="w-5 h-5"></i>
+                    <i
+                        data-lucide="circle-check"
+                        class="w-5 h-5">
+                    </i>
 
                 </div>
 
@@ -136,7 +229,10 @@ Student Dashboard
 
                 <div class="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center mb-4">
 
-                    <i data-lucide="circle-x" class="w-5 h-5"></i>
+                    <i
+                        data-lucide="circle-x"
+                        class="w-5 h-5">
+                    </i>
 
                 </div>
 
@@ -157,7 +253,10 @@ Student Dashboard
 
                 <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
 
-                    <i data-lucide="calendar-off" class="w-5 h-5"></i>
+                    <i
+                        data-lucide="calendar-off"
+                        class="w-5 h-5">
+                    </i>
 
                 </div>
 
@@ -171,76 +270,568 @@ Student Dashboard
 
             </div>
 
+
+            <!-- Attendance Percentage -->
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+                <div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
+
+                    <i
+                        data-lucide="percent"
+                        class="w-5 h-5">
+                    </i>
+
+                </div>
+
+                <p class="text-sm text-slate-500">
+                    Attendance
+                </p>
+
+                <p class="text-3xl font-bold text-blue-600 mt-1">
+                    {{ attendance.attendance_percentage or 0 }}%
+                </p>
+
+            </div>
+
         </div>
 
     </div>
 
 
-    <!-- Quick Actions -->
+    <!-- =====================================================
+         Latest Result
+    ====================================================== -->
 
     <div>
 
-        <h2 class="text-lg font-semibold text-slate-800 mb-4">
+        <div class="mb-4">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Latest Result
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Your most recent examination performance
+            </p>
+
+        </div>
+
+
+        {% if latest_result %}
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+                <!-- Exam -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Exam
+                    </p>
+
+                    <p class="font-semibold text-slate-800 mt-1">
+                        {{ latest_result.exam_name }}
+                    </p>
+
+                    <p class="text-xs text-slate-400 mt-1">
+                        {{ latest_result.exam_type }}
+                    </p>
+
+                </div>
+
+
+                <!-- Marks -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Total Marks
+                    </p>
+
+                    <p class="text-2xl font-bold text-slate-800 mt-1">
+                        {{ latest_result.total_obtained|round(2) }}
+                        /
+                        {{ latest_result.total_possible|round(2) }}
+                    </p>
+
+                </div>
+
+
+                <!-- Percentage -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Percentage
+                    </p>
+
+                    <p class="text-2xl font-bold text-blue-600 mt-1">
+                        {{ latest_result.percentage }}%
+                    </p>
+
+                </div>
+
+
+                <!-- Grade -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Grade
+                    </p>
+
+                    <p class="text-2xl font-bold text-green-600 mt-1">
+                        {{ latest_result.grade }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% else %}
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center">
+
+            <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-4">
+
+                <i
+                    data-lucide="clipboard-list"
+                    class="w-6 h-6">
+                </i>
+
+            </div>
+
+            <h3 class="font-semibold text-slate-800">
+                No results yet
+            </h3>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Your examination results will appear here.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =====================================================
+         Upcoming Exams
+    ====================================================== -->
+
+    <div>
+
+        <div class="mb-4">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Upcoming Exams
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Exams scheduled for your class
+            </p>
+
+        </div>
+
+
+        {% if upcoming_exams %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+            {% for exam in upcoming_exams %}
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+                <!-- Icon -->
+
+                <div class="w-11 h-11 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4">
+
+                    <i
+                        data-lucide="graduation-cap"
+                        class="w-5 h-5">
+                    </i>
+
+                </div>
+
+
+                <!-- Exam Name -->
+
+                <h3 class="font-semibold text-slate-800 text-lg">
+                    {{ exam.exam_name }}
+                </h3>
+
+
+                <!-- Exam Type -->
+
+                <p class="text-sm text-slate-500 mt-1">
+                    {{ exam.exam_type }}
+                </p>
+
+
+                <!-- Date -->
+
+                <div class="flex items-center gap-2 mt-4">
+
+                    <i
+                        data-lucide="calendar"
+                        class="w-4 h-4 text-slate-400">
+                    </i>
+
+                    <span class="text-sm font-medium text-slate-700">
+
+                        {{ exam.exam_date.strftime("%d %b %Y") }}
+
+                    </span>
+
+                </div>
+
+
+                <!-- Subjects -->
+
+                <div class="flex items-start gap-2 mt-3">
+
+                    <i
+                        data-lucide="book-open"
+                        class="w-4 h-4 text-slate-400 mt-0.5">
+                    </i>
+
+                    <span class="text-sm text-slate-600">
+
+                        {{ exam.subjects }}
+
+                    </span>
+
+                </div>
+
+
+                <!-- Total Mark -->
+
+                <div class="mt-5 pt-4 border-t border-slate-100">
+
+                    <span class="text-xs text-slate-500">
+                        Total Mark
+                    </span>
+
+                    <span class="font-semibold text-slate-800 ml-1">
+                        {{ exam.total_mark }}
+                    </span>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center">
+
+            <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-4">
+
+                <i
+                    data-lucide="calendar-check"
+                    class="w-6 h-6">
+                </i>
+
+            </div>
+
+            <h3 class="font-semibold text-slate-800">
+                No upcoming exams
+            </h3>
+
+            <p class="text-sm text-slate-500 mt-1">
+                There are no upcoming exams scheduled for your class.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =====================================================
+         Recent Results
+    ====================================================== -->
+
+    <div>
+
+        <div class="mb-4">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Recent Results
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Your latest subject-wise marks
+            </p>
+
+        </div>
+
+
+        {% if recent_results %}
+
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full text-sm">
+
+                    <thead class="bg-slate-50 border-b border-slate-200">
+
+                        <tr>
+
+                            <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                                Exam
+                            </th>
+
+                            <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                                Subject
+                            </th>
+
+                            <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                                Mark
+                            </th>
+
+                            <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                                Grade
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody class="divide-y divide-slate-100">
+
+                        {% for result in recent_results %}
+
+                        <tr class="hover:bg-slate-50 transition">
+
+                            <td class="px-6 py-4">
+
+                                <p class="font-medium text-slate-800">
+                                    {{ result.exam_name }}
+                                </p>
+
+                                <p class="text-xs text-slate-400 mt-1">
+                                    {{ result.exam_date.strftime("%d %b %Y") }}
+                                </p>
+
+                            </td>
+
+
+                            <td class="px-6 py-4 text-slate-700">
+                                {{ result.subject_name }}
+                            </td>
+
+
+                            <td class="px-6 py-4">
+
+                                <span class="font-semibold text-slate-800">
+
+                                    {{ result.mark|round(2) }}
+
+                                    /
+
+                                    {{ result.total_mark|round(2) }}
+
+                                </span>
+
+                            </td>
+
+
+                            <td class="px-6 py-4">
+
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-green-100 text-green-700 font-semibold text-xs">
+
+                                    {{ result.grade }}
+
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        {% else %}
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center">
+
+            <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-4">
+
+                <i
+                    data-lucide="file-chart-column"
+                    class="w-6 h-6">
+                </i>
+
+            </div>
+
+            <h3 class="font-semibold text-slate-800">
+                No results available
+            </h3>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Your marks will appear here after exams are evaluated.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =====================================================
+     Quick Actions
+====================================================== -->
+
+<div>
+
+    <div class="mb-4">
+
+        <h2 class="text-lg font-semibold text-slate-800">
             Quick Actions
         </h2>
 
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-
-            <!-- My Progress -->
-
-            <a
-                href="#"
-                class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
-
-                <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
-
-                    <i data-lucide="book-open" class="w-6 h-6"></i>
-
-                </div>
-
-                <h2 class="text-lg font-semibold text-slate-800">
-                    My Progress
-                </h2>
-
-                <p class="text-sm text-slate-500 mt-2">
-                    View your academic progress.
-                </p>
-
-            </a>
+    </div>
 
 
-            <!-- Leave -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
-            <a
-                href="{{ url_for(
-                    'student_leave.student_leave_page_route'
-                ) }}"
-                class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
 
-                <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
+        <!-- My Progress -->
 
-                    <i data-lucide="calendar-off" class="w-6 h-6"></i>
+        <a
+           href="{{ url_for('students.student_progress_page') }}"
+            class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
 
-                </div>
+            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
 
-                <h2 class="text-lg font-semibold text-slate-800">
-                    Leave Application
-                </h2>
+                <i
+                    data-lucide="book-open"
+                    class="w-6 h-6">
+                </i>
 
-                <p class="text-sm text-slate-500 mt-2">
-                    Apply for leave and check your requests.
-                </p>
+            </div>
 
-            </a>
+            <h3 class="text-lg font-semibold text-slate-800">
+                My Progress
+            </h3>
 
-        </div>
+            <p class="text-sm text-slate-500 mt-2">
+                View your academic progress.
+            </p>
+
+        </a>
+
+
+        <!-- My Exams -->
+
+        <a
+            href="{{ url_for('students.student_exams_page') }}"
+            class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+
+            <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4">
+
+                <i
+                    data-lucide="graduation-cap"
+                    class="w-6 h-6">
+                </i>
+
+            </div>
+
+            <h3 class="text-lg font-semibold text-slate-800">
+                My Exams
+            </h3>
+
+            <p class="text-sm text-slate-500 mt-2">
+                View your exam schedule and subjects.
+            </p>
+
+        </a>
+
+
+        <!-- Leave Application -->
+
+        <a
+            href="{{ url_for(
+                'student_leave.student_leave_page_route'
+            ) }}"
+            class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+
+            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
+
+                <i
+                    data-lucide="calendar-off"
+                    class="w-6 h-6">
+                </i>
+
+            </div>
+
+            <h3 class="text-lg font-semibold text-slate-800">
+                Leave Application
+            </h3>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Apply for leave and check your requests.
+            </p>
+
+        </a>
+
+
+        <!-- My Results -->
+
+        <a
+            href="{{ url_for('students.student_results_page') }}"
+            class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+
+            <div class="w-12 h-12 rounded-xl bg-green-100 text-green-600 flex items-center justify-center mb-4">
+
+                <i
+                    data-lucide="file-chart-column"
+                    class="w-6 h-6">
+                </i>
+
+            </div>
+
+            <h3 class="text-lg font-semibold text-slate-800">
+                My Results
+            </h3>
+
+            <p class="text-sm text-slate-500 mt-2">
+                View your examination results.
+            </p>
+
+        </a>
 
     </div>
 
 </div>
 
+</div>
+
+
+<!-- =====================================================
+     Lucide Icons
+====================================================== -->
 
 <script>
 

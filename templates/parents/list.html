@@ -8,6 +8,10 @@ Parents
 
 <div class="flex items-center justify-between mb-6">
 
+    <!-- =================================================
+         Page Header
+    ================================================== -->
+
     <div>
 
         <h1 class="text-3xl font-bold text-slate-800">
@@ -15,152 +19,365 @@ Parents
         </h1>
 
         <p class="text-slate-500 mt-1">
-            Manage Parents
+            Manage student parents
         </p>
 
     </div>
 
-    <div class="flex gap-3">
 
-        <form method="GET">
+    <!-- =================================================
+         Search
+    ================================================== -->
 
-            <div class="flex gap-3">
+    <form method="GET">
 
-                <input
-                    type="text"
-                    name="search"
-                    value="{{ search }}"
-                    placeholder="Search parent..."
-                    class="border rounded-xl px-4 py-3">
+        <div class="flex gap-3">
 
-                <button
-                    type="submit"
-                    class="bg-slate-800 text-white px-6 rounded-xl">
+            <input
+                type="text"
+                name="search"
+                value="{{ search }}"
+                placeholder="Search parent or student..."
+                class="border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
 
-                    Search
+            <button
+                type="submit"
+                class="bg-slate-800 hover:bg-slate-900 text-white px-6 rounded-xl"
+            >
+                Search
+            </button>
 
-                </button>
+        </div>
 
-            </div>
+    </form>
 
-        </form>
+</div>
 
-        <a href="{{ url_for('parents.create_parent') }}"
-           class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
 
-            + Add Parent
+<!-- =====================================================
+     Information
+====================================================== -->
 
-        </a>
+<div class="mb-6 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
+
+    <div class="flex items-start gap-3">
+
+        <i
+            data-lucide="info"
+            class="w-5 h-5 text-indigo-600 mt-0.5"
+        ></i>
+
+        <div>
+
+            <p class="font-medium text-indigo-800">
+                Parent accounts are created automatically
+            </p>
+
+            <p class="text-sm text-indigo-700 mt-1">
+                A parent account is created automatically when
+                a student is added.
+            </p>
+
+        </div>
 
     </div>
 
 </div>
 
+
+<!-- =====================================================
+     Parents Table
+====================================================== -->
+
 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
-    <table class="w-full">
+    <div class="overflow-x-auto">
 
-        <thead class="bg-slate-100">
+        <table class="w-full">
 
-            <tr>
+            <thead class="bg-slate-100">
 
-                <th class="text-left px-6 py-4">Name</th>
-                <th class="text-left px-6 py-4">Username</th>
-                <th class="text-left px-6 py-4">Phone</th>
-                <th class="text-left px-6 py-4">Status</th>
-                <th class="text-center px-6 py-4">Actions</th>
+                <tr>
 
-            </tr>
+                    <th class="text-left px-6 py-4">
+                        Parent
+                    </th>
 
-        </thead>
+                    <th class="text-left px-6 py-4">
+                        Username
+                    </th>
 
-        <tbody>
+                    <th class="text-left px-6 py-4">
+                        Phone
+                    </th>
 
-        {% if parents %}
+                    <th class="text-left px-6 py-4">
+                        Student
+                    </th>
 
-            {% for parent in parents %}
+                    <th class="text-left px-6 py-4">
+                        Admission No
+                    </th>
 
-            <tr class="border-t">
+                    <th class="text-left px-6 py-4">
+                        Class
+                    </th>
 
-                <td class="px-6 py-4">{{ parent.full_name }}</td>
-                <td class="px-6 py-4">{{ parent.username }}</td>
-                <td class="px-6 py-4">{{ parent.phone or "-" }}</td>
+                    <th class="text-left px-6 py-4">
+                        Status
+                    </th>
 
-                <td class="px-6 py-4">
+                    <th class="text-center px-6 py-4">
+                        Actions
+                    </th>
 
-                    {% if parent.is_active %}
+                </tr>
 
-                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                        Active
-                    </span>
+            </thead>
 
-                    {% else %}
 
-                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
-                        Inactive
-                    </span>
+            <tbody>
 
-                    {% endif %}
+            {% if parents %}
 
-                </td>
+                {% for parent in parents %}
 
-                <td class="px-6 py-4 text-center">
+                <tr class="border-t hover:bg-slate-50">
 
-                    <a href="{{ url_for('parents.update_parent', id=parent.id) }}"
-                       class="text-indigo-600 hover:underline">
 
-                        Edit
+                    <!-- =================================================
+                         Parent
+                    ================================================== -->
 
-                    </a>
+                    <td class="px-6 py-4">
 
-                    <span class="mx-2 text-slate-300">|</span>
+                        <div>
 
-                    {% if parent.is_active %}
+                            <p class="font-medium text-slate-800">
+                                {{ parent.parent_name }}
+                            </p>
 
-                    <a href="{{ url_for('parents.toggle_parent', id=parent.id) }}"
-                       class="text-red-600 hover:underline"
-                       onclick="return confirm('Deactivate this parent?')">
+                            {% if parent.email %}
 
-                        Deactivate
+                            <p class="text-xs text-slate-500 mt-1">
+                                {{ parent.email }}
+                            </p>
 
-                    </a>
+                            {% endif %}
 
-                    {% else %}
+                        </div>
 
-                    <a href="{{ url_for('parents.toggle_parent', id=parent.id) }}"
-                       class="text-green-600 hover:underline"
-                       onclick="return confirm('Activate this parent?')">
+                    </td>
 
-                        Activate
 
-                    </a>
+                    <!-- =================================================
+                         Username
+                    ================================================== -->
 
-                    {% endif %}
+                    <td class="px-6 py-4">
 
-                </td>
+                        <span class="font-medium text-slate-700">
+                            {{ parent.username }}
+                        </span>
 
-            </tr>
+                    </td>
 
-            {% endfor %}
 
-        {% else %}
+                    <!-- =================================================
+                         Phone
+                    ================================================== -->
 
-            <tr>
+                    <td class="px-6 py-4">
 
-                <td colspan="5"
-                    class="text-center py-10 text-slate-500">
+                        {{ parent.phone or "-" }}
 
-                    No parents found.
+                    </td>
 
-                </td>
 
-            </tr>
+                    <!-- =================================================
+                         Student
+                    ================================================== -->
 
-        {% endif %}
+                    <td class="px-6 py-4">
 
-        </tbody>
+                        {% if parent.student_name %}
 
-    </table>
+                        <p class="font-medium text-slate-800">
+                            {{ parent.student_name }}
+                        </p>
+
+                        {% else %}
+
+                        <span class="text-slate-400">
+                            No student linked
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- =================================================
+                         Admission Number
+                    ================================================== -->
+
+                    <td class="px-6 py-4">
+
+                        {% if parent.admission_no %}
+
+                        <span
+                            class="inline-flex items-center px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium"
+                        >
+                            {{ parent.admission_no }}
+                        </span>
+
+                        {% else %}
+
+                        <span class="text-slate-400">
+                            -
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- =================================================
+                         Class
+                    ================================================== -->
+
+                    <td class="px-6 py-4">
+
+                        {% if parent.class_name %}
+
+                        <span class="text-slate-700">
+                            {{ parent.class_name }}
+                        </span>
+
+                        {% else %}
+
+                        <span class="text-slate-400">
+                            -
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- =================================================
+                         Status
+                    ================================================== -->
+
+                    <td class="px-6 py-4">
+
+                        {% if parent.is_active %}
+
+                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                            Active
+                        </span>
+
+                        {% else %}
+
+                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                            Inactive
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- =================================================
+                         Actions
+                    ================================================== -->
+
+                    <td class="px-6 py-4 text-center whitespace-nowrap">
+
+                        <a
+                            href="{{ url_for('parents.update_parent', id=parent.id) }}"
+                            class="text-indigo-600 hover:underline"
+                        >
+                            Edit
+                        </a>
+
+                        <span class="mx-2 text-slate-300">
+                            |
+                        </span>
+
+
+                        {% if parent.is_active %}
+
+                        <a
+                            href="{{ url_for('parents.toggle_parent', id=parent.id) }}"
+                            class="text-red-600 hover:underline"
+                            onclick="return confirm('Deactivate this parent?')"
+                        >
+                            Deactivate
+                        </a>
+
+                        {% else %}
+
+                        <a
+                            href="{{ url_for('parents.toggle_parent', id=parent.id) }}"
+                            class="text-green-600 hover:underline"
+                            onclick="return confirm('Activate this parent?')"
+                        >
+                            Activate
+                        </a>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+
+            {% else %}
+
+                <!-- =================================================
+                     Empty State
+                ================================================== -->
+
+                <tr>
+
+                    <td
+                        colspan="8"
+                        class="text-center py-12"
+                    >
+
+                        <div class="flex flex-col items-center">
+
+                            <i
+                                data-lucide="users"
+                                class="w-10 h-10 text-slate-300 mb-3"
+                            ></i>
+
+                            <p class="font-medium text-slate-700">
+                                No parents found.
+                            </p>
+
+                            <p class="text-sm text-slate-500 mt-1">
+                                Parent accounts are created automatically
+                                when students are added.
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
 
 </div>
 

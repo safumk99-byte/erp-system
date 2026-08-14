@@ -65,14 +65,20 @@ document.addEventListener("DOMContentLoaded", function () {
         const studentId =
             box.dataset.id;
 
+
         const hiddenInput =
             document.getElementById(
                 "status_" + studentId
             );
 
+
         if (hiddenInput) {
-            hiddenInput.value = status;
+
+            hiddenInput.value =
+                status;
+
         }
+
     }
 
 
@@ -85,17 +91,26 @@ document.addEventListener("DOMContentLoaded", function () {
         let index =
             STATUS_ORDER.indexOf(status);
 
+
         if (index === -1) {
+
             index = 0;
+
         }
+
 
         index++;
 
+
         if (index >= STATUS_ORDER.length) {
+
             index = 0;
+
         }
 
+
         return STATUS_ORDER[index];
+
     }
 
 
@@ -120,20 +135,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                 if (status === "Present") {
+
                     present++;
+
                 }
 
                 else if (status === "Late") {
+
                     late++;
+
                 }
 
                 else if (status === "Leave") {
+
                     leave++;
+
                 }
 
                 else if (status === "Absent") {
+
                     absent++;
+
                 }
+
             });
 
 
@@ -142,15 +166,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 "presentCount"
             );
 
+
         const lateCount =
             document.getElementById(
                 "lateCount"
             );
 
+
         const leaveCount =
             document.getElementById(
                 "leaveCount"
             );
+
 
         const absentCount =
             document.getElementById(
@@ -159,20 +186,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         if (presentCount) {
-            presentCount.textContent = present;
+
+            presentCount.textContent =
+                present;
+
         }
+
 
         if (lateCount) {
-            lateCount.textContent = late;
+
+            lateCount.textContent =
+                late;
+
         }
+
 
         if (leaveCount) {
-            leaveCount.textContent = leave;
+
+            leaveCount.textContent =
+                leave;
+
         }
 
+
         if (absentCount) {
-            absentCount.textContent = absent;
+
+            absentCount.textContent =
+                absent;
+
         }
+
     }
 
 
@@ -199,7 +242,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         if (!STATUS_COLORS[status]) {
+
             status = "Present";
+
         }
 
 
@@ -218,6 +263,7 @@ document.addEventListener("DOMContentLoaded", function () {
             function (event) {
 
                 event.preventDefault();
+
                 event.stopPropagation();
 
 
@@ -249,8 +295,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                 updateSummary();
+
             }
         );
+
     });
 
 
@@ -272,28 +320,37 @@ document.addEventListener("DOMContentLoaded", function () {
                 "studentPopup"
             );
 
+
         if (!popup) {
+
             return;
+
         }
 
 
         const name =
             box.dataset.name || "-";
 
+
         const admission =
             box.dataset.admission || "-";
+
 
         const className =
             box.dataset.class || "-";
 
+
         const parent =
             box.dataset.parent || "-";
+
 
         const phone =
             box.dataset.phone || "-";
 
+
         const status =
             box.dataset.status || "Present";
+
 
         const photo =
             box.dataset.photo || "";
@@ -304,30 +361,36 @@ document.addEventListener("DOMContentLoaded", function () {
                 "popupName"
             );
 
+
         const popupAdmission =
             document.getElementById(
                 "popupAdmission"
             );
+
 
         const popupClass =
             document.getElementById(
                 "popupClass"
             );
 
+
         const popupParent =
             document.getElementById(
                 "popupParent"
             );
+
 
         const popupPhone =
             document.getElementById(
                 "popupPhone"
             );
 
+
         const popupStatus =
             document.getElementById(
                 "popupStatus"
             );
+
 
         const popupPhoto =
             document.getElementById(
@@ -335,43 +398,79 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
+        // =====================================================
+        // Basic Information
+        // =====================================================
+
         if (popupName) {
-            popupName.textContent = name;
+
+            popupName.textContent =
+                name;
+
         }
+
 
         if (popupAdmission) {
+
             popupAdmission.textContent =
                 admission;
+
         }
+
 
         if (popupClass) {
+
             popupClass.textContent =
                 className;
+
         }
+
 
         if (popupParent) {
+
             popupParent.textContent =
                 parent;
+
         }
 
+
         if (popupPhone) {
+
             popupPhone.textContent =
                 phone;
+
         }
+
+
+        // =====================================================
+        // Status
+        // =====================================================
 
         if (popupStatus) {
 
             popupStatus.textContent =
                 status;
 
+
             popupStatus.style.color =
-                STATUS_COLORS[status];
+                STATUS_COLORS[status] ||
+                STATUS_COLORS.Present;
+
         }
 
+
+        // =====================================================
+        // Student Photo
+        // =====================================================
 
         if (popupPhoto) {
 
             if (photo) {
+
+                /*
+                 * If backend already gives a complete URL,
+                 * use it directly.
+                 */
 
                 if (
                     photo.startsWith("/") ||
@@ -379,21 +478,59 @@ document.addEventListener("DOMContentLoaded", function () {
                     photo.startsWith("https://")
                 ) {
 
-                    popupPhoto.src = photo;
-
-                } else {
-
                     popupPhoto.src =
-                        "/uploads/" + photo;
+                        photo;
+
                 }
 
-            } else {
+                else {
+
+                    /*
+                     * Student photos are stored in:
+                     *
+                     * uploads/students/
+                     */
+
+                    popupPhoto.src =
+                        "/uploads/students/" +
+                        photo;
+
+                }
+
+
+                popupPhoto.classList.remove(
+                    "hidden"
+                );
+
+
+                popupPhoto.onerror =
+                    function () {
+
+                        console.error(
+                            "Student photo failed to load:",
+                            popupPhoto.src
+                        );
+
+                        popupPhoto.src =
+                            "/static/images/default-avatar.png";
+
+                    };
+
+            }
+
+            else {
 
                 popupPhoto.src =
                     "/static/images/default-avatar.png";
+
             }
+
         }
 
+
+        // =====================================================
+        // View Student
+        // =====================================================
 
         const viewStudent =
             document.getElementById(
@@ -404,14 +541,20 @@ document.addEventListener("DOMContentLoaded", function () {
         if (viewStudent) {
 
             viewStudent.href =
-                "/student/" +
+                "/students/" +
                 box.dataset.id;
+
         }
 
+
+        // =====================================================
+        // Show Popup
+        // =====================================================
 
         popup.classList.remove(
             "hidden"
         );
+
     }
 
 
@@ -428,8 +571,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 event.preventDefault();
 
                 openPopup(box);
+
             }
         );
+
     });
 
 
@@ -454,13 +599,18 @@ document.addEventListener("DOMContentLoaded", function () {
                         "studentPopup"
                     );
 
+
                 if (popup) {
+
                     popup.classList.add(
                         "hidden"
                     );
+
                 }
+
             }
         );
+
     }
 
 
@@ -487,9 +637,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     popup.classList.add(
                         "hidden"
                     );
+
                 }
+
             }
         );
+
     }
 
 
@@ -510,13 +663,17 @@ document.addEventListener("DOMContentLoaded", function () {
                         "studentPopup"
                     );
 
+
                 if (popup) {
 
                     popup.classList.add(
                         "hidden"
                     );
+
                 }
+
             }
+
         }
     );
 

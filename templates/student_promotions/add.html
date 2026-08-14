@@ -1,0 +1,261 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Promote Student
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <!-- Header -->
+
+    <div class="mb-8">
+
+        <a
+            href="{{ url_for('student_promotions.list_promotions_page') }}"
+            class="text-sm text-indigo-600 hover:text-indigo-700"
+        >
+            ← Back to Student Promotions
+        </a>
+
+        <h1 class="text-3xl font-bold text-slate-800 mt-4">
+            Promote Student
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Promote a student to a new class and preserve the promotion history.
+        </p>
+
+    </div>
+
+
+    {% include "components/alert.html" %}
+
+
+    <!-- Form -->
+
+    <form
+        method="POST"
+        class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8"
+    >
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Student -->
+
+            <div class="md:col-span-2">
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Student
+                </label>
+
+                <select
+                    name="student_id"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+
+                    <option value="">
+                        Select student
+                    </option>
+
+                    {% for student in students %}
+
+                    <option
+                        value="{{ student.id }}"
+                        {% if request.form.get('student_id') == student.id|string %}selected{% endif %}
+                    >
+                        {{ student.full_name }}
+                        — {{ student.admission_no }}
+                        {% if student.class_name %}
+                            — {{ student.class_name }}
+                        {% endif %}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <p class="text-xs text-slate-400 mt-2">
+                    Only active students from your institution are shown.
+                </p>
+
+            </div>
+
+
+            <!-- Academic Year -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Academic Year
+                </label>
+
+                <select
+                    name="academic_year_id"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+
+                    <option value="">
+                        Select academic year
+                    </option>
+
+                    {% for year in academic_years %}
+
+                    <option
+                        value="{{ year.id }}"
+                        {% if year.is_current %}selected{% endif %}
+                        {% if request.form.get('academic_year_id') == year.id|string %}selected{% endif %}
+                    >
+                        {{ year.year_name }}
+                        {% if year.is_current %}
+                            — Current
+                        {% endif %}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <p class="text-xs text-slate-400 mt-2">
+                    Only active academic years are available.
+                </p>
+
+            </div>
+
+
+            <!-- New Class -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    New Class
+                </label>
+
+                <select
+                    name="to_class_id"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+
+                    <option value="">
+                        Select new class
+                    </option>
+
+                    {% for class_item in classes %}
+
+                    <option
+                        value="{{ class_item.id }}"
+                        {% if request.form.get('to_class_id') == class_item.id|string %}selected{% endif %}
+                    >
+                        {{ class_item.class_name }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <p class="text-xs text-slate-400 mt-2">
+                    The student's current class will be stored automatically as the previous class.
+                </p>
+
+            </div>
+
+
+            <!-- Promotion Date -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Promotion Date
+                </label>
+
+                <input
+                    type="date"
+                    name="promotion_date"
+                    value="{{ request.form.get('promotion_date', '') }}"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+
+            </div>
+
+
+            <!-- Remarks -->
+
+            <div class="md:col-span-2">
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Remarks
+                </label>
+
+                <textarea
+                    name="remarks"
+                    rows="4"
+                    placeholder="Optional remarks about the promotion"
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >{{ request.form.get('remarks', '') }}</textarea>
+
+            </div>
+
+        </div>
+
+
+        <!-- Information -->
+
+        <div class="mt-8 rounded-xl border border-indigo-100 bg-indigo-50 p-5">
+
+            <h3 class="font-semibold text-indigo-900">
+                Promotion Information
+            </h3>
+
+            <ul class="mt-3 space-y-2 text-sm text-indigo-800">
+
+                <li>
+                    • The student's current class will be saved as the previous class.
+                </li>
+
+                <li>
+                    • The new class will become the student's current class.
+                </li>
+
+                <li>
+                    • The promotion history will be permanently recorded.
+                </li>
+
+                <li>
+                    • A student can have only one promotion record per academic year.
+                </li>
+
+            </ul>
+
+        </div>
+
+
+        <!-- Actions -->
+
+        <div class="mt-8 flex justify-end gap-3">
+
+            <a
+                href="{{ url_for('student_promotions.list_promotions_page') }}"
+                class="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+            >
+                Promote Student
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

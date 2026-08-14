@@ -1,0 +1,625 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Parent Dashboard
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- =================================================
+         Welcome
+    ================================================== -->
+
+    <div>
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Welcome, {{ session.get("full_name") }}
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Monitor your child's academic progress and achievements.
+        </p>
+
+    </div>
+
+
+    {% if children %}
+
+        {% for child in children %}
+
+            {% set student = child.student %}
+            {% set attendance = child.attendance %}
+            {% set exam = child.exam %}
+            {% set achievements = child.achievements %}
+            {% set recent_exams = child.recent_exams %}
+
+
+            <!-- =================================================
+                 Child Header
+            ================================================== -->
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+                <div class="flex flex-col sm:flex-row sm:items-center gap-5">
+
+                    <!-- Photo -->
+
+                    <div class="shrink-0">
+
+                        {% if student.photo %}
+
+                            <img
+                                src="{{ url_for(
+                                    'students.student_photo',
+                                    filename=student.photo
+                                ) }}"
+                                alt="{{ student.full_name }}"
+                                class="w-20 h-20 rounded-2xl object-cover border border-slate-200"
+                            >
+
+                        {% else %}
+
+                            <div class="w-20 h-20 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center">
+
+                                <i
+                                    data-lucide="user"
+                                    class="w-9 h-9 text-slate-400">
+                                </i>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Student Details -->
+
+                    <div class="flex-1">
+
+                        <p class="text-sm text-slate-500">
+                            My Child
+                        </p>
+
+                        <h2 class="text-2xl font-bold text-slate-800 mt-1">
+                            {{ student.full_name }}
+                        </h2>
+
+                        <div class="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-sm text-slate-500">
+
+                            <span>
+                                Admission No:
+                                <strong class="text-slate-700">
+                                    {{ student.admission_no }}
+                                </strong>
+                            </span>
+
+                            <span>
+                                Class:
+                                <strong class="text-slate-700">
+                                    {{ student.class_name or "Not assigned" }}
+                                </strong>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Progress Link -->
+
+                    <div>
+
+                        <a
+                            href="{{ url_for(
+                                'parent.child_progress',
+                                student_id=student.id
+                            ) }}"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition"
+                        >
+
+                            <i
+                                data-lucide="chart-no-axes-combined"
+                                class="w-4 h-4">
+                            </i>
+
+                            View Progress
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 Overview Cards
+            ================================================== -->
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+
+                <!-- Attendance -->
+
+                <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+                    <div class="w-11 h-11 rounded-xl bg-green-100 text-green-600 flex items-center justify-center mb-4">
+
+                        <i
+                            data-lucide="calendar-check"
+                            class="w-5 h-5">
+                        </i>
+
+                    </div>
+
+                    <p class="text-sm text-slate-500">
+                        Attendance
+                    </p>
+
+                    <p class="text-3xl font-bold text-green-600 mt-1">
+                        {{ attendance.percentage }}%
+                    </p>
+
+                    <p class="text-xs text-slate-500 mt-2">
+                        {{ attendance.present_days }} present
+                    </p>
+
+                </div>
+
+
+                <!-- Present -->
+
+                <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+                    <div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
+
+                        <i
+                            data-lucide="circle-check"
+                            class="w-5 h-5">
+                        </i>
+
+                    </div>
+
+                    <p class="text-sm text-slate-500">
+                        Present
+                    </p>
+
+                    <p class="text-3xl font-bold text-blue-600 mt-1">
+                        {{ attendance.present_days }}
+                    </p>
+
+                    <p class="text-xs text-slate-500 mt-2">
+                        Total attendance days:
+                        {{ attendance.total_days }}
+                    </p>
+
+                </div>
+
+
+                <!-- Exam -->
+
+                <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+                    <div class="w-11 h-11 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4">
+
+                        <i
+                            data-lucide="graduation-cap"
+                            class="w-5 h-5">
+                        </i>
+
+                    </div>
+
+                    <p class="text-sm text-slate-500">
+                        Exam Performance
+                    </p>
+
+                    <p class="text-3xl font-bold text-purple-600 mt-1">
+                        {{ exam.percentage }}%
+                    </p>
+
+                    <p class="text-xs text-slate-500 mt-2">
+                        {{ exam.obtained }} / {{ exam.possible }}
+                    </p>
+
+                </div>
+
+
+                <!-- Achievements -->
+
+                <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+                    <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
+
+                        <i
+                            data-lucide="trophy"
+                            class="w-5 h-5">
+                        </i>
+
+                    </div>
+
+                    <p class="text-sm text-slate-500">
+                        Achievements
+                    </p>
+
+                    <p class="text-3xl font-bold text-amber-600 mt-1">
+                        {{ achievements|length }}
+                    </p>
+
+                    <p class="text-xs text-slate-500 mt-2">
+                        Recent achievements
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 Recent Achievements
+            ================================================== -->
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+                <div class="flex items-center justify-between mb-5">
+
+                    <div>
+
+                        <h2 class="text-lg font-semibold text-slate-800">
+                            Recent Achievements
+                        </h2>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            Your child's latest achievements.
+                        </p>
+
+                    </div>
+
+                    <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+
+                        <i
+                            data-lucide="award"
+                            class="w-5 h-5">
+                        </i>
+
+                    </div>
+
+                </div>
+
+
+                {% if achievements %}
+
+                    <div class="space-y-3">
+
+                        {% for achievement in achievements %}
+
+                            <div class="border border-slate-100 rounded-xl p-4">
+
+                                <div class="flex items-start justify-between gap-4">
+
+                                    <div>
+
+                                        <h3 class="font-semibold text-slate-800">
+
+                                            {{
+                                                achievement.title
+                                                or
+                                                achievement.event_name
+                                                or
+                                                achievement.achievement_type
+                                            }}
+
+                                        </h3>
+
+
+                                        {% if achievement.position %}
+
+                                            <p class="text-sm text-slate-500 mt-1">
+                                                Position:
+                                                {{ achievement.position }}
+                                            </p>
+
+                                        {% endif %}
+
+
+                                        {% if achievement.achievement_date %}
+
+                                            <p class="text-xs text-slate-400 mt-2">
+                                                {{ achievement.achievement_date }}
+                                            </p>
+
+                                        {% endif %}
+
+                                    </div>
+
+
+                                    <div class="text-right">
+
+                                        <p class="font-bold text-amber-600">
+
+                                            {{
+                                                (achievement.points or 0)
+                                                +
+                                                (achievement.bonus_points or 0)
+                                            }}
+
+                                        </p>
+
+                                        <p class="text-xs text-slate-500">
+                                            points
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="text-center py-8">
+
+                        <i
+                            data-lucide="award"
+                            class="w-8 h-8 text-slate-300 mx-auto">
+                        </i>
+
+                        <p class="text-sm text-slate-500 mt-3">
+                            No achievements recorded yet.
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- =================================================
+                 Recent Exams
+            ================================================== -->
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+                <div class="flex items-center justify-between mb-5">
+
+                    <div>
+
+                        <h2 class="text-lg font-semibold text-slate-800">
+                            Recent Exams
+                        </h2>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            Latest examination records.
+                        </p>
+
+                    </div>
+
+                    <i
+                        data-lucide="file-chart-column"
+                        class="w-6 h-6 text-slate-400">
+                    </i>
+
+                </div>
+
+
+                {% if recent_exams %}
+
+                    <div class="space-y-3">
+
+                        {% for exam_item in recent_exams %}
+
+                            <div class="flex items-center justify-between border border-slate-100 rounded-xl p-4">
+
+                                <div>
+
+                                    <p class="font-semibold text-slate-800">
+                                        {{ exam_item.exam_name }}
+                                    </p>
+
+                                    <p class="text-sm text-slate-500 mt-1">
+                                        {{ exam_item.exam_type }}
+                                        ·
+                                        {{ exam_item.exam_date }}
+                                    </p>
+
+                                </div>
+
+
+                                <div class="text-right">
+
+                                    <p class="text-sm font-medium text-slate-600">
+                                        Total
+                                    </p>
+
+                                    <p class="font-bold text-slate-800">
+                                        {{ exam_item.total_mark }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <p class="text-sm text-slate-500 py-5">
+                        No exam records available yet.
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- =================================================
+                 Quick Actions
+            ================================================== -->
+
+            <div>
+
+                <h2 class="text-lg font-semibold text-slate-800 mb-4">
+                    Quick Actions
+                </h2>
+
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+
+                    <!-- =================================================
+                         Child Progress
+                    ================================================== -->
+
+                    <a
+                        href="{{ url_for(
+                            'parent.child_progress',
+                            student_id=student.id
+                        ) }}"
+                        class="group bg-white border border-indigo-200 rounded-2xl p-6 hover:shadow-lg hover:border-indigo-400 transition"
+                    >
+
+                        <div class="flex items-center gap-4">
+
+                            <div class="w-12 h-12 shrink-0 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+
+                                <i
+                                    data-lucide="chart-no-axes-combined"
+                                    class="w-6 h-6">
+                                </i>
+
+                            </div>
+
+                            <div class="flex-1">
+
+                                <h3 class="text-lg font-semibold text-slate-800">
+                                    Child Progress
+                                </h3>
+
+                                <p class="text-sm text-slate-500 mt-1">
+                                    View detailed academic and skill progress.
+                                </p>
+
+                            </div>
+
+                            <i
+                                data-lucide="arrow-right"
+                                class="w-5 h-5 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition">
+                            </i>
+
+                        </div>
+
+                    </a>
+
+
+                    <!-- Notifications -->
+
+                    <a
+                        href="{{ url_for(
+                            'notifications.notification_list'
+                        ) }}"
+                        class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+
+                        <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4">
+
+                            <i
+                                data-lucide="bell"
+                                class="w-6 h-6">
+                            </i>
+
+                        </div>
+
+                        <h3 class="text-lg font-semibold text-slate-800">
+                            Notifications
+                        </h3>
+
+                        <p class="text-sm text-slate-500 mt-2">
+                            View important updates and announcements.
+                        </p>
+
+                    </a>
+
+
+                    <!-- Leave -->
+
+                    <a
+                        href="{{ url_for('student_leave.student_leave_page_route')}}"
+                        class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+
+                        <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
+
+                            <i
+                                data-lucide="calendar-off"
+                                class="w-6 h-6">
+                            </i>
+
+                        </div>
+
+                        <h3 class="text-lg font-semibold text-slate-800">
+                            Leave
+                        </h3>
+
+                        <p class="text-sm text-slate-500 mt-2">
+                            View leave applications and status.
+                        </p>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+
+        {% endfor %}
+
+
+    {% else %}
+
+        <!-- =================================================
+             No Children
+        ================================================== -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-10 text-center">
+
+            <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+
+                <i
+                    data-lucide="users"
+                    class="w-8 h-8">
+                </i>
+
+            </div>
+
+            <h2 class="text-xl font-semibold text-slate-800 mt-5">
+                No Student Linked
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-2">
+                No active student is currently linked to this parent account.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<script>
+
+    if (typeof lucide !== "undefined") {
+        lucide.createIcons();
+    }
+
+</script>
+
+{% endblock %}

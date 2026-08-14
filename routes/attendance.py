@@ -7,7 +7,8 @@ from services.attendance_service import (
     attendance_page,
     mark_attendance,
     get_student_popup,
-    attendance_summary_data
+    attendance_summary_data,
+    today_attendance_page
 )
 
 
@@ -27,6 +28,18 @@ attendance = Blueprint(
 def attendance_list():
 
     return attendance_page()
+
+
+# =========================================================
+# Today's Attendance Progress
+# =========================================================
+
+@attendance.route("/attendance/today")
+@login_required
+@role_required("institution_admin", "staff")
+def today_attendance():
+
+    return today_attendance_page()
 
 
 # =========================================================

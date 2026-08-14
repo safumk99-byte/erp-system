@@ -1,0 +1,157 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Add Academic Year
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-3xl mx-auto">
+
+    <div class="mb-8">
+
+        <a
+            href="{{ url_for('academic_years.list_academic_years_page') }}"
+            class="text-sm text-indigo-600 hover:text-indigo-700"
+        >
+            ← Back to Academic Years
+        </a>
+
+        <h1 class="text-3xl font-bold text-slate-800 mt-4">
+            Add Academic Year
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Create a new academic year for your institution.
+        </p>
+
+    </div>
+
+
+    {% include "components/alert.html" %}
+
+
+    <form
+        method="POST"
+        class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8"
+    >
+
+        <div class="space-y-6">
+
+            <!-- Year Name -->
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    Academic Year
+                </label>
+
+                <input
+                    type="text"
+                    name="year_name"
+                    placeholder="Example: 2026-27"
+                    required
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+
+                <p class="text-xs text-slate-400 mt-2">
+                    Example: 2026-27
+                </p>
+
+            </div>
+
+
+            <!-- Dates -->
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <div>
+
+                    <label class="block mb-2 font-medium text-slate-700">
+                        Start Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="start_date"
+                        required
+                        class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label class="block mb-2 font-medium text-slate-700">
+                        End Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="end_date"
+                        required
+                        class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- Current -->
+
+            <div class="border border-slate-200 rounded-xl p-4">
+
+                <label class="flex items-start gap-3 cursor-pointer">
+
+                    <input
+                        type="checkbox"
+                        name="is_current"
+                        class="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600"
+                    >
+
+                    <div>
+
+                        <p class="font-medium text-slate-700">
+                            Set as current academic year
+                        </p>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            This will automatically make the currently selected academic year the institution's current year.
+                        </p>
+
+                    </div>
+
+                </label>
+
+            </div>
+
+        </div>
+
+
+        <!-- Actions -->
+
+        <div class="mt-8 flex justify-end gap-3">
+
+            <a
+                href="{{ url_for('academic_years.list_academic_years_page') }}"
+                class="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+            >
+                Save Academic Year
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

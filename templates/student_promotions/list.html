@@ -1,0 +1,202 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Student Promotions
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- Header -->
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Student Promotions
+            </h1>
+
+            <p class="text-slate-500 mt-2">
+                View student promotion history.
+            </p>
+
+        </div>
+
+
+        <a
+            href="{{ url_for('student_promotions.create_promotion') }}"
+            class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl font-medium"
+        >
+            + Promote Student
+        </a>
+
+    </div>
+
+
+    <!-- Alerts -->
+
+    {% include "components/alert.html" %}
+
+
+    <!-- Promotion History -->
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-sm">
+
+                <thead class="bg-slate-50 border-b border-slate-200">
+
+                    <tr>
+
+                        <th class="px-6 py-4 text-left font-semibold text-slate-600">
+                            Student
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-slate-600">
+                            Academic Year
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-slate-600">
+                            From Class
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-slate-600">
+                            To Class
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-slate-600">
+                            Promotion Date
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-slate-600">
+                            Created By
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-slate-100">
+
+                    {% for promotion in promotions %}
+
+                    <tr class="hover:bg-slate-50">
+
+                        <!-- Student -->
+
+                        <td class="px-6 py-4">
+
+                            <div class="font-semibold text-slate-800">
+                                {{ promotion.full_name }}
+                            </div>
+
+                            <div class="text-xs text-slate-400 mt-1">
+                                {{ promotion.admission_no }}
+                            </div>
+
+                        </td>
+
+
+                        <!-- Academic Year -->
+
+                        <td class="px-6 py-4 text-slate-600">
+
+                            {{ promotion.year_name }}
+
+                        </td>
+
+
+                        <!-- From -->
+
+                        <td class="px-6 py-4">
+
+                            {% if promotion.from_class_name %}
+
+                                <span class="inline-flex px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">
+                                    {{ promotion.from_class_name }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-slate-400">
+                                    —
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- To -->
+
+                        <td class="px-6 py-4">
+
+                            <span class="inline-flex px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-medium">
+                                {{ promotion.to_class_name }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- Date -->
+
+                        <td class="px-6 py-4 text-slate-600">
+
+                            {{ promotion.promotion_date }}
+
+                        </td>
+
+
+                        <!-- Created By -->
+
+                        <td class="px-6 py-4 text-slate-600">
+
+                            {{ promotion.created_by_name or "—" }}
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="px-6 py-12 text-center"
+                        >
+
+                            <div class="text-slate-400 text-4xl mb-3">
+                                🎓
+                            </div>
+
+                            <p class="text-slate-600 font-medium">
+                                No promotion records found.
+                            </p>
+
+                            <p class="text-slate-400 text-sm mt-1">
+                                Promote a student to create the first promotion record.
+                            </p>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

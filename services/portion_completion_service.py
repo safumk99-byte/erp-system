@@ -917,7 +917,7 @@ def portion_completion_list():
 
                 cur.close()
                 conn.close()
-                
+
                 flash(
                     "You do not have access to this subject.",
                     "error"
@@ -929,151 +929,164 @@ def portion_completion_list():
                         class_id=class_id
                     )
                 )
-                
-        # =====================================================
-        # Completed Portions
-        # =====================================================
-
-        query = """
-            SELECT
-                pc.id,
-                pc.completion_date,
-                pc.completed_portion,
-                pc.remarks,
-
-                c.class_name,
-
-                s.subject_name,
-
-                u.full_name AS staff_name
-
-            FROM portion_completion pc
-
-            JOIN classes c
-                ON pc.class_id = c.id
-
-            JOIN subjects s
-                ON pc.subject_id = s.id
-
-            JOIN users u
-                ON pc.staff_id = u.id
-
-            WHERE
-                pc.institution_id = %s
-
-                AND c.institution_id = %s
-                AND s.institution_id = %s
-        """
-
-        params = [
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"]
-        ]
 
 
-        # =====================================================
-        # Staff Access Control
-        # =====================================================
+    # =====================================================
+    # Completed Portions
+    # =====================================================
 
-        if role == "staff":
+    query = """
+        SELECT
+            pc.id,
+            pc.completion_date,
+            pc.completed_portion,
+            pc.remarks,
 
-            query += """
-                AND EXISTS (
-                    SELECT 1
+            c.class_name,
 
-                    FROM staff_classes sc
+            s.subject_name,
 
-                    WHERE
-                        sc.institution_id = %s
-                        AND sc.staff_id = %s
-                        AND sc.class_id = pc.class_id
-                        AND sc.is_active = TRUE
-                )
+            u.full_name AS staff_name
 
-                AND EXISTS (
-                    SELECT 1
+        FROM portion_completion pc
 
-                    FROM staff_subjects ss
+        JOIN classes c
+            ON pc.class_id = c.id
 
-                    WHERE
-                        ss.institution_id = %s
-                        AND ss.staff_id = %s
-                        AND ss.subject_id = pc.subject_id
-                        AND ss.is_active = TRUE
-                )
-            """
+        JOIN subjects s
+            ON pc.subject_id = s.id
 
-            params.extend([
-                session["institution_id"],
-                session["user_id"],
-                session["institution_id"],
-                session["user_id"]
-            ])
+        JOIN users u
+            ON pc.staff_id = u.id
 
+        WHERE
+            pc.institution_id = %s
 
-        # =====================================================
-        # Class Filter
-        # =====================================================
+            AND c.institution_id = %s
+            AND s.institution_id = %s
+    """
 
-        if class_id:
-
-            query += """
-                AND pc.class_id = %s
-            """
-
-            params.append(class_id)
+    params = [
+        session["institution_id"],
+        session["institution_id"],
+        session["institution_id"]
+    ]
 
 
-        # =====================================================
-        # Subject Filter
-        # =====================================================
+    # =====================================================
+    # Staff Access Control
+    # =====================================================
 
-        if subject_id:
-
-            query += """
-                AND pc.subject_id = %s
-            """
-
-            params.append(subject_id)
-
-
-        # =====================================================
-        # Order
-        # =====================================================
+    if role == "staff":
 
         query += """
-            ORDER BY
-                pc.completion_date DESC,
-                c.class_name,
-                s.subject_name,
-                pc.id DESC
+            AND EXISTS (
+                SELECT 1
+
+                FROM staff_classes sc
+
+                WHERE
+                    sc.institution_id = %s
+                    AND sc.staff_id = %s
+                    AND sc.class_id = pc.class_id
+                    AND sc.is_active = TRUE
+            )
+
+            AND EXISTS (
+                SELECT 1
+
+                FROM staff_subjects ss
+
+                WHERE
+                    ss.institution_id = %s
+                    AND ss.staff_id = %s
+                    AND ss.subject_id = pc.subject_id
+                    AND ss.is_active = TRUE
+            )
         """
 
-
-        cur.execute(
-            query,
-            tuple(params)
-        )
-
-        completions = cur.fetchall()
-
-
-        cur.close()
-        conn.close()
+        params.extend([
+            session["institution_id"],
+            session["user_id"],
+            session["institution_id"],
+            session["user_id"]
+        ])
 
 
-        return render_template(
-            "portion_completion/list.html",
+    # =====================================================
+    # Class Filter
+    # =====================================================
 
-            completions=completions,
+    if class_id:
 
-            classes=classes,
+        query += """
+            AND pc.class_id = %s
+        """
 
-            subjects=subjects,
+        params.append(class_id)
 
-            class_id=class_id,
 
-            subject_id=subject_id
-        )
+    # =====================================================
+    # Subject Filter
+    # =====================================================
+
+    if subject_id:
+
+        query += """
+            AND pc.subject_id = %s
+        """
+
+        params.append(subject_id)
+
+
+    # =====================================================
+    # Order
+    # =====================================================
+
+    query += """
+        ORDER BY
+            pc.completion_date DESC,
+            c.class_name,
+            s.subject_name,
+            pc.id DESC
+    """
+
+
+    # =====================================================
+    # Execute
+    # =====================================================
+
+    cur.execute(
+        query,
+        tuple(params)
+    )
+
+    completions = cur.fetchall()
+
+
+    # =====================================================
+    # Close Connection
+    # =====================================================
+
+    cur.close()
+    conn.close()
+
+
+    # =====================================================
+    # Return Page
+    # =====================================================
+
+    return render_template(
+        "portion_completion/list.html",
+
+        completions=completions,
+
+        classes=classes,
+
+        subjects=subjects,
+
+        class_id=class_id,
+
+        subject_id=subject_id
+    )
 

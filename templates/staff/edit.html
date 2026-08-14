@@ -8,120 +8,226 @@ Edit Staff
 
 <div class="max-w-3xl mx-auto">
 
-    <div class="mb-8">
+    <!-- Header -->
+
+    <div class="mb-6">
+
+        <a
+            href="{{ url_for('staff.staff_list') }}"
+            class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-indigo-600 mb-4"
+        >
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Back to Staff
+        </a>
 
         <h1 class="text-3xl font-bold text-slate-800">
             Edit Staff
         </h1>
 
-        <p class="text-slate-500 mt-2">
-            Update staff information.
+        <p class="text-slate-500 mt-1">
+            Update staff member information.
         </p>
 
     </div>
 
+
     {% include "components/alert.html" %}
 
-    <form method="POST"
-          class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-6">
 
-        <div>
+    <!-- Form -->
 
-            <label class="block mb-2 font-medium">
-                Full Name
-            </label>
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+        class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+    >
 
-            <input
-                type="text"
-                name="full_name"
-                value="{{ staff.full_name }}"
-                required
-                class="w-full border rounded-xl px-4 py-3">
+        <!-- Profile -->
 
-        </div>
+        <div class="p-6 border-b border-slate-200">
 
-        <div>
+            <h2 class="text-lg font-semibold text-slate-800">
+                Profile
+            </h2>
 
-            <label class="block mb-2 font-medium">
-                Username
-            </label>
 
-            <input
-                type="text"
-                name="username"
-                value="{{ staff.username }}"
-                required
-                class="w-full border rounded-xl px-4 py-3">
+            <!-- Photo -->
 
-        </div>
+            <div class="mt-5">
 
-        <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">
+                    Profile Photo
+                </label>
 
-            <label class="block mb-2 font-medium">
-                Email
-            </label>
 
-            <input
-                type="email"
-                name="email"
-                value="{{ staff.email or '' }}"
-                class="w-full border rounded-xl px-4 py-3">
+                <div class="flex items-center gap-5">
 
-        </div>
+                    <div
+                        id="photoPreview"
+                        class="w-20 h-20 rounded-2xl overflow-hidden border border-slate-200 bg-indigo-100 flex items-center justify-center text-indigo-600"
+                    >
 
-        <div>
+                        {% if staff.photo %}
 
-            <label class="block mb-2 font-medium">
-                Phone
-            </label>
+                        <img
+                            src="{{ staff.photo }}"
+                            alt="{{ staff.full_name }}"
+                            class="w-full h-full object-cover"
+                        >
 
-            <input
-                type="text"
-                name="phone"
-                value="{{ staff.phone or '' }}"
-                class="w-full border rounded-xl px-4 py-3">
+                        {% else %}
 
-        </div>
+                        <i
+                            data-lucide="user-round"
+                            class="w-9 h-9"
+                        ></i>
 
-        <div>
+                        {% endif %}
 
-            <label class="block mb-2 font-medium">
-                Role
-            </label>
+                    </div>
 
-            <select
-                name="role"
-                required
-                class="w-full border rounded-xl px-4 py-3">
 
-                <option value="staff"
-                    {% if staff.role_name == "staff" %}selected{% endif %}>
-                    Staff
-                </option>
+                    <div>
 
-                <option value="principal"
-                    {% if staff.role_name == "principal" %}selected{% endif %}>
-                    Principal
-                </option>
+                        <input
+                            type="file"
+                            name="photo"
+                            id="photo"
+                            accept="image/*"
+                            class="block w-full text-sm text-slate-500
+                                   file:mr-4 file:py-2 file:px-4
+                                   file:rounded-xl file:border-0
+                                   file:bg-indigo-50 file:text-indigo-700
+                                   hover:file:bg-indigo-100"
+                        >
 
-            </select>
+                        <p class="text-xs text-slate-400 mt-2">
+                            Select a new photo only if you want to change it.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
-        <div class="flex justify-end gap-3">
 
-            <a href="{{ url_for('staff.staff_list') }}"
-               class="px-6 py-3 rounded-xl border">
+        <!-- Account Information -->
 
+        <div class="p-6">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Account Information
+            </h2>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+
+                <!-- Full Name -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block text-sm font-medium text-slate-700 mb-2">
+                        Full Name
+                    </label>
+
+                    <input
+                        type="text"
+                        name="full_name"
+                        required
+                        value="{{ staff.full_name }}"
+                        placeholder="Enter full name"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+
+                <!-- Username -->
+
+                <div>
+
+                    <label class="block text-sm font-medium text-slate-700 mb-2">
+                        Username
+                    </label>
+
+                    <input
+                        type="text"
+                        name="username"
+                        required
+                        value="{{ staff.username }}"
+                        placeholder="Enter username"
+                        autocomplete="username"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+
+                <!-- Phone -->
+
+                <div>
+
+                    <label class="block text-sm font-medium text-slate-700 mb-2">
+                        Phone
+                    </label>
+
+                    <input
+                        type="text"
+                        name="phone"
+                        value="{{ staff.phone or '' }}"
+                        placeholder="Enter phone number"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+
+                <!-- Email -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block text-sm font-medium text-slate-700 mb-2">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        name="email"
+                        value="{{ staff.email or '' }}"
+                        placeholder="Enter email address"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Actions -->
+
+        <div class="p-6 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row justify-end gap-3">
+
+            <a
+                href="{{ url_for('staff.staff_list') }}"
+                class="inline-flex items-center justify-center px-5 py-3 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+            >
                 Cancel
-
             </a>
+
 
             <button
                 type="submit"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl">
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+            >
 
-                Update Staff
+                <i data-lucide="save" class="w-4 h-4"></i>
+
+                Save Changes
 
             </button>
 
@@ -130,5 +236,51 @@ Edit Staff
     </form>
 
 </div>
+
+
+<!-- Photo Preview -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const input = document.getElementById("photo");
+    const preview = document.getElementById("photoPreview");
+
+    if (!input || !preview) {
+        return;
+    }
+
+    input.addEventListener("change", function () {
+
+        const file = this.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+
+            preview.innerHTML = "";
+
+            const img = document.createElement("img");
+
+            img.src = event.target.result;
+
+            img.className =
+                "w-full h-full object-cover";
+
+            preview.appendChild(img);
+        };
+
+        reader.readAsDataURL(file);
+
+    });
+
+});
+
+</script>
 
 {% endblock %}

@@ -1,0 +1,4 @@
+-- Compatibility marker.
+-- Canonical academic/student operations schema is created earlier in
+-- migration 003b_academic_student_operations.sql so that enhancement migrations
+-- 004/005 can safely reference attendance/exams on a clean database.

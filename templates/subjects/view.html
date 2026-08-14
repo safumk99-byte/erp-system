@@ -1,0 +1,524 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+All Subjects
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- ================================================= -->
+    <!-- Header -->
+    <!-- ================================================= -->
+
+    <div class="flex flex-col lg:flex-row
+                lg:items-center
+                lg:justify-between
+                gap-4 mb-8">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                All Subjects
+            </h1>
+
+            <p class="text-slate-500 mt-1">
+                View all subjects and their assigned teachers.
+            </p>
+
+        </div>
+
+
+        <div class="flex flex-col sm:flex-row gap-3">
+
+            <!-- Search -->
+
+            <form
+                method="GET"
+                class="flex gap-2"
+            >
+
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search }}"
+                    placeholder="Search subject..."
+                    class="border border-slate-300
+                           rounded-xl
+                           px-4 py-3
+                           focus:outline-none
+                           focus:ring-2
+                           focus:ring-indigo-500"
+                >
+
+                <button
+                    type="submit"
+                    class="bg-slate-800
+                           hover:bg-slate-900
+                           text-white
+                           px-5
+                           rounded-xl
+                           transition"
+                >
+                    Search
+                </button>
+
+            </form>
+
+
+            <!-- Add Subject -->
+
+            {% if session.get("role") == "institution_admin" %}
+
+                <a
+                    href="{{ url_for(
+                        'subjects.create_subject'
+                    ) }}"
+                    class="inline-flex
+                           items-center
+                           justify-center
+                           gap-2
+                           bg-indigo-600
+                           hover:bg-indigo-700
+                           text-white
+                           px-5 py-3
+                           rounded-xl
+                           transition"
+                >
+
+                    <i
+                        data-lucide="plus"
+                        class="w-4 h-4"
+                    ></i>
+
+                    Add Subject
+
+                </a>
+
+            {% endif %}
+
+
+            <!-- Back -->
+
+            <a
+                href="{{ url_for(
+                    'subjects.subject_list'
+                ) }}"
+                class="inline-flex
+                       items-center
+                       justify-center
+                       gap-2
+                       border border-slate-300
+                       hover:bg-slate-50
+                       text-slate-700
+                       px-5 py-3
+                       rounded-xl
+                       transition"
+            >
+
+                <i
+                    data-lucide="arrow-left"
+                    class="w-4 h-4"
+                ></i>
+
+                Back
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    {% include "components/alert.html" %}
+
+
+    <!-- ================================================= -->
+    <!-- Subject Grid -->
+    <!-- ================================================= -->
+
+    {% if subjects %}
+
+        <div
+            class="grid
+                   grid-cols-1
+                   md:grid-cols-2
+                   xl:grid-cols-3
+                   gap-5"
+        >
+
+            {% for subject in subjects %}
+
+                {% set assigned_staff =
+                    staff_by_subject.get(subject.id, [])
+                %}
+
+
+                <!-- Subject Card -->
+
+                <div
+                    class="bg-white
+                           border border-slate-200
+                           rounded-2xl
+                           shadow-sm
+                           overflow-hidden
+                           hover:shadow-md
+                           transition"
+                >
+
+                    <!-- Subject Header -->
+
+                    <div class="p-6">
+
+                        <div class="flex
+                                    items-start
+                                    justify-between
+                                    gap-4">
+
+                            <div class="flex
+                                        items-center
+                                        gap-3
+                                        min-w-0">
+
+                                <div
+                                    class="w-11 h-11
+                                           shrink-0
+                                           rounded-xl
+                                           bg-indigo-100
+                                           flex
+                                           items-center
+                                           justify-center"
+                                >
+
+                                    <i
+                                        data-lucide="book-open"
+                                        class="w-5 h-5
+                                               text-indigo-600"
+                                    ></i>
+
+                                </div>
+
+
+                                <div class="min-w-0">
+
+                                    <h2
+                                        class="font-semibold
+                                               text-lg
+                                               text-slate-800
+                                               truncate"
+                                    >
+                                        {{ subject.subject_name }}
+                                    </h2>
+
+                                    <p
+                                        class="text-sm
+                                               text-slate-500
+                                               mt-1"
+                                    >
+                                        {{ subject.class_name }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Status -->
+
+                            {% if subject.is_active %}
+
+                                <span
+                                    class="shrink-0
+                                           inline-flex
+                                           px-2.5 py-1
+                                           rounded-full
+                                           text-xs
+                                           font-semibold
+                                           bg-green-100
+                                           text-green-700"
+                                >
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span
+                                    class="shrink-0
+                                           inline-flex
+                                           px-2.5 py-1
+                                           rounded-full
+                                           text-xs
+                                           font-semibold
+                                           bg-red-100
+                                           text-red-700"
+                                >
+                                    Inactive
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        {% if subject.description %}
+
+                            <p
+                                class="text-sm
+                                       text-slate-500
+                                       mt-4"
+                            >
+                                {{ subject.description }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Divider -->
+
+                    <div class="border-t border-slate-100"></div>
+
+
+                    <!-- Assigned Teachers -->
+
+                    <div class="p-6">
+
+                        <div
+                            class="flex
+                                   items-center
+                                   justify-between
+                                   mb-4"
+                        >
+
+                            <div
+                                class="flex
+                                       items-center
+                                       gap-2"
+                            >
+
+                                <i
+                                    data-lucide="users"
+                                    class="w-4 h-4
+                                           text-slate-500"
+                                ></i>
+
+                                <h3
+                                    class="text-sm
+                                           font-semibold
+                                           text-slate-700"
+                                >
+                                    Assigned Teachers
+                                </h3>
+
+                            </div>
+
+
+                            <span
+                                class="text-xs
+                                       text-slate-400"
+                            >
+                                {{ assigned_staff|length }}
+                            </span>
+
+                        </div>
+
+
+                        {% if assigned_staff %}
+
+                            <div class="space-y-3">
+
+                                {% for staff in assigned_staff %}
+
+                                    <div
+                                        class="flex
+                                               items-center
+                                               gap-3"
+                                    >
+
+                                        <div
+                                            class="w-9 h-9
+                                                   shrink-0
+                                                   rounded-full
+                                                   bg-indigo-50
+                                                   flex
+                                                   items-center
+                                                   justify-center"
+                                        >
+
+                                            <span
+                                                class="text-sm
+                                                       font-semibold
+                                                       text-indigo-600"
+                                            >
+                                                {{ staff.full_name[:1]|upper }}
+                                            </span>
+
+                                        </div>
+
+
+                                        <div class="min-w-0">
+
+                                            <p
+                                                class="font-medium
+                                                       text-slate-800
+                                                       truncate"
+                                            >
+                                                {{ staff.full_name }}
+                                            </p>
+
+                                            <p
+                                                class="text-xs
+                                                       text-slate-400
+                                                       truncate"
+                                            >
+                                                @{{ staff.username }}
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% else %}
+
+                            <div
+                                class="rounded-xl
+                                       bg-slate-50
+                                       border border-slate-100
+                                       p-4"
+                            >
+
+                                <p
+                                    class="text-sm
+                                           text-slate-400"
+                                >
+                                    No teacher assigned.
+                                </p>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+
+    {% else %}
+
+        <!-- ================================================= -->
+        <!-- Empty State -->
+        <!-- ================================================= -->
+
+        <div
+            class="bg-white
+                   border border-slate-200
+                   rounded-2xl
+                   p-12
+                   text-center"
+        >
+
+            <div
+                class="w-16 h-16
+                       mx-auto
+                       rounded-2xl
+                       bg-indigo-50
+                       flex
+                       items-center
+                       justify-center
+                       mb-4"
+            >
+
+                <i
+                    data-lucide="book-open"
+                    class="w-8 h-8
+                           text-indigo-400"
+                ></i>
+
+            </div>
+
+
+            {% if search %}
+
+                <h2
+                    class="text-lg
+                           font-semibold
+                           text-slate-700"
+                >
+                    No subjects found
+                </h2>
+
+                <p
+                    class="text-sm
+                           text-slate-400
+                           mt-1"
+                >
+                    Try a different search term.
+                </p>
+
+            {% else %}
+
+                <h2
+                    class="text-lg
+                           font-semibold
+                           text-slate-700"
+                >
+                    No subjects available
+                </h2>
+
+                <p
+                    class="text-sm
+                           text-slate-400
+                           mt-1"
+                >
+                    Add subjects to your institution first.
+                </p>
+
+            {% endif %}
+
+
+            {% if session.get("role") == "institution_admin" %}
+
+                <a
+                    href="{{ url_for(
+                        'subjects.create_subject'
+                    ) }}"
+                    class="inline-flex
+                           items-center
+                           gap-2
+                           mt-5
+                           bg-indigo-600
+                           hover:bg-indigo-700
+                           text-white
+                           px-5 py-3
+                           rounded-xl
+                           transition"
+                >
+
+                    <i
+                        data-lucide="plus"
+                        class="w-4 h-4"
+                    ></i>
+
+                    Add Subject
+
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

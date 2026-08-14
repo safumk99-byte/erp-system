@@ -8,6 +8,7 @@ from flask import (
 )
 
 from database.db import get_connection
+from services.notification_service import notify_student_and_parent
 
 
 # =========================================================
@@ -453,6 +454,8 @@ def approve_publication(id):
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
+    user_id = session.get("user_id")
 
 
     # -----------------------------------------------------
@@ -463,6 +466,7 @@ def approve_publication(id):
 
         cur.execute("""
             SELECT
+                p.student_id,
                 p.publication_type,
                 p.category,
                 p.pages
@@ -477,16 +481,20 @@ def approve_publication(id):
                 AND p.institution_id = %s
                 AND s.institution_id = %s
                 AND p.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"]
+            institution_id,
+            institution_id
         ))
+
 
     elif role == "staff":
 
         cur.execute("""
             SELECT
+                p.student_id,
                 p.publication_type,
                 p.category,
                 p.pages
@@ -508,13 +516,16 @@ def approve_publication(id):
                 AND sc.institution_id = %s
                 AND sc.staff_id = %s
                 AND sc.is_active = TRUE
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"],
-            session["user_id"]
+            institution_id,
+            institution_id,
+            institution_id,
+            user_id
         ))
+
 
     else:
 
@@ -544,6 +555,10 @@ def approve_publication(id):
         )
 
 
+    student_id = publication[
+        "student_id"
+    ]
+
     publication_type = publication[
         "publication_type"
     ]
@@ -555,6 +570,7 @@ def approve_publication(id):
     pages = publication[
         "pages"
     ]
+
 
     points = 0
 
@@ -570,6 +586,7 @@ def approve_publication(id):
             if pages and pages >= 1:
 
                 points = 3
+
 
         elif category == "Non-Fiction":
 
@@ -601,10 +618,12 @@ def approve_publication(id):
                 points = 15
 
 
-    # ISBN / verification bonus is not
-    # numerically defined in the proposal.
+    # -----------------------------------------------------
+    # Bonus
+    # -----------------------------------------------------
 
     bonus_points = 0
+
 
     total_points = (
         points
@@ -613,7 +632,7 @@ def approve_publication(id):
 
 
     # -----------------------------------------------------
-    # Update
+    # Update Publication
     # -----------------------------------------------------
 
     cur.execute("""
@@ -636,13 +655,32 @@ def approve_publication(id):
     """, (
         points,
         bonus_points,
-        session.get("user_id"),
+        user_id,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
 
+    # -----------------------------------------------------
+    # Notification
+    # -----------------------------------------------------
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Publication",
+        approved=True,
+        remarks=None,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # -----------------------------------------------------
+    # Commit
+    # -----------------------------------------------------
+
     conn.commit()
+
 
     cur.close()
     conn.close()
@@ -650,7 +688,8 @@ def approve_publication(id):
 
     flash(
         f"Publication approved. "
-        f"Points: {total_points}",
+        f"Points: {total_points}. "
+        f"Notification sent.",
         "success"
     )
 
@@ -660,7 +699,8 @@ def approve_publication(id):
             "publication.publication_list"
         )
     )
-    
+
+
 # =========================================================
 # Reject Publication
 # =========================================================
@@ -671,12 +711,19 @@ def reject_publication(id):
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
+    user_id = session.get("user_id")
+
 
     reason = request.form.get(
         "rejection_reason",
         ""
     ).strip()
 
+
+    # -----------------------------------------------------
+    # Validate Reason
+    # -----------------------------------------------------
 
     if not reason:
 
@@ -703,7 +750,8 @@ def reject_publication(id):
 
         cur.execute("""
             SELECT
-                p.id
+                p.id,
+                p.student_id
 
             FROM publications p
 
@@ -715,17 +763,21 @@ def reject_publication(id):
                 AND p.institution_id = %s
                 AND s.institution_id = %s
                 AND p.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"]
+            institution_id,
+            institution_id
         ))
+
 
     elif role == "staff":
 
         cur.execute("""
             SELECT
-                p.id
+                p.id,
+                p.student_id
 
             FROM publications p
 
@@ -744,13 +796,16 @@ def reject_publication(id):
                 AND sc.institution_id = %s
                 AND sc.staff_id = %s
                 AND sc.is_active = TRUE
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"],
-            session["user_id"]
+            institution_id,
+            institution_id,
+            institution_id,
+            user_id
         ))
+
 
     else:
 
@@ -780,8 +835,13 @@ def reject_publication(id):
         )
 
 
+    student_id = publication[
+        "student_id"
+    ]
+
+
     # -----------------------------------------------------
-    # Reject
+    # Reject Publication
     # -----------------------------------------------------
 
     cur.execute("""
@@ -802,21 +862,40 @@ def reject_publication(id):
             AND status = 'Pending'
 
     """, (
-        session.get("user_id"),
+        user_id,
         reason,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
 
+    # -----------------------------------------------------
+    # Notification
+    # -----------------------------------------------------
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Publication",
+        approved=False,
+        remarks=reason,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # -----------------------------------------------------
+    # Commit
+    # -----------------------------------------------------
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
 
     flash(
-        "Publication rejected.",
+        "Publication rejected and notification sent.",
         "success"
     )
 

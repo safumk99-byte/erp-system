@@ -1,0 +1,1038 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Today's Attendance
+{% endblock %}
+
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+
+    <!-- ================================================= -->
+    <!-- Header -->
+    <!-- ================================================= -->
+
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Today's Attendance
+            </h1>
+
+            <p class="text-slate-500 mt-1">
+                View today's attendance progress across all 8 periods.
+            </p>
+
+        </div>
+
+
+        <div class="flex flex-wrap gap-3">
+
+            <!-- Mark Attendance -->
+
+            <a
+                href="{{ url_for('attendance.attendance_list') }}"
+                class="inline-flex items-center gap-2
+                       border border-slate-300
+                       hover:bg-slate-50
+                       text-slate-700
+                       px-5 py-3
+                       rounded-xl
+                       transition"
+            >
+
+                <i
+                    data-lucide="clipboard-check"
+                    class="w-5 h-5"
+                ></i>
+
+                Mark Attendance
+
+            </a>
+
+
+            <!-- Summary -->
+
+            <a
+                href="{{ url_for('attendance.attendance_summary_page') }}"
+                class="inline-flex items-center gap-2
+                       bg-slate-800
+                       hover:bg-slate-900
+                       text-white
+                       px-5 py-3
+                       rounded-xl
+                       transition"
+            >
+
+                <i
+                    data-lucide="bar-chart-3"
+                    class="w-5 h-5"
+                ></i>
+
+                Summary
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    {% include "components/alert.html" %}
+
+
+    <!-- ================================================= -->
+    <!-- Date -->
+    <!-- ================================================= -->
+
+    <div
+        class="bg-indigo-50
+               border border-indigo-100
+               rounded-2xl
+               p-5
+               mb-6"
+    >
+
+        <div class="flex items-center gap-3">
+
+            <div
+                class="w-11 h-11
+                       rounded-xl
+                       bg-indigo-600
+                       text-white
+                       flex items-center
+                       justify-center"
+            >
+
+                <i
+                    data-lucide="calendar-days"
+                    class="w-5 h-5"
+                ></i>
+
+            </div>
+
+
+            <div>
+
+                <p class="text-sm text-indigo-600 font-medium">
+                    Attendance Date
+                </p>
+
+                <p class="text-lg font-bold text-indigo-900">
+                    {{ attendance_date.strftime("%d %B %Y") }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Class Selection -->
+    <!-- ================================================= -->
+
+    <form
+        method="GET"
+        class="bg-white
+               border border-slate-200
+               rounded-2xl
+               shadow-sm
+               p-6
+               mb-8"
+    >
+
+        <div class="flex flex-col md:flex-row md:items-end gap-4">
+
+            <div class="flex-1">
+
+                <label
+                    class="block mb-2
+                           text-sm font-semibold
+                           text-slate-700"
+                >
+                    Select Class
+                </label>
+
+                <select
+                    name="class_id"
+                    class="w-full
+                           border border-slate-300
+                           rounded-xl
+                           px-4 py-3
+                           bg-white
+                           focus:outline-none
+                           focus:ring-2
+                           focus:ring-indigo-500"
+                >
+
+                    <option value="">
+                        Select a class to view students
+                    </option>
+
+
+                    {% for class_item in classes %}
+
+                        <option
+                            value="{{ class_item.id }}"
+                            {% if class_id|string == class_item.id|string %}
+                                selected
+                            {% endif %}
+                        >
+
+                            {{ class_item.class_name }}
+
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="inline-flex items-center
+                       justify-center gap-2
+                       bg-indigo-600
+                       hover:bg-indigo-700
+                       text-white
+                       px-6 py-3
+                       rounded-xl
+                       transition"
+            >
+
+                <i
+                    data-lucide="eye"
+                    class="w-5 h-5"
+                ></i>
+
+                View Progress
+
+            </button>
+
+        </div>
+
+    </form>
+
+
+    {% if selected_class %}
+
+
+    <!-- ================================================= -->
+    <!-- Selected Class -->
+    <!-- ================================================= -->
+
+    <div
+        class="bg-white
+               border border-slate-200
+               rounded-2xl
+               shadow-sm
+               p-6
+               mb-8"
+    >
+
+        <div class="flex items-center gap-4">
+
+            <div
+                class="w-12 h-12
+                       rounded-xl
+                       bg-indigo-100
+                       flex items-center
+                       justify-center"
+            >
+
+                <i
+                    data-lucide="school"
+                    class="w-6 h-6 text-indigo-600"
+                ></i>
+
+            </div>
+
+
+            <div>
+
+                <p class="text-sm text-slate-500">
+                    Selected Class
+                </p>
+
+                <h2 class="text-2xl font-bold text-slate-800">
+                    {{ selected_class.class_name }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Progress Summary -->
+    <!-- ================================================= -->
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+
+
+        <!-- Completed -->
+
+        <div
+            class="bg-white
+                   border border-slate-200
+                   rounded-2xl
+                   p-5"
+        >
+
+            <p class="text-sm text-slate-500">
+                Completed
+            </p>
+
+            <p class="text-3xl font-bold text-green-600 mt-1">
+                {{ completed_periods }}
+            </p>
+
+            <p class="text-xs text-slate-400 mt-1">
+                of 8 periods
+            </p>
+
+        </div>
+
+
+        <!-- Partial -->
+
+        <div
+            class="bg-white
+                   border border-slate-200
+                   rounded-2xl
+                   p-5"
+        >
+
+            <p class="text-sm text-slate-500">
+                Partial
+            </p>
+
+            <p class="text-3xl font-bold text-yellow-600 mt-1">
+                {{ partial_periods }}
+            </p>
+
+            <p class="text-xs text-slate-400 mt-1">
+                periods
+            </p>
+
+        </div>
+
+
+        <!-- Started -->
+
+        <div
+            class="bg-white
+                   border border-slate-200
+                   rounded-2xl
+                   p-5"
+        >
+
+            <p class="text-sm text-slate-500">
+                Started
+            </p>
+
+            <p class="text-3xl font-bold text-indigo-600 mt-1">
+                {{ started_periods }}
+            </p>
+
+            <p class="text-xs text-slate-400 mt-1">
+                periods
+            </p>
+
+        </div>
+
+
+        <!-- Latest -->
+
+        <div
+            class="bg-white
+                   border border-slate-200
+                   rounded-2xl
+                   p-5"
+        >
+
+            <p class="text-sm text-slate-500">
+                Latest Period
+            </p>
+
+            <p class="text-3xl font-bold text-slate-800 mt-1">
+
+                {% if latest_period %}
+                    {{ latest_period }}
+                {% else %}
+                    -
+                {% endif %}
+
+            </p>
+
+            <p class="text-xs text-slate-400 mt-1">
+                latest attendance
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Attendance Matrix -->
+    <!-- ================================================= -->
+
+    <div
+        class="bg-white
+               border border-slate-200
+               rounded-2xl
+               shadow-sm
+               overflow-hidden"
+    >
+
+
+        <!-- ================================================= -->
+        <!-- Table Header -->
+        <!-- ================================================= -->
+
+        <div
+            class="p-6
+                   border-b border-slate-200"
+        >
+
+            <div
+                class="flex flex-col
+                       sm:flex-row
+                       sm:items-center
+                       sm:justify-between
+                       gap-3"
+            >
+
+                <div>
+
+                    <h2 class="text-xl font-bold text-slate-800">
+                        Student Attendance
+                    </h2>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        Today's attendance across all 8 periods.
+                    </p>
+
+                </div>
+
+
+                <!-- Legend -->
+
+                <div
+                    class="flex flex-wrap
+                           items-center
+                           gap-3
+                           text-xs"
+                >
+
+                    <div class="flex items-center gap-1.5">
+
+                        <span
+                            class="w-3 h-3
+                                   rounded-full
+                                   bg-green-500"
+                        ></span>
+
+                        Present
+
+                    </div>
+
+
+                    <div class="flex items-center gap-1.5">
+
+                        <span
+                            class="w-3 h-3
+                                   rounded-full
+                                   bg-blue-500"
+                        ></span>
+
+                        Late
+
+                    </div>
+
+
+                    <div class="flex items-center gap-1.5">
+
+                        <span
+                            class="w-3 h-3
+                                   rounded-full
+                                   bg-yellow-400"
+                        ></span>
+
+                        Leave
+
+                    </div>
+
+
+                    <div class="flex items-center gap-1.5">
+
+                        <span
+                            class="w-3 h-3
+                                   rounded-full
+                                   bg-red-500"
+                        ></span>
+
+                        Absent
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Table -->
+        <!-- ================================================= -->
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full min-w-[1100px]">
+
+
+                <!-- ================================================= -->
+                <!-- Table Head -->
+                <!-- ================================================= -->
+
+                <thead class="bg-slate-50">
+
+                    <tr>
+
+                        <!-- Number -->
+
+                        <th
+                            class="sticky left-0
+                                   z-20
+                                   bg-slate-50
+                                   px-4 py-4
+                                   text-left
+                                   text-sm
+                                   font-semibold
+                                   text-slate-700
+                                   w-14"
+                        >
+
+                            #
+
+                        </th>
+
+
+                        <!-- Student -->
+
+                        <th
+                            class="sticky left-14
+                                   z-20
+                                   bg-slate-50
+                                   px-4 py-4
+                                   text-left
+                                   text-sm
+                                   font-semibold
+                                   text-slate-700
+                                   min-w-[220px]"
+                        >
+
+                            Student
+
+                        </th>
+
+
+                        <!-- Periods -->
+
+                        {% for period in periods %}
+
+                        <th
+                            class="px-3 py-4
+                                   text-center
+                                   text-sm
+                                   font-semibold
+                                   text-slate-700
+                                   min-w-[100px]"
+                        >
+
+                            <div>
+                                Period
+                            </div>
+
+                            <div
+                                class="text-indigo-600
+                                       text-base
+                                       font-bold
+                                       mt-0.5"
+                            >
+                                {{ period.period_number }}
+                            </div>
+
+                        </th>
+
+                        {% endfor %}
+
+                    </tr>
+
+                </thead>
+
+
+                <!-- ================================================= -->
+                <!-- Table Body -->
+                <!-- ================================================= -->
+
+                <tbody
+                    class="divide-y
+                           divide-slate-100"
+                >
+
+
+                    {% if periods and periods[0].students %}
+
+
+                        {% for student in periods[0].students %}
+
+                        <tr
+                            class="hover:bg-slate-50
+                                   transition"
+                        >
+
+
+                            <!-- Number -->
+
+                            <td
+                                class="sticky left-0
+                                       z-10
+                                       bg-white
+                                       px-4 py-4
+                                       text-sm
+                                       font-medium
+                                       text-slate-500"
+                            >
+
+                                {{ loop.index }}
+
+                            </td>
+
+
+                            <!-- Student -->
+
+                            <td
+                                class="sticky left-14
+                                       z-10
+                                       bg-white
+                                       px-4 py-4"
+                            >
+
+                                <div
+                                    class="flex items-center
+                                           gap-3"
+                                >
+
+
+                                    <!-- Photo -->
+
+                                    {% if student.photo %}
+
+    <img
+        src="{{ url_for(
+            'students.student_photo',
+            filename=student.photo
+        ) }}"
+        alt="{{ student.full_name }}"
+        class="w-10 h-10
+               rounded-full
+               object-cover
+               border
+               border-slate-200
+               shrink-0"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+    >
+
+    <div
+        style="display:none;"
+        class="w-10 h-10
+               rounded-full
+               bg-indigo-100
+               text-indigo-600
+               items-center
+               justify-center
+               font-bold
+               shrink-0"
+    >
+        {{ student.full_name[:1]|upper }}
+    </div>
+
+{% else %}
+
+    <div
+        class="w-10 h-10
+               rounded-full
+               bg-indigo-100
+               text-indigo-600
+               flex items-center
+               justify-center
+               font-bold
+               shrink-0"
+    >
+
+        {{ student.full_name[:1]|upper }}
+
+    </div>
+
+{% endif %}
+
+                                    <div class="min-w-0">
+
+                                        <p
+                                            class="font-semibold
+                                                   text-slate-800
+                                                   truncate"
+                                        >
+
+                                            {{ student.full_name }}
+
+                                        </p>
+
+                                        <p
+                                            class="text-xs
+                                                   text-slate-400"
+                                        >
+
+                                            {{ student.admission_no }}
+
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <!-- ================================================= -->
+                            <!-- Period Cells -->
+                            <!-- ================================================= -->
+
+                            {% for period in periods %}
+
+                                {% set current_student = (
+                                    period.students
+                                    |selectattr(
+                                        "id",
+                                        "equalto",
+                                        student.id
+                                    )
+                                    |list
+                                    |first
+                                ) %}
+
+
+                                {% if current_student %}
+
+                                    {% set status = current_student.status %}
+
+                                {% else %}
+
+                                    {% set status = "Not Marked" %}
+
+                                {% endif %}
+
+
+                                <td
+                                    class="px-3 py-4
+                                           text-center"
+                                >
+
+
+                                    {% if status == "Present" %}
+
+                                        <span
+                                            class="inline-flex
+                                                   items-center
+                                                   justify-center
+                                                   min-w-[76px]
+                                                   px-3 py-2
+                                                   rounded-xl
+                                                   bg-green-100
+                                                   text-green-700
+                                                   text-xs
+                                                   font-bold"
+                                        >
+
+                                            Present
+
+                                        </span>
+
+
+                                    {% elif status == "Late" %}
+
+                                        <span
+                                            class="inline-flex
+                                                   items-center
+                                                   justify-center
+                                                   min-w-[76px]
+                                                   px-3 py-2
+                                                   rounded-xl
+                                                   bg-blue-100
+                                                   text-blue-700
+                                                   text-xs
+                                                   font-bold"
+                                        >
+
+                                            Late
+
+                                        </span>
+
+
+                                    {% elif status == "Leave" %}
+
+                                        <span
+                                            class="inline-flex
+                                                   items-center
+                                                   justify-center
+                                                   min-w-[76px]
+                                                   px-3 py-2
+                                                   rounded-xl
+                                                   bg-yellow-100
+                                                   text-yellow-700
+                                                   text-xs
+                                                   font-bold"
+                                        >
+
+                                            Leave
+
+                                        </span>
+
+
+                                    {% elif status == "Absent" %}
+
+                                        <span
+                                            class="inline-flex
+                                                   items-center
+                                                   justify-center
+                                                   min-w-[76px]
+                                                   px-3 py-2
+                                                   rounded-xl
+                                                   bg-red-100
+                                                   text-red-700
+                                                   text-xs
+                                                   font-bold"
+                                        >
+
+                                            Absent
+
+                                        </span>
+
+
+                                    {% else %}
+
+                                        <span
+                                            class="inline-flex
+                                                   items-center
+                                                   justify-center
+                                                   min-w-[76px]
+                                                   px-3 py-2
+                                                   rounded-xl
+                                                   bg-slate-100
+                                                   text-slate-500
+                                                   text-xs
+                                                   font-medium"
+                                        >
+
+                                            Not Marked
+
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                            {% endfor %}
+
+                        </tr>
+
+                        {% endfor %}
+
+
+                    {% else %}
+
+
+                        <!-- ================================================= -->
+                        <!-- Empty -->
+                        <!-- ================================================= -->
+
+                        <tr>
+
+                            <td
+                                colspan="10"
+                                class="px-6 py-12
+                                       text-center"
+                            >
+
+                                <div
+                                    class="w-14 h-14
+                                           mx-auto mb-4
+                                           rounded-2xl
+                                           bg-slate-100
+                                           flex items-center
+                                           justify-center"
+                                >
+
+                                    <i
+                                        data-lucide="users"
+                                        class="w-7 h-7
+                                               text-slate-400"
+                                    ></i>
+
+                                </div>
+
+
+                                <p
+                                    class="font-semibold
+                                           text-slate-700"
+                                >
+
+                                    No students found.
+
+                                </p>
+
+
+                                <p
+                                    class="text-sm
+                                           text-slate-400
+                                           mt-1"
+                                >
+
+                                    No students are available
+                                    for this class.
+
+                                </p>
+
+                            </td>
+
+                        </tr>
+
+
+                    {% endif %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Table Footer -->
+        <!-- ================================================= -->
+
+        <div
+            class="border-t
+                   border-slate-200
+                   bg-slate-50
+                   px-6 py-4"
+        >
+
+            <div
+                class="flex flex-col
+                       sm:flex-row
+                       sm:items-center
+                       sm:justify-between
+                       gap-2"
+            >
+
+                <p class="text-sm text-slate-500">
+
+                    Showing attendance for
+
+                    <span
+                        class="font-semibold
+                               text-slate-700"
+                    >
+                        {{ selected_class.class_name }}
+                    </span>
+
+                </p>
+
+
+                <p class="text-xs text-slate-400">
+
+                    Scroll horizontally to view all periods.
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {% else %}
+
+
+    <!-- ================================================= -->
+    <!-- No Class Selected -->
+    <!-- ================================================= -->
+
+    <div
+        class="bg-white
+               border border-slate-200
+               rounded-2xl
+               p-12
+               text-center"
+    >
+
+        <div
+            class="w-16 h-16
+                   mx-auto mb-4
+                   rounded-2xl
+                   bg-indigo-50
+                   flex items-center
+                   justify-center"
+        >
+
+            <i
+                data-lucide="school"
+                class="w-8 h-8
+                       text-indigo-500"
+            ></i>
+
+        </div>
+
+
+        <h2
+            class="text-xl
+                   font-semibold
+                   text-slate-800"
+        >
+            Select a Class
+        </h2>
+
+
+        <p
+            class="text-slate-500
+                   mt-2"
+        >
+
+            Select a class above to view
+            today's 8-period attendance.
+
+        </p>
+
+    </div>
+
+    {% endif %}
+
+
+</div>
+
+{% endblock %}

@@ -6,162 +6,358 @@ Classes
 
 {% block page_content %}
 
-<div class="flex items-center justify-between mb-6">
+<div class="max-w-7xl mx-auto">
 
-    <div>
+    <!-- Header -->
 
-        <h1 class="text-3xl font-bold text-slate-800">
-            Classes
-        </h1>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
 
-        <p class="text-slate-500 mt-1">
-            Manage Classes
-        </p>
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Classes
+            </h1>
+
+            <p class="text-slate-500 mt-1">
+                Manage classes for your institution.
+            </p>
+
+        </div>
+
+
+        <div class="flex flex-col sm:flex-row gap-3">
+
+            <!-- Search -->
+
+            <form method="GET">
+
+                <div class="flex gap-3">
+
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ search }}"
+                        placeholder="Search class..."
+                        class="border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                    <button
+                        type="submit"
+                        class="bg-slate-800 hover:bg-slate-900 text-white px-6 rounded-xl transition"
+                    >
+                        Search
+                    </button>
+
+                </div>
+
+            </form>
+
+
+            <!-- Add Class -->
+
+            {% if session.get("role") == "institution_admin" %}
+
+            <a
+                href="{{ url_for('classes.create_class') }}"
+                class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl transition"
+            >
+                + Add Class
+            </a>
+
+            {% endif %}
+
+        </div>
 
     </div>
 
-    <div class="flex gap-3">
 
-        <form method="GET">
+    <!-- Alerts -->
 
-            <div class="flex gap-3">
+    {% include "components/alert.html" %}
 
-                <input
-                    type="text"
-                    name="search"
-                    value="{{ search }}"
-                    placeholder="Search class..."
-                    class="border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
 
-                <button
-                    type="submit"
-                    class="bg-slate-800 text-white px-6 rounded-xl">
+    <!-- Classes Table -->
 
-                    Search
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
-                </button>
+        <div class="overflow-x-auto">
 
-            </div>
+            <table class="w-full text-sm">
 
-        </form>
+                <thead class="bg-slate-100 border-b border-slate-200">
 
-        <a href="{{ url_for('classes.create_class') }}"
-           class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+                    <tr>
 
-            + Add Class
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Class
+                        </th>
 
-        </a>
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Description
+                        </th>
+
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Status
+                        </th>
+
+                        <th class="text-center px-6 py-4 font-semibold text-slate-600">
+                            Students
+                        </th>
+
+                        <th class="text-center px-6 py-4 font-semibold text-slate-600">
+                            Actions
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-slate-100">
+
+                {% if classes %}
+
+                    {% for class_item in classes %}
+
+                    <tr class="hover:bg-slate-50 transition">
+
+                        <!-- Class -->
+
+                        <td class="px-6 py-4">
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+
+                                    <i
+                                        data-lucide="school"
+                                        class="w-5 h-5 text-indigo-600"
+                                    ></i>
+
+                                </div>
+
+                                <div>
+
+                                    <p class="font-semibold text-slate-800">
+                                        {{ class_item.class_name }}
+                                    </p>
+
+                                    <p class="text-xs text-slate-400">
+                                        Class
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- Description -->
+
+                        <td class="px-6 py-4 text-slate-600">
+
+                            <span class="line-clamp-2">
+                                {{ class_item.description or "-" }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- Status -->
+
+                        <td class="px-6 py-4">
+
+                            {% if class_item.is_active %}
+
+                                <span class="inline-flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+
+                                    Active
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+
+                                    Inactive
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- View Students -->
+
+                        <td class="px-6 py-4 text-center">
+
+                            <a
+                                href="{{ url_for(
+                                    'classes.class_students_page',
+                                    id=class_item.id
+                                ) }}"
+                                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium transition"
+                            >
+
+                                <i
+                                    data-lucide="users"
+                                    class="w-4 h-4"
+                                ></i>
+
+                                View Students
+
+                            </a>
+
+                        </td>
+
+
+                        <!-- Actions -->
+
+                        <td class="px-6 py-4">
+
+                            {% if session.get("role") == "institution_admin" %}
+
+                                <div class="flex items-center justify-center gap-3">
+
+                                    <!-- Edit -->
+
+                                    <a
+                                        href="{{ url_for(
+                                            'classes.update_class',
+                                            id=class_item.id
+                                        ) }}"
+                                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-indigo-600 hover:bg-indigo-50 font-medium transition"
+                                    >
+
+                                        <i
+                                            data-lucide="edit"
+                                            class="w-4 h-4"
+                                        ></i>
+
+                                        Edit
+
+                                    </a>
+
+
+                                    <!-- Toggle -->
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for(
+                                            'classes.toggle_class',
+                                            id=class_item.id
+                                        ) }}"
+                                        class="inline"
+                                        onsubmit="return confirm(
+                                            '{% if class_item.is_active %}Deactivate{% else %}Activate{% endif %} {{ class_item.class_name }}?'
+                                        );"
+                                    >
+
+                                        {% if class_item.is_active %}
+
+                                            <button
+                                                type="submit"
+                                                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 font-medium transition"
+                                            >
+
+                                                <i
+                                                    data-lucide="power"
+                                                    class="w-4 h-4"
+                                                ></i>
+
+                                                Deactivate
+
+                                            </button>
+
+                                        {% else %}
+
+                                            <button
+                                                type="submit"
+                                                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-green-600 hover:bg-green-50 font-medium transition"
+                                            >
+
+                                                <i
+                                                    data-lucide="power"
+                                                    class="w-4 h-4"
+                                                ></i>
+
+                                                Activate
+
+                                            </button>
+
+                                        {% endif %}
+
+                                    </form>
+
+                                </div>
+
+                            {% else %}
+
+                                <div class="text-center">
+
+                                    <span class="text-slate-400 text-sm">
+                                        View only
+                                    </span>
+
+                                </div>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <tr>
+
+                        <td
+                            colspan="5"
+                            class="text-center py-12 text-slate-500"
+                        >
+
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 flex items-center justify-center">
+
+                                <i
+                                    data-lucide="school"
+                                    class="w-8 h-8 text-slate-400"
+                                ></i>
+
+                            </div>
+
+                            <p class="font-medium text-slate-600">
+                                No classes found.
+                            </p>
+
+                            {% if session.get("role") == "institution_admin" %}
+
+                                <p class="text-sm text-slate-400 mt-1">
+                                    Add your institution's first class.
+                                </p>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                {% endif %}
+
+                </tbody>
+
+            </table>
+
+        </div>
 
     </div>
-
-</div>
-
-<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-
-    <table class="w-full">
-
-        <thead class="bg-slate-100">
-
-            <tr>
-
-                <th class="text-left px-6 py-4">Class</th>
-                <th class="text-left px-6 py-4">Description</th>
-                <th class="text-left px-6 py-4">Status</th>
-                <th class="text-center px-6 py-4">Actions</th>
-
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-        {% if classes %}
-
-            {% for class_item in classes %}
-
-            <tr class="border-t hover:bg-slate-50">
-
-                <td class="px-6 py-4 font-medium">
-                    {{ class_item.class_name }}
-                </td>
-
-                <td class="px-6 py-4">
-                    {{ class_item.description or "-" }}
-                </td>
-
-                <td class="px-6 py-4">
-
-                    {% if class_item.is_active %}
-
-                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                            Active
-                        </span>
-
-                    {% else %}
-
-                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
-                            Inactive
-                        </span>
-
-                    {% endif %}
-
-                </td>
-
-                <td class="px-6 py-4 text-center">
-
-                    <a href="{{ url_for('classes.update_class', id=class_item.id) }}"
-                       class="text-indigo-600 hover:underline">
-
-                        Edit
-
-                    </a>
-
-                    <span class="mx-2 text-slate-300">|</span>
-
-                    {% if class_item.is_active %}
-
-                        <a href="{{ url_for('classes.toggle_class', id=class_item.id) }}"
-                           class="text-red-600 hover:underline">
-
-                            Deactivate
-
-                        </a>
-
-                    {% else %}
-
-                        <a href="{{ url_for('classes.toggle_class', id=class_item.id) }}"
-                           class="text-green-600 hover:underline">
-
-                            Activate
-
-                        </a>
-
-                    {% endif %}
-
-                </td>
-
-            </tr>
-
-            {% endfor %}
-
-        {% else %}
-
-            <tr>
-
-                <td colspan="4"
-                    class="text-center py-10 text-slate-500">
-
-                    No classes found.
-
-                </td>
-
-            </tr>
-
-        {% endif %}
-
-        </tbody>
-
-    </table>
 
 </div>
 

@@ -9,6 +9,8 @@ from flask import (
 
 from database.db import get_connection
 
+from services.notification_service import notify_student_and_parent
+
 
 # =========================================================
 # Get Allowed Students
@@ -406,6 +408,8 @@ def approve_speaking(id):
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
+    user_id = session.get("user_id")
 
 
     # -----------------------------------------------------
@@ -416,6 +420,7 @@ def approve_speaking(id):
 
         cur.execute("""
             SELECT
+                sp.student_id,
                 sp.duration_minutes
 
             FROM speaking_submissions sp
@@ -428,16 +433,20 @@ def approve_speaking(id):
                 AND sp.institution_id = %s
                 AND s.institution_id = %s
                 AND sp.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"]
+            institution_id,
+            institution_id
         ))
+
 
     elif role == "staff":
 
         cur.execute("""
             SELECT
+                sp.student_id,
                 sp.duration_minutes
 
             FROM speaking_submissions sp
@@ -457,13 +466,16 @@ def approve_speaking(id):
                 AND sc.institution_id = %s
                 AND sc.staff_id = %s
                 AND sc.is_active = TRUE
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"],
-            session["user_id"]
+            institution_id,
+            institution_id,
+            institution_id,
+            user_id
         ))
+
 
     else:
 
@@ -493,16 +505,28 @@ def approve_speaking(id):
         )
 
 
+    student_id = speaking["student_id"]
+
     duration_minutes = speaking[
         "duration_minutes"
     ]
+
+
+    # -----------------------------------------------------
+    # Calculate Points
+    # -----------------------------------------------------
 
     points = 0
 
 
     if duration_minutes >= 5:
+
         points = 5
 
+
+    # -----------------------------------------------------
+    # Approve Speaking
+    # -----------------------------------------------------
 
     cur.execute("""
         UPDATE speaking_submissions
@@ -522,20 +546,39 @@ def approve_speaking(id):
 
     """, (
         points,
-        session.get("user_id"),
+        user_id,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
 
+    # -----------------------------------------------------
+    # Notification
+    # -----------------------------------------------------
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Speaking Skill",
+        approved=True,
+        remarks=None,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # -----------------------------------------------------
+    # Commit
+    # -----------------------------------------------------
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
 
     flash(
-        "Speaking submission approved.",
+        "Speaking submission approved and notification sent.",
         "success"
     )
 
@@ -557,12 +600,19 @@ def reject_speaking(id):
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
+    user_id = session.get("user_id")
+
 
     reason = request.form.get(
         "rejection_reason",
         ""
     ).strip()
 
+
+    # -----------------------------------------------------
+    # Validate Reason
+    # -----------------------------------------------------
 
     if not reason:
 
@@ -589,7 +639,8 @@ def reject_speaking(id):
 
         cur.execute("""
             SELECT
-                sp.id
+                sp.id,
+                sp.student_id
 
             FROM speaking_submissions sp
 
@@ -601,17 +652,21 @@ def reject_speaking(id):
                 AND sp.institution_id = %s
                 AND s.institution_id = %s
                 AND sp.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"]
+            institution_id,
+            institution_id
         ))
+
 
     elif role == "staff":
 
         cur.execute("""
             SELECT
-                sp.id
+                sp.id,
+                sp.student_id
 
             FROM speaking_submissions sp
 
@@ -630,13 +685,16 @@ def reject_speaking(id):
                 AND sc.institution_id = %s
                 AND sc.staff_id = %s
                 AND sc.is_active = TRUE
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"],
-            session["user_id"]
+            institution_id,
+            institution_id,
+            institution_id,
+            user_id
         ))
+
 
     else:
 
@@ -666,6 +724,13 @@ def reject_speaking(id):
         )
 
 
+    student_id = speaking["student_id"]
+
+
+    # -----------------------------------------------------
+    # Reject Speaking
+    # -----------------------------------------------------
+
     cur.execute("""
         UPDATE speaking_submissions
 
@@ -683,21 +748,40 @@ def reject_speaking(id):
             AND status = 'Pending'
 
     """, (
-        session.get("user_id"),
+        user_id,
         reason,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
 
+    # -----------------------------------------------------
+    # Notification
+    # -----------------------------------------------------
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Speaking Skill",
+        approved=False,
+        remarks=reason,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # -----------------------------------------------------
+    # Commit
+    # -----------------------------------------------------
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
 
     flash(
-        "Speaking submission rejected.",
+        "Speaking submission rejected and notification sent.",
         "success"
     )
 

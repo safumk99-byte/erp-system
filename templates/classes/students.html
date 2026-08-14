@@ -1,0 +1,289 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+{{ class_item.class_name }} - Students
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- ================================================= -->
+    <!-- Header -->
+    <!-- ================================================= -->
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+
+        <div>
+
+            <div class="flex items-center gap-3 mb-2">
+
+                <div class="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center">
+
+                    <i
+                        data-lucide="school"
+                        class="w-6 h-6 text-indigo-600"
+                    ></i>
+
+                </div>
+
+                <div>
+
+                    <h1 class="text-3xl font-bold text-slate-800">
+                        {{ class_item.class_name }}
+                    </h1>
+
+                    <p class="text-slate-500">
+                        Students in this class
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Back -->
+
+        <a
+            href="{{ url_for('classes.class_list') }}"
+            class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition"
+        >
+
+            <i
+                data-lucide="arrow-left"
+                class="w-4 h-4"
+            ></i>
+
+            Back to Classes
+
+        </a>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Alerts -->
+    <!-- ================================================= -->
+
+    {% include "components/alert.html" %}
+
+
+    <!-- ================================================= -->
+    <!-- Class Summary -->
+    <!-- ================================================= -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 mb-8">
+
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+
+            <div>
+
+                <p class="text-sm text-slate-500">
+                    Class
+                </p>
+
+                <h2 class="text-xl font-bold text-slate-800 mt-1">
+                    {{ class_item.class_name }}
+                </h2>
+
+                {% if class_item.description %}
+
+                    <p class="text-sm text-slate-500 mt-2">
+                        {{ class_item.description }}
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="flex items-center gap-3">
+
+                <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
+
+                    <i
+                        data-lucide="users"
+                        class="w-6 h-6 text-blue-600"
+                    ></i>
+
+                </div>
+
+                <div>
+
+                    <p class="text-xs text-slate-500">
+                        Total Students
+                    </p>
+
+                    <p class="text-2xl font-bold text-slate-800">
+                        {{ students|length }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Students -->
+    <!-- ================================================= -->
+
+    {% if students %}
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+
+            {% for student in students %}
+
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-200 transition overflow-hidden">
+
+                    <!-- Photo -->
+
+                    <div class="p-5">
+
+                        <div class="flex items-center gap-4">
+
+                            {% if student.photo %}
+
+                                <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+
+                                    <img
+                                        src="{{ url_for(
+                                            'uploads',
+                                            filename=student.photo
+                                        ) }}"
+                                        alt="{{ student.full_name }}"
+                                        class="w-full h-full object-cover"
+                                    >
+
+                                </div>
+
+                            {% else %}
+
+                                <div class="w-16 h-16 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+
+                                    <i
+                                        data-lucide="user"
+                                        class="w-8 h-8 text-indigo-400"
+                                    ></i>
+
+                                </div>
+
+                            {% endif %}
+
+
+                            <!-- Student Info -->
+
+                            <div class="min-w-0">
+
+                                <h3 class="font-semibold text-slate-800 truncate">
+                                    {{ student.full_name }}
+                                </h3>
+
+                                <p class="text-sm text-slate-500 mt-1">
+                                    {{ student.admission_no or "No admission no." }}
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Status -->
+
+                        <div class="mt-4">
+
+                            {% if student.is_active %}
+
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+
+                                    Active
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-medium">
+
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+
+                                    Inactive
+
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- View Student -->
+
+                        <div class="mt-5 pt-4 border-t border-slate-100">
+
+                            <a
+                                href="{{ url_for(
+                                    'students.view_student',
+                                    id=student.id
+                                ) }}"
+                                class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-medium transition"
+                            >
+
+                                <i
+                                    data-lucide="eye"
+                                    class="w-4 h-4"
+                                ></i>
+
+                                View Student
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <!-- Empty State -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm">
+
+            <div class="text-center py-16 px-6">
+
+                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 flex items-center justify-center">
+
+                    <i
+                        data-lucide="users"
+                        class="w-8 h-8 text-slate-400"
+                    ></i>
+
+                </div>
+
+                <h3 class="font-semibold text-slate-700 text-lg">
+                    No students found
+                </h3>
+
+                <p class="text-sm text-slate-400 mt-1">
+                    There are no students assigned to this class.
+                </p>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

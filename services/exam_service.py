@@ -7,6 +7,7 @@ from flask import (
     flash,
     jsonify
 )
+from datetime import date
 
 from database.db import get_connection
 
@@ -148,7 +149,14 @@ def list_exams():
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get(
+        "institution_id"
+    )
 
+
+    # =====================================================
+    # Get Exams
+    # =====================================================
 
     if role == "institution_admin":
 
@@ -164,10 +172,12 @@ def list_exams():
 
             WHERE
                 e.institution_id = %s
+                AND c.institution_id = %s
         """
 
         params = [
-            session["institution_id"]
+            institution_id,
+            institution_id
         ]
 
 
@@ -194,6 +204,7 @@ def list_exams():
 
             WHERE
                 e.institution_id = %s
+                AND c.institution_id = %s
 
                 AND sc.institution_id = %s
                 AND sc.staff_id = %s
@@ -205,10 +216,13 @@ def list_exams():
         """
 
         params = [
-            session["institution_id"],
-            session["institution_id"],
+            institution_id,
+            institution_id,
+
+            institution_id,
             session["user_id"],
-            session["institution_id"],
+
+            institution_id,
             session["user_id"]
         ]
 
@@ -221,19 +235,38 @@ def list_exams():
         return "Unauthorized", 403
 
 
+    # =====================================================
+    # Search
+    # =====================================================
+
     if search:
 
         query += """
-            AND e.exam_name ILIKE %s
+            AND (
+                e.exam_name ILIKE %s
+                OR c.class_name ILIKE %s
+                OR e.exam_type ILIKE %s
+            )
         """
 
-        params.append(
-            f"%{search}%"
-        )
+        search_value = f"%{search}%"
 
+        params.extend([
+            search_value,
+            search_value,
+            search_value
+        ])
+
+
+    # =====================================================
+    # Order
+    # =====================================================
 
     query += """
-        ORDER BY e.id DESC
+        ORDER BY
+            c.class_name ASC,
+            e.exam_date DESC,
+            e.id DESC
     """
 
 
@@ -242,17 +275,22 @@ def list_exams():
         tuple(params)
     )
 
+
     exams = cur.fetchall()
 
 
-    # -----------------------------------------------------
-    # Subjects for each exam
-    # -----------------------------------------------------
+    # =====================================================
+    # Prepare Exam Data
+    # =====================================================
 
     exam_list = []
 
 
     for exam in exams:
+
+        # -------------------------------------------------
+        # Get Subjects
+        # -------------------------------------------------
 
         cur.execute("""
             SELECT
@@ -267,7 +305,8 @@ def list_exams():
             WHERE
                 es.exam_id = %s
 
-            ORDER BY s.subject_name
+            ORDER BY
+                s.subject_name
         """, (
             exam["id"],
         ))
@@ -281,35 +320,140 @@ def list_exams():
         )
 
 
+        # -------------------------------------------------
+        # Subjects Text
+        # -------------------------------------------------
+
         exam_data["subjects"] = ", ".join(
             subject["subject_name"]
             for subject in subjects
         )
 
 
+        # -------------------------------------------------
+        # Subject IDs
+        # -------------------------------------------------
+
         exam_data["subject_ids"] = [
+
             {
                 "id": subject["id"],
                 "name": subject["subject_name"]
             }
 
             for subject in subjects
+
         ]
 
+
+        # -------------------------------------------------
+        # Exam Status
+        # -------------------------------------------------
+
+        exam_date = exam_data.get(
+            "exam_date"
+        )
+
+
+        if exam_date:
+
+            today = date.today()
+
+
+            if exam_date > today:
+
+                exam_data["exam_status"] = "Upcoming"
+
+
+            elif exam_date == today:
+
+                exam_data["exam_status"] = "Today"
+
+
+            else:
+
+                exam_data["exam_status"] = "Completed"
+
+        else:
+
+            exam_data["exam_status"] = "No Date"
+
+
+        # -------------------------------------------------
+        # Add To List
+        # -------------------------------------------------
 
         exam_list.append(
             exam_data
         )
 
 
+    # =====================================================
+    # Group Exams By Class
+    # =====================================================
+
+    grouped_exams = {}
+
+
+    for exam in exam_list:
+
+        class_name = exam[
+            "class_name"
+        ]
+
+
+        if class_name not in grouped_exams:
+
+            grouped_exams[class_name] = []
+
+
+        grouped_exams[
+            class_name
+        ].append(
+            exam
+        )
+
+
+    # =====================================================
+    # Create Class Groups
+    # =====================================================
+
+    class_groups = []
+
+
+    for class_name, class_exams in grouped_exams.items():
+
+        class_groups.append({
+
+            "class_name": class_name,
+
+            "exam_count": len(
+                class_exams
+            ),
+
+            "exams": class_exams
+
+        })
+
+
+    # =====================================================
+    # Close
+    # =====================================================
+
     cur.close()
     conn.close()
 
+
+    # =====================================================
+    # Render
+    # =====================================================
 
     return render_template(
         "exams/list.html",
 
         exams=exam_list,
+
+        class_groups=class_groups,
 
         search=search
     )
@@ -325,6 +469,7 @@ def add_exam():
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
 
 
     # -----------------------------------------------------
@@ -346,7 +491,7 @@ def add_exam():
 
             ORDER BY class_name
         """, (
-            session["institution_id"],
+            institution_id,
         ))
 
 
@@ -373,8 +518,8 @@ def add_exam():
 
             ORDER BY c.class_name
         """, (
-            session["institution_id"],
-            session["institution_id"],
+            institution_id,
+            institution_id,
             session["user_id"]
         ))
 
@@ -409,7 +554,7 @@ def add_exam():
 
             ORDER BY subject_name
         """, (
-            session["institution_id"],
+            institution_id,
         ))
 
 
@@ -436,8 +581,8 @@ def add_exam():
 
             ORDER BY s.subject_name
         """, (
-            session["institution_id"],
-            session["institution_id"],
+            institution_id,
+            institution_id,
             session["user_id"]
         ))
 
@@ -562,81 +707,353 @@ def add_exam():
             )
 
 
-    # -----------------------------------------------------
-    # Create Exam
-    # -----------------------------------------------------
+    # =====================================================
+    # Create Exam + Notifications
+    # =====================================================
 
-    cur.execute("""
-        INSERT INTO exams
-        (
-            institution_id,
-            class_id,
-            subject_id,
-            exam_name,
-            exam_type,
-            exam_date,
-            total_mark
-        )
+    try:
 
-        VALUES
-        (
-            %s,
-            %s,
-            NULL,
-            %s,
-            %s,
-            %s,
-            %s
-        )
-
-        RETURNING id
-    """, (
-        session["institution_id"],
-        class_id,
-        exam_name,
-        exam_type,
-        exam_date,
-        total_mark
-    ))
-
-
-    exam = cur.fetchone()
-
-    exam_id = exam["id"]
-
-
-    # -----------------------------------------------------
-    # Save Exam Subjects
-    # -----------------------------------------------------
-
-    for subject_id in selected_subjects:
+        # -------------------------------------------------
+        # Get Class Name
+        # -------------------------------------------------
 
         cur.execute("""
-            INSERT INTO exam_subjects
+            SELECT
+                class_name
+
+            FROM classes
+
+            WHERE
+                id = %s
+                AND institution_id = %s
+                AND is_active = TRUE
+
+            LIMIT 1
+        """, (
+            class_id,
+            institution_id
+        ))
+
+        selected_class = cur.fetchone()
+
+
+        if not selected_class:
+
+            raise RuntimeError(
+                "Selected class was not found."
+            )
+
+
+        class_name = selected_class[
+            "class_name"
+        ]
+
+
+        # -------------------------------------------------
+        # Get Subject Names
+        # -------------------------------------------------
+
+        subject_names = []
+
+
+        for subject_id in selected_subjects:
+
+            cur.execute("""
+                SELECT
+                    subject_name
+
+                FROM subjects
+
+                WHERE
+                    id = %s
+                    AND institution_id = %s
+                    AND is_active = TRUE
+
+                LIMIT 1
+            """, (
+                subject_id,
+                institution_id
+            ))
+
+            subject = cur.fetchone()
+
+
+            if subject:
+
+                subject_names.append(
+                    subject["subject_name"]
+                )
+
+
+        subjects_text = ", ".join(
+            subject_names
+        )
+
+
+        # -------------------------------------------------
+        # Create Exam
+        # -------------------------------------------------
+
+        cur.execute("""
+            INSERT INTO exams
             (
-                exam_id,
-                subject_id
+                institution_id,
+                class_id,
+                subject_id,
+                exam_name,
+                exam_type,
+                exam_date,
+                total_mark
             )
 
             VALUES
             (
                 %s,
+                %s,
+                NULL,
+                %s,
+                %s,
+                %s,
                 %s
             )
+
+            RETURNING id
         """, (
-            exam_id,
-            subject_id
+            institution_id,
+            class_id,
+            exam_name,
+            exam_type,
+            exam_date,
+            total_mark
         ))
 
 
-    conn.commit()
+        exam = cur.fetchone()
+
+
+        if not exam:
+
+            raise RuntimeError(
+                "Exam could not be created."
+            )
+
+
+        exam_id = exam["id"]
+
+
+        # -------------------------------------------------
+        # Save Exam Subjects
+        # -------------------------------------------------
+
+        for subject_id in selected_subjects:
+
+            cur.execute("""
+                INSERT INTO exam_subjects
+                (
+                    exam_id,
+                    subject_id
+                )
+
+                VALUES
+                (
+                    %s,
+                    %s
+                )
+            """, (
+                exam_id,
+                subject_id
+            ))
+
+
+        # =================================================
+        # Get Students Of Selected Class
+        # =================================================
+
+        cur.execute("""
+            SELECT
+                id,
+                full_name,
+                user_id,
+                parent_user_id
+
+            FROM students
+
+            WHERE
+                institution_id = %s
+                AND class_id = %s
+                AND is_active = TRUE
+
+            ORDER BY
+                full_name
+        """, (
+            institution_id,
+            class_id
+        ))
+
+
+        students = cur.fetchall()
+
+
+        # =================================================
+        # Notification Message
+        # =================================================
+
+        notification_title = (
+            f"Exam Scheduled: {exam_name}"
+        )
+
+
+        # =================================================
+        # Create Parent + Student Notifications
+        # =================================================
+
+        for student in students:
+
+            student_name = student[
+                "full_name"
+            ]
+
+
+            notification_message = (
+                f"{exam_name} has been scheduled "
+                f"on {exam_date} for {student_name}. "
+                f"Class: {class_name}. "
+                f"Subjects: {subjects_text}."
+            )
+
+
+            # ---------------------------------------------
+            # Parent Notification
+            # ---------------------------------------------
+
+            parent_user_id = student[
+                "parent_user_id"
+            ]
+
+
+            if parent_user_id:
+
+                cur.execute("""
+                    INSERT INTO notifications
+                    (
+                        institution_id,
+                        user_id,
+                        notification_type,
+                        title,
+                        message
+                    )
+
+                    SELECT
+                        %s,
+                        u.id,
+                        %s,
+                        %s,
+                        %s
+
+                    FROM users u
+
+                    WHERE
+                        u.id = %s
+                        AND u.institution_id = %s
+                        AND u.is_active = TRUE
+
+                    LIMIT 1
+                """, (
+                    institution_id,
+                    "exam",
+                    notification_title,
+                    notification_message,
+                    parent_user_id,
+                    institution_id
+                ))
+
+
+            # ---------------------------------------------
+            # Student Notification
+            # ---------------------------------------------
+
+            student_user_id = student[
+                "user_id"
+            ]
+
+
+            if student_user_id:
+
+                cur.execute("""
+                    INSERT INTO notifications
+                    (
+                        institution_id,
+                        user_id,
+                        notification_type,
+                        title,
+                        message
+                    )
+
+                    SELECT
+                        %s,
+                        u.id,
+                        %s,
+                        %s,
+                        %s
+
+                    FROM users u
+
+                    WHERE
+                        u.id = %s
+                        AND u.institution_id = %s
+                        AND u.is_active = TRUE
+
+                    LIMIT 1
+                """, (
+                    institution_id,
+                    "exam",
+                    notification_title,
+                    notification_message,
+                    student_user_id,
+                    institution_id
+                ))
+
+
+        # =================================================
+        # Commit Exam + Subjects + Notifications Together
+        # =================================================
+
+        conn.commit()
+
+
+    except Exception:
+
+        conn.rollback()
+
+        flash(
+            "Unable to create exam. No changes were saved.",
+            "error"
+        )
+
+        cur.close()
+        conn.close()
+
+        return render_template(
+            "exams/add.html",
+            classes=classes,
+            subjects=subjects
+        )
+
+
+    # =====================================================
+    # Close Connection
+    # =====================================================
 
     cur.close()
     conn.close()
 
 
+    # =====================================================
+    # Success
+    # =====================================================
+
     flash(
-        "Exam created successfully.",
+        "Exam created successfully. Notifications sent to students and parents.",
         "success"
     )
 

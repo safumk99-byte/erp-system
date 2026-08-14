@@ -1,0 +1,349 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Create Announcement
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <!-- =====================================================
+         Page Header
+    ====================================================== -->
+
+    <div class="mb-8">
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            Create Announcement
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Send an announcement to selected users in your institution.
+        </p>
+
+    </div>
+
+
+    {% include "components/alert.html" %}
+
+
+    <!-- =====================================================
+         Announcement Form
+    ====================================================== -->
+
+    <form
+        method="POST"
+        class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8"
+    >
+
+
+        <!-- =================================================
+             Title
+        ================================================== -->
+
+        <div class="mb-6">
+
+            <label
+                for="title"
+                class="block mb-2 font-medium text-slate-700"
+            >
+                Announcement Title
+            </label>
+
+            <input
+                type="text"
+                id="title"
+                name="title"
+                maxlength="200"
+                required
+                value="{{ request.form.get('title', '') }}"
+                placeholder="Enter announcement title"
+                class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+
+        </div>
+
+
+        <!-- =================================================
+             Message
+        ================================================== -->
+
+        <div class="mb-6">
+
+            <label
+                for="message"
+                class="block mb-2 font-medium text-slate-700"
+            >
+                Message
+            </label>
+
+            <textarea
+                id="message"
+                name="message"
+                rows="6"
+                required
+                placeholder="Write your announcement..."
+                class="w-full border border-slate-300 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >{{ request.form.get('message', '') }}</textarea>
+
+            <p class="text-xs text-slate-500 mt-2">
+                This message will appear in the recipient's notification list.
+            </p>
+
+        </div>
+
+
+        <!-- =================================================
+             Recipient
+        ================================================== -->
+
+        <div class="mb-8">
+
+            <label class="block mb-3 font-medium text-slate-700">
+                Send To
+            </label>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+
+                <!-- All Parents -->
+
+                <label
+                    class="flex items-start gap-4 border border-slate-200 rounded-xl p-5 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition"
+                >
+
+                    <input
+                        type="radio"
+                        name="recipient_type"
+                        value="parent"
+                        required
+                        {% if request.form.get('recipient_type') == 'parent' %}
+                        checked
+                        {% endif %}
+                        class="mt-1 w-4 h-4 text-indigo-600"
+                    >
+
+                    <div>
+
+                        <div class="flex items-center gap-2">
+
+                            <i
+                                data-lucide="users"
+                                class="w-5 h-5 text-indigo-600">
+                            </i>
+
+                            <p class="font-semibold text-slate-800">
+                                All Parents
+                            </p>
+
+                        </div>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            Send this announcement to all active parent accounts.
+                        </p>
+
+                    </div>
+
+                </label>
+
+
+                <!-- All Staff -->
+
+                <label
+                    class="flex items-start gap-4 border border-slate-200 rounded-xl p-5 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition"
+                >
+
+                    <input
+                        type="radio"
+                        name="recipient_type"
+                        value="staff"
+                        {% if request.form.get('recipient_type') == 'staff' %}
+                        checked
+                        {% endif %}
+                        class="mt-1 w-4 h-4 text-indigo-600"
+                    >
+
+                    <div>
+
+                        <div class="flex items-center gap-2">
+
+                            <i
+                                data-lucide="briefcase"
+                                class="w-5 h-5 text-indigo-600">
+                            </i>
+
+                            <p class="font-semibold text-slate-800">
+                                All Staff
+                            </p>
+
+                        </div>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            Send this announcement to all active staff members.
+                        </p>
+
+                    </div>
+
+                </label>
+
+
+                <!-- All Students -->
+
+                <label
+                    class="flex items-start gap-4 border border-slate-200 rounded-xl p-5 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition"
+                >
+
+                    <input
+                        type="radio"
+                        name="recipient_type"
+                        value="student"
+                        {% if request.form.get('recipient_type') == 'student' %}
+                        checked
+                        {% endif %}
+                        class="mt-1 w-4 h-4 text-indigo-600"
+                    >
+
+                    <div>
+
+                        <div class="flex items-center gap-2">
+
+                            <i
+                                data-lucide="graduation-cap"
+                                class="w-5 h-5 text-indigo-600">
+                            </i>
+
+                            <p class="font-semibold text-slate-800">
+                                All Students
+                            </p>
+
+                        </div>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            Send this announcement to all active student accounts.
+                        </p>
+
+                    </div>
+
+                </label>
+
+
+                <!-- Everyone -->
+
+                <label
+                    class="flex items-start gap-4 border border-slate-200 rounded-xl p-5 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition"
+                >
+
+                    <input
+                        type="radio"
+                        name="recipient_type"
+                        value="all"
+                        {% if request.form.get('recipient_type') == 'all' %}
+                        checked
+                        {% endif %}
+                        class="mt-1 w-4 h-4 text-indigo-600"
+                    >
+
+                    <div>
+
+                        <div class="flex items-center gap-2">
+
+                            <i
+                                data-lucide="megaphone"
+                                class="w-5 h-5 text-indigo-600">
+                            </i>
+
+                            <p class="font-semibold text-slate-800">
+                                Everyone
+                            </p>
+
+                        </div>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            Send this announcement to all active users.
+                        </p>
+
+                    </div>
+
+                </label>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             Warning
+        ================================================== -->
+
+        <div class="mb-8 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
+
+            <i
+                data-lucide="triangle-alert"
+                class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5">
+            </i>
+
+            <div>
+
+                <p class="font-medium text-amber-800">
+                    Please check the recipient group
+                </p>
+
+                <p class="text-sm text-amber-700 mt-1">
+                    The announcement will be sent immediately to all active users in the selected group.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             Actions
+        ================================================== -->
+
+        <div class="flex justify-end gap-3">
+
+            <a
+                href="{{ url_for('notifications.notification_list') }}"
+                class="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 transition"
+            >
+                Cancel
+            </a>
+
+
+            <button
+                type="submit"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl transition flex items-center gap-2"
+            >
+
+                <i
+                    data-lucide="send"
+                    class="w-5 h-5">
+                </i>
+
+                Send Announcement
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- =====================================================
+     Lucide Icons
+====================================================== -->
+
+<script>
+
+    if (typeof lucide !== "undefined") {
+        lucide.createIcons();
+    }
+
+</script>
+
+{% endblock %}

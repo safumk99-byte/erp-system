@@ -9,6 +9,8 @@ from flask import (
 
 from database.db import get_connection
 
+from services.notification_service import notify_student_and_parent
+
 
 # =========================================================
 # Student Access Helpers
@@ -911,26 +913,50 @@ def approve_language_skill(id):
     conn = get_connection()
     cur = conn.cursor()
 
+    institution_id = session.get(
+        "institution_id"
+    )
+
+    user_id = session.get(
+        "user_id"
+    )
+
+
+    # -----------------------------------------------------
+    # Get Assessment + Student
+    # -----------------------------------------------------
+
     cur.execute("""
         SELECT
-            skill_type,
-            category,
-            duration_minutes,
-            pages,
-            review
+            lsa.student_id,
+            lsa.skill_type,
+            lsa.category,
+            lsa.duration_minutes,
+            lsa.pages,
+            lsa.review
 
-        FROM language_skill_assessments
+        FROM language_skill_assessments lsa
+
+        JOIN students s
+            ON lsa.student_id = s.id
 
         WHERE
-            id = %s
-            AND institution_id = %s
-            AND status = 'Pending'
+            lsa.id = %s
+            AND lsa.institution_id = %s
+            AND s.institution_id = %s
+            AND s.is_active = TRUE
+            AND lsa.status = 'Pending'
+
+        FOR UPDATE
     """, (
         id,
-        session["institution_id"]
+        institution_id,
+        institution_id
     ))
 
+
     assessment = cur.fetchone()
+
 
     if not assessment:
 
@@ -948,19 +974,39 @@ def approve_language_skill(id):
             )
         )
 
-    skill_type = assessment["skill_type"]
-    category = assessment["category"]
-    duration = assessment["duration_minutes"]
-    pages = assessment["pages"]
-    review = assessment["review"]
+
+    student_id = assessment[
+        "student_id"
+    ]
+
+    skill_type = assessment[
+        "skill_type"
+    ]
+
+    category = assessment[
+        "category"
+    ]
+
+    duration = assessment[
+        "duration_minutes"
+    ]
+
+    pages = assessment[
+        "pages"
+    ]
+
+    review = assessment[
+        "review"
+    ]
+
 
     points = 0
     bonus_points = 0
 
-    # --------------------------------
+
+    # =====================================================
     # PRESENTATION
-    # Minimum 5 minutes = 5 points
-    # --------------------------------
+    # =====================================================
 
     if skill_type == "Presentation":
 
@@ -968,11 +1014,10 @@ def approve_language_skill(id):
 
             points = 5
 
-    # --------------------------------
+
+    # =====================================================
     # HEARING
-    # Two 5-minute sessions
-    # + written review = 3 points
-    # --------------------------------
+    # =====================================================
 
     elif skill_type == "Hearing":
 
@@ -984,18 +1029,17 @@ def approve_language_skill(id):
 
             points = 3
 
-    # --------------------------------
+
+    # =====================================================
     # WRITING
-    # Same scoring structure
-    # as Writing Assessment
-    # --------------------------------
+    # =====================================================
 
     elif skill_type == "Writing":
 
         if category == "Fiction":
 
-            # Writing fiction base
             points = 3
+
 
         elif category == "Non-Fiction":
 
@@ -1009,11 +1053,10 @@ def approve_language_skill(id):
                     extra_pages // 2
                 )
 
-    # --------------------------------
+
+    # =====================================================
     # READING
-    # Same scoring structure
-    # as Reading Assessment
-    # --------------------------------
+    # =====================================================
 
     elif skill_type == "Reading":
 
@@ -1023,18 +1066,24 @@ def approve_language_skill(id):
 
                 points = 3
 
+
         elif category == "Non-Fiction":
 
             if pages and pages >= 25:
 
                 points = 5
 
-    # Bonus values are intentionally
-    # kept at 0 because the proposal
-    # does not define their numerical
-    # values.
+
+    # =====================================================
+    # Bonus
+    # =====================================================
 
     bonus_points = 0
+
+
+    # =====================================================
+    # Approve
+    # =====================================================
 
     cur.execute("""
         UPDATE language_skill_assessments
@@ -1052,23 +1101,48 @@ def approve_language_skill(id):
             id = %s
             AND institution_id = %s
             AND status = 'Pending'
+
     """, (
         points,
         bonus_points,
-        session.get("user_id"),
+        user_id,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
+
+    # =====================================================
+    # Notification
+    # =====================================================
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Language Skill",
+        approved=True,
+        remarks=None,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # =====================================================
+    # Commit
+    # =====================================================
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
+
     flash(
-        f"Language assessment approved. Points: {points}",
+        f"Language assessment approved. "
+        f"Points: {points}. "
+        f"Notification sent.",
         "success"
     )
+
 
     return redirect(
         url_for(
@@ -1077,15 +1151,33 @@ def approve_language_skill(id):
     )
 
 
+# =========================================================
+# Reject Language Skill
+# =========================================================
+
 def reject_language_skill(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
+    institution_id = session.get(
+        "institution_id"
+    )
+
+    user_id = session.get(
+        "user_id"
+    )
+
+
     reason = request.form.get(
         "rejection_reason",
         ""
     ).strip()
+
+
+    # =====================================================
+    # Validate Reason
+    # =====================================================
 
     if not reason:
 
@@ -1103,6 +1195,65 @@ def reject_language_skill(id):
             )
         )
 
+
+    # =====================================================
+    # Get Assessment + Student
+    # =====================================================
+
+    cur.execute("""
+        SELECT
+            lsa.id,
+            lsa.student_id
+
+        FROM language_skill_assessments lsa
+
+        JOIN students s
+            ON lsa.student_id = s.id
+
+        WHERE
+            lsa.id = %s
+            AND lsa.institution_id = %s
+            AND s.institution_id = %s
+            AND s.is_active = TRUE
+            AND lsa.status = 'Pending'
+
+        FOR UPDATE
+    """, (
+        id,
+        institution_id,
+        institution_id
+    ))
+
+
+    assessment = cur.fetchone()
+
+
+    if not assessment:
+
+        cur.close()
+        conn.close()
+
+        flash(
+            "Language assessment not found or already reviewed.",
+            "error"
+        )
+
+        return redirect(
+            url_for(
+                "language.language_list"
+            )
+        )
+
+
+    student_id = assessment[
+        "student_id"
+    ]
+
+
+    # =====================================================
+    # Reject
+    # =====================================================
+
     cur.execute("""
         UPDATE language_skill_assessments
 
@@ -1119,22 +1270,45 @@ def reject_language_skill(id):
             id = %s
             AND institution_id = %s
             AND status = 'Pending'
+
     """, (
-        session.get("user_id"),
+        user_id,
         reason,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
+
+    # =====================================================
+    # Notification
+    # =====================================================
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Language Skill",
+        approved=False,
+        remarks=reason,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # =====================================================
+    # Commit
+    # =====================================================
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
+
     flash(
-        "Language assessment rejected.",
+        "Language assessment rejected and notification sent.",
         "success"
     )
+
 
     return redirect(
         url_for(

@@ -1,5 +1,3 @@
-import os
-import uuid
 from flask import (
     render_template,
     request,
@@ -8,10 +6,50 @@ from flask import (
     url_for,
     flash
 )
+import os
+import uuid
+
+from werkzeug.utils import secure_filename
+
+from werkzeug.security import generate_password_hash
 
 from database.db import get_connection
-from werkzeug.security import generate_password_hash
-from werkzeug.utils import secure_filename
+
+
+# =========================================================
+# Helpers
+# =========================================================
+
+def _get_role_id(cur, role_name):
+
+    cur.execute(
+        """
+        SELECT
+            id
+
+        FROM roles
+
+        WHERE
+            name = %s
+
+        LIMIT 1
+        """,
+        (role_name,)
+    )
+
+    role = cur.fetchone()
+
+    if not role:
+        return None
+
+    return role["id"]
+
+
+def _redirect_to_student_list():
+
+    return redirect(
+        url_for("students.student_list")
+    )
 
 
 # =========================================================
@@ -19,6 +57,19 @@ from werkzeug.utils import secure_filename
 # =========================================================
 
 def list_students():
+
+    institution_id = session.get("institution_id")
+
+    if not institution_id:
+
+        flash(
+            "Institution information is missing.",
+            "error"
+        )
+
+        return redirect(
+            url_for("portal.index")
+        )
 
     search = request.args.get(
         "search",
@@ -30,21 +81,20 @@ def list_students():
         ""
     ).strip()
 
-    conn = get_connection()
-    cur = conn.cursor()
+    conn = None
+    cur = None
 
-    role = session.get("role")
-    institution_id = session.get("institution_id")
-    user_id = session.get("user_id")
+    try:
 
+        conn = get_connection()
+        cur = conn.cursor()
 
-    # =====================================================
-    # Get Allowed Classes
-    # =====================================================
+        # -------------------------------------------------
+        # Get active classes for filter
+        # -------------------------------------------------
 
-    if role == "institution_admin":
-
-        cur.execute("""
+        cur.execute(
+            """
             SELECT
                 id,
                 class_name
@@ -55,223 +105,134 @@ def list_students():
                 institution_id = %s
                 AND is_active = TRUE
 
-            ORDER BY class_name
-        """, (
-            institution_id,
-        ))
+            ORDER BY
+                class_name
+            """,
+            (
+                institution_id,
+            )
+        )
 
+        classes = cur.fetchall()
 
-    elif role == "staff":
+        # -------------------------------------------------
+        # Check whether current user is staff
+        # -------------------------------------------------
 
-        cur.execute("""
-            SELECT DISTINCT
-                c.id,
-                c.class_name
+        is_staff = (
+            session.get("role") == "staff"
+        )
 
-            FROM classes c
+        # -------------------------------------------------
+        # Build student query
+        # -------------------------------------------------
 
-            JOIN staff_classes sc
-                ON sc.class_id = c.id
+        params = [
+            institution_id
+        ]
 
-            WHERE
-                c.institution_id = %s
-                AND c.is_active = TRUE
+        where_conditions = [
+            "students.institution_id = %s"
+        ]
 
-                AND sc.institution_id = %s
-                AND sc.staff_id = %s
-                AND sc.is_active = TRUE
+        if is_staff:
 
-            ORDER BY c.class_name
-        """, (
-            institution_id,
-            institution_id,
-            user_id
-        ))
+            where_conditions.append(
+                """
+                EXISTS (
+                    SELECT 1
+                    FROM staff_classes sc
+                    WHERE
+                        sc.staff_id = %s
+                        AND sc.institution_id = %s
+                        AND sc.class_id = students.class_id
+                        AND sc.is_active = TRUE
+                )
+                """
+            )
 
+            params.extend([
+                session.get("user_id"),
+                institution_id
+            ])
 
-    else:
+        if search:
 
-        cur.close()
-        conn.close()
+            where_conditions.append(
+                """
+                (
+                    students.full_name ILIKE %s
+                    OR students.admission_no ILIKE %s
+                )
+                """
+            )
 
-        return "Unauthorized", 403
+            search_value = f"%{search}%"
 
+            params.extend([
+                search_value,
+                search_value
+            ])
 
-    classes = cur.fetchall()
+        if class_id:
 
+            try:
 
-    # =====================================================
-    # Validate Selected Class
-    # =====================================================
+                class_id_int = int(class_id)
 
-    selected_class_id = None
+                where_conditions.append(
+                    "students.class_id = %s"
+                )
 
-    if class_id:
+                params.append(
+                    class_id_int
+                )
 
-        try:
+            except (TypeError, ValueError):
 
-            selected_class_id = int(class_id)
+                class_id = ""
 
-        except (TypeError, ValueError):
-
-            selected_class_id = None
-
-
-    # =====================================================
-    # Institution Admin → Students
-    # =====================================================
-
-    if role == "institution_admin":
-
-        query = """
+        query = f"""
             SELECT
                 students.*,
                 classes.class_name
 
             FROM students
 
-            JOIN classes
+            LEFT JOIN classes
                 ON students.class_id = classes.id
+                AND classes.institution_id = students.institution_id
 
             WHERE
-                students.institution_id = %s
+                {' AND '.join(where_conditions)}
+
+            ORDER BY
+                students.id DESC
         """
-
-        params = [
-            institution_id
-        ]
-
-
-        if selected_class_id is not None:
-
-            query += """
-                AND students.class_id = %s
-            """
-
-            params.append(
-                selected_class_id
-            )
-
-
-        if search:
-
-            query += """
-                AND (
-                    students.full_name ILIKE %s
-                    OR students.admission_no ILIKE %s
-                    OR students.parent_name ILIKE %s
-                )
-            """
-
-            search_value = f"%{search}%"
-
-            params.extend([
-                search_value,
-                search_value,
-                search_value
-            ])
-
-
-        query += """
-            ORDER BY students.id DESC
-        """
-
 
         cur.execute(
             query,
-            params
+            tuple(params)
         )
 
+        students = cur.fetchall()
 
-    # =====================================================
-    # Staff → Students
-    # =====================================================
-
-    elif role == "staff":
-
-        query = """
-            SELECT DISTINCT
-                students.*,
-                classes.class_name
-
-            FROM students
-
-            JOIN classes
-                ON students.class_id = classes.id
-
-            JOIN staff_classes
-                ON staff_classes.class_id = students.class_id
-
-            WHERE
-                students.institution_id = %s
-
-                AND staff_classes.institution_id = %s
-                AND staff_classes.staff_id = %s
-                AND staff_classes.is_active = TRUE
-        """
-
-        params = [
-            institution_id,
-            institution_id,
-            user_id
-        ]
-
-
-        if selected_class_id is not None:
-
-            query += """
-                AND students.class_id = %s
-            """
-
-            params.append(
-                selected_class_id
-            )
-
-
-        if search:
-
-            query += """
-                AND (
-                    students.full_name ILIKE %s
-                    OR students.admission_no ILIKE %s
-                    OR students.parent_name ILIKE %s
-                )
-            """
-
-            search_value = f"%{search}%"
-
-            params.extend([
-                search_value,
-                search_value,
-                search_value
-            ])
-
-
-        query += """
-            ORDER BY students.id DESC
-        """
-
-
-        cur.execute(
-            query,
-            params
+        return render_template(
+            "students/list.html",
+            students=students,
+            classes=classes,
+            search=search,
+            class_id=class_id
         )
 
+    finally:
 
-    students = cur.fetchall()
+        if cur:
+            cur.close()
 
+        if conn:
+            conn.close()
 
-    cur.close()
-    conn.close()
-
-
-    return render_template(
-        "students/list.html",
-        students=students,
-        classes=classes,
-        search=search,
-        class_id=class_id
-    )
 
 # =========================================================
 # 2. Add Student
@@ -279,32 +240,35 @@ def list_students():
 
 def add_student():
 
-    conn = get_connection()
-    cur = conn.cursor()
-
-    role = session.get("role")
-    institution_id = session.get("institution_id")
-    user_id = session.get("user_id")
-
-    # =====================================================
-    # Basic Session Validation
-    # =====================================================
+    institution_id = session.get(
+        "institution_id"
+    )
 
     if not institution_id:
 
-        cur.close()
-        conn.close()
+        flash(
+            "Institution information is missing.",
+            "error"
+        )
 
-        return "Unauthorized", 403
+        return redirect(
+            url_for("portal.index")
+        )
 
+    conn = None
+    cur = None
 
-    # =====================================================
-    # Get Allowed Classes
-    # =====================================================
+    try:
 
-    if role == "institution_admin":
+        conn = get_connection()
+        cur = conn.cursor()
 
-        cur.execute("""
+        # =================================================
+        # Active Classes
+        # =================================================
+
+        cur.execute(
+            """
             SELECT
                 id,
                 class_name
@@ -315,270 +279,99 @@ def add_student():
                 institution_id = %s
                 AND is_active = TRUE
 
-            ORDER BY class_name
-        """, (
-            institution_id,
-        ))
-
-
-    elif role == "staff":
-
-        cur.execute("""
-            SELECT DISTINCT
-                c.id,
-                c.class_name
-
-            FROM classes c
-
-            JOIN staff_classes sc
-                ON sc.class_id = c.id
-
-            WHERE
-                c.institution_id = %s
-                AND c.is_active = TRUE
-
-                AND sc.institution_id = %s
-                AND sc.staff_id = %s
-                AND sc.is_active = TRUE
-
-            ORDER BY c.class_name
-        """, (
-            institution_id,
-            institution_id,
-            user_id
-        ))
-
-
-    else:
-
-        cur.close()
-        conn.close()
-
-        return "Unauthorized", 403
-
-
-    classes = cur.fetchall()
-
-
-    # =====================================================
-    # POST
-    # =====================================================
-
-    if request.method == "POST":
-
-        full_name = request.form.get(
-            "full_name",
-            ""
-        ).strip()
-
-        gender = request.form.get(
-            "gender"
-        )
-
-        date_of_birth = request.form.get(
-            "date_of_birth"
-        ) or None
-
-        class_id = request.form.get(
-            "class_id"
-        )
-
-        parent_name = request.form.get(
-            "parent_name",
-            ""
-        ).strip()
-
-        parent_phone = request.form.get(
-            "parent_phone",
-            ""
-        ).strip()
-
-        address = request.form.get(
-            "address",
-            ""
-        ).strip()
-
-        student_password = request.form.get(
-            "student_password",
-            ""
-        ).strip()
-
-
-        # =================================================
-        # Validate Full Name
-        # =================================================
-
-        if not full_name:
-
-            flash(
-                "Student name is required.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
-
-
-        if len(full_name) > 150:
-
-            flash(
-                "Student name is too long.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
-
-
-        # =================================================
-        # Validate Gender
-        # =================================================
-
-        allowed_genders = {
-            "Male",
-            "Female",
-            "Other"
-        }
-
-        if gender not in allowed_genders:
-
-            flash(
-                "Please select a valid gender.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
-
-
-        # =================================================
-        # Validate Class
-        # =================================================
-
-        if not class_id:
-
-            flash(
-                "Please select a class.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
-
-
-        try:
-
-            class_id = int(class_id)
-
-        except (TypeError, ValueError):
-
-            flash(
-                "Invalid class selected.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
-
-
-        # =================================================
-        # Verify Class Belongs To Institution
-        # =================================================
-
-        cur.execute("""
-            SELECT
-                id
-
-            FROM classes
-
-            WHERE
-                id = %s
-                AND institution_id = %s
-                AND is_active = TRUE
-        """, (
-            class_id,
-            institution_id
-        ))
-
-        selected_class = cur.fetchone()
-
-
-        if not selected_class:
-
-            flash(
-                "Invalid class selected.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
-
-
-        # =================================================
-        # Staff → Assigned Class Check
-        # =================================================
-
-        if role == "staff":
-
-            cur.execute("""
-                SELECT
-                    id
-
-                FROM staff_classes
-
-                WHERE
-                    institution_id = %s
-                    AND staff_id = %s
-                    AND class_id = %s
-                    AND is_active = TRUE
-            """, (
+            ORDER BY
+                class_name
+            """,
+            (
                 institution_id,
-                user_id,
-                class_id
-            ))
+            )
+        )
 
-            assigned_class = cur.fetchone()
+        classes = cur.fetchall()
 
 
-            if not assigned_class:
+        # =================================================
+        # POST
+        # =================================================
+
+        if request.method == "POST":
+
+            full_name = request.form.get(
+                "full_name",
+                ""
+            ).strip()
+
+            gender = request.form.get(
+                "gender",
+                ""
+            ).strip()
+
+            date_of_birth = request.form.get(
+                "date_of_birth",
+                ""
+            ).strip()
+
+            class_id = request.form.get(
+                "class_id",
+                ""
+            ).strip()
+
+            parent_name = request.form.get(
+                "parent_name",
+                ""
+            ).strip()
+
+            parent_phone = request.form.get(
+                "parent_phone",
+                ""
+            ).strip()
+
+            parent_email = request.form.get(
+                "parent_email",
+                ""
+            ).strip()
+
+            parent_username = request.form.get(
+                "parent_username",
+                ""
+            ).strip().lower()
+
+            parent_password = request.form.get(
+                "parent_password",
+                ""
+            )
+
+            student_password = request.form.get(
+                "student_password",
+                ""
+            )
+
+            address = request.form.get(
+                "address",
+                ""
+            ).strip()
+
+            # =================================================
+            # Photo
+            # =================================================
+
+            photo = request.files.get(
+                "photo"
+            )
+
+            photo_filename = None
+
+
+            # =================================================
+            # Basic Validation
+            # =================================================
+
+            if not full_name:
 
                 flash(
-                    "You cannot add a student to an unassigned class.",
+                    "Student name is required.",
                     "error"
                 )
-
-                cur.close()
-                conn.close()
 
                 return render_template(
                     "students/add.html",
@@ -586,196 +379,58 @@ def add_student():
                 )
 
 
-        # =================================================
-        # Validate Parent Name
-        # =================================================
+            if not gender:
 
-        if parent_name and len(parent_name) > 150:
+                flash(
+                    "Gender is required.",
+                    "error"
+                )
 
-            flash(
-                "Parent name is too long.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
 
 
-        # =================================================
-        # Validate Parent Phone
-        # =================================================
+            if not date_of_birth:
 
-        if parent_phone and len(parent_phone) > 30:
+                flash(
+                    "Date of birth is required.",
+                    "error"
+                )
 
-            flash(
-                "Parent phone number is too long.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
 
 
-        # =================================================
-        # Student Login Password
-        # =================================================
+            if not class_id:
 
-        if not student_password:
+                flash(
+                    "Class is required.",
+                    "error"
+                )
 
-            flash(
-                "Student login password is required.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
-
-
-        if len(student_password) < 6:
-
-            flash(
-                "Student password must be at least 6 characters.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
-
-
-        # =================================================
-        # Get Institution Admission Prefix
-        # =================================================
-
-        cur.execute("""
-            SELECT
-                admission_prefix
-
-            FROM institutions
-
-            WHERE
-                id = %s
-        """, (
-            institution_id,
-        ))
-
-        institution = cur.fetchone()
-
-
-        if not institution:
-
-            flash(
-                "Institution information not found.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
-
-
-        prefix = (
-            institution["admission_prefix"]
-            or ""
-        ).strip()
-
-
-        if not prefix:
-
-            flash(
-                "Admission number prefix is not configured for this institution.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
-
-
-        # =================================================
-        # Generate Admission Number
-        # =================================================
-
-        cur.execute("""
-            SELECT
-                admission_no
-
-            FROM students
-
-            WHERE
-                institution_id = %s
-
-            ORDER BY id DESC
-
-            LIMIT 1
-        """, (
-            institution_id,
-        ))
-
-        last_student = cur.fetchone()
-
-
-        number = 1
-
-
-        if last_student:
-
-            last_admission_no = (
-                last_student["admission_no"]
-                or ""
-            ).strip()
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
 
 
             try:
 
-                last_number = int(
-                    last_admission_no.rsplit(
-                        "-",
-                        1
-                    )[1]
-                )
-
-                number = last_number + 1
+                class_id = int(class_id)
 
             except (
-                ValueError,
-                IndexError
+                TypeError,
+                ValueError
             ):
 
                 flash(
-                    "Unable to generate the next admission number. Please check the existing admission number format.",
+                    "Invalid class selected.",
                     "error"
                 )
-
-                cur.close()
-                conn.close()
 
                 return render_template(
                     "students/add.html",
@@ -783,101 +438,384 @@ def add_student():
                 )
 
 
-        admission_no = (
-            f"{prefix}-{number:04d}"
-        )
+            if not parent_name:
+
+                flash(
+                    "Parent name is required.",
+                    "error"
+                )
+
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
 
 
-        # =================================================
-        # Check Admission Number
-        # =================================================
+            if not parent_phone:
 
-        cur.execute("""
-            SELECT
-                id
+                flash(
+                    "Parent phone is required.",
+                    "error"
+                )
 
-            FROM students
-
-            WHERE
-                institution_id = %s
-                AND admission_no = %s
-        """, (
-            institution_id,
-            admission_no
-        ))
-
-        existing_student = cur.fetchone()
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
 
 
-        if existing_student:
+            if not parent_email:
 
-            flash(
-                "Generated admission number already exists. Please try again.",
-                "error"
+                flash(
+                    "Parent email is required.",
+                    "error"
+                )
+
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
+
+
+            if not parent_username:
+
+                flash(
+                    "Parent username is required.",
+                    "error"
+                )
+
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
+
+
+            if not parent_password:
+
+                flash(
+                    "Parent password is required.",
+                    "error"
+                )
+
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
+
+
+            if not student_password:
+
+                flash(
+                    "Student password is required.",
+                    "error"
+                )
+
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
+
+
+            # =================================================
+            # Validate Photo
+            # =================================================
+
+            if photo and photo.filename:
+
+                allowed_extensions = {
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp"
+                }
+
+                original_filename = secure_filename(
+                    photo.filename
+                )
+
+
+                if "." not in original_filename:
+
+                    flash(
+                        "Invalid photo file.",
+                        "error"
+                    )
+
+                    return render_template(
+                        "students/add.html",
+                        classes=classes
+                    )
+
+
+                extension = (
+                    original_filename
+                    .rsplit(".", 1)[-1]
+                    .lower()
+                )
+
+
+                if extension not in allowed_extensions:
+
+                    flash(
+                        "Please upload a JPG, JPEG, PNG or WEBP image.",
+                        "error"
+                    )
+
+                    return render_template(
+                        "students/add.html",
+                        classes=classes
+                    )
+
+
+                photo_filename = (
+                    f"student_{uuid.uuid4().hex}.{extension}"
+                )
+
+
+            # =================================================
+            # Verify Class
+            # =================================================
+
+            cur.execute(
+                """
+                SELECT
+                    id
+
+                FROM classes
+
+                WHERE
+                    id = %s
+                    AND institution_id = %s
+                    AND is_active = TRUE
+
+                LIMIT 1
+                """,
+                (
+                    class_id,
+                    institution_id
+                )
             )
 
-            cur.close()
-            conn.close()
+            selected_class = cur.fetchone()
 
-            return render_template(
-                "students/add.html",
-                classes=classes
+
+            if not selected_class:
+
+                flash(
+                    "Selected class is invalid or inactive.",
+                    "error"
+                )
+
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
+
+
+            # =================================================
+            # Parent Username Check
+            # =================================================
+
+            cur.execute(
+                """
+                SELECT
+                    id
+
+                FROM users
+
+                WHERE
+                    LOWER(username) = LOWER(%s)
+
+                LIMIT 1
+                """,
+                (
+                    parent_username,
+                )
+            )
+
+            if cur.fetchone():
+
+                flash(
+                    "Parent username already exists.",
+                    "error"
+                )
+
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
+
+
+            # =================================================
+            # Get Roles
+            # =================================================
+
+            parent_role_id = _get_role_id(
+                cur,
+                "parent"
+            )
+
+            student_role_id = _get_role_id(
+                cur,
+                "student"
             )
 
 
-        # =================================================
-        # Check User Account
-        # =================================================
+            if not parent_role_id:
 
-        cur.execute("""
-            SELECT
-                id
+                flash(
+                    "Parent role is not configured.",
+                    "error"
+                )
 
-            FROM users
-
-            WHERE
-                institution_id = %s
-                AND username = %s
-        """, (
-            institution_id,
-            admission_no
-        ))
-
-        existing_user = cur.fetchone()
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
 
 
-        if existing_user:
+            if not student_role_id:
 
-            flash(
-                "A login account already exists for this admission number.",
-                "error"
-            )
+                flash(
+                    "Student role is not configured.",
+                    "error"
+                )
 
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
+                return render_template(
+                    "students/add.html",
+                    classes=classes
+                )
 
 
-        # =================================================
-        # Create User + Student
-        # =================================================
+            # =================================================
+            # Generate Admission Number
+            # =================================================
 
-        try:
-
-            hashed_password = generate_password_hash(
-                student_password
+            cur.execute(
+                """
+                SELECT
+                    pg_advisory_xact_lock(
+                        hashtext(%s)
+                    )
+                """,
+                (
+                    f"student-admission:{institution_id}",
+                )
             )
 
 
-            # ---------------------------------------------
-            # Create Student User Account
-            # ---------------------------------------------
+            cur.execute(
+                """
+                SELECT
+                    admission_no
 
-            cur.execute("""
+                FROM students
+
+                WHERE
+                    institution_id = %s
+
+                ORDER BY
+                    id DESC
+
+                LIMIT 1
+                """,
+                (
+                    institution_id,
+                )
+            )
+
+
+            last_student = cur.fetchone()
+
+
+            if last_student:
+
+                try:
+
+                    last_number = int(
+                        str(
+                            last_student["admission_no"]
+                        ).split("-")[-1]
+                    )
+
+                except (
+                    TypeError,
+                    ValueError
+                ):
+
+                    last_number = 0
+
+            else:
+
+                last_number = 0
+
+
+            admission_no = (
+                f"STU-{last_number + 1:04d}"
+            )
+
+
+            # =================================================
+            # Ensure Admission Number Is Unique
+            # =================================================
+
+            while True:
+
+                cur.execute(
+                    """
+                    SELECT
+                        id
+
+                    FROM students
+
+                    WHERE
+                        institution_id = %s
+                        AND admission_no = %s
+
+                    LIMIT 1
+                    """,
+                    (
+                        institution_id,
+                        admission_no
+                    )
+                )
+
+
+                if not cur.fetchone():
+
+                    break
+
+
+                last_number += 1
+
+                admission_no = (
+                    f"STU-{last_number:04d}"
+                )
+
+
+            # =================================================
+            # Password Hashes
+            # =================================================
+
+            student_hashed_password = (
+                generate_password_hash(
+                    student_password
+                )
+            )
+
+            parent_hashed_password = (
+                generate_password_hash(
+                    parent_password
+                )
+            )
+
+
+            # =================================================
+            # Create Student User
+            # =================================================
+
+            cur.execute(
+                """
                 INSERT INTO users
                 (
                     institution_id,
@@ -891,7 +829,7 @@ def add_student():
                 VALUES
                 (
                     %s,
-                    6,
+                    %s,
                     %s,
                     %s,
                     %s,
@@ -899,44 +837,108 @@ def add_student():
                 )
 
                 RETURNING id
-            """, (
-                institution_id,
-                full_name,
-                admission_no,
-                hashed_password
-            ))
+                """,
+                (
+                    institution_id,
+                    student_role_id,
+                    full_name,
+                    admission_no,
+                    student_hashed_password
+                )
+            )
 
 
-            user_row = cur.fetchone()
+            student_user = cur.fetchone()
 
 
-            if not user_row:
+            if not student_user:
 
                 raise RuntimeError(
-                    "Student user account could not be created."
+                    "Student user could not be created."
                 )
 
 
-            student_user_id = user_row["id"]
+            student_user_id = (
+                student_user["id"]
+            )
 
 
-            # ---------------------------------------------
+            # =================================================
+            # Create Parent User
+            # =================================================
+
+            cur.execute(
+                """
+                INSERT INTO users
+                (
+                    institution_id,
+                    role_id,
+                    full_name,
+                    username,
+                    email,
+                    phone,
+                    password,
+                    is_active
+                )
+
+                VALUES
+                (
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    TRUE
+                )
+
+                RETURNING id
+                """,
+                (
+                    institution_id,
+                    parent_role_id,
+                    parent_name,
+                    parent_username,
+                    parent_email,
+                    parent_phone,
+                    parent_hashed_password
+                )
+            )
+
+
+            parent_user = cur.fetchone()
+
+
+            if not parent_user:
+
+                raise RuntimeError(
+                    "Parent user could not be created."
+                )
+
+
+            parent_user_id = (
+                parent_user["id"]
+            )
+
+
+            # =================================================
             # Create Student
-            # ---------------------------------------------
+            # =================================================
 
-            cur.execute("""
+            cur.execute(
+                """
                 INSERT INTO students
                 (
                     institution_id,
-                    admission_no,
+                    user_id,
+                    class_id,
                     full_name,
+                    admission_no,
                     gender,
                     date_of_birth,
-                    class_id,
-                    parent_name,
-                    parent_phone,
                     address,
-                    user_id,
+                    photo,
                     is_active
                 )
 
@@ -951,82 +953,144 @@ def add_student():
                     %s,
                     %s,
                     %s,
-                    %s,
                     TRUE
                 )
-            """, (
-                institution_id,
-                admission_no,
-                full_name,
-                gender,
-                date_of_birth,
-                class_id,
-                parent_name,
-                parent_phone,
-                address,
-                student_user_id
-            ))
+
+                RETURNING id
+                """,
+                (
+                    institution_id,
+                    student_user_id,
+                    class_id,
+                    full_name,
+                    admission_no,
+                    gender,
+                    date_of_birth,
+                    address or None,
+                    photo_filename
+                )
+            )
 
 
-            # ---------------------------------------------
-            # Commit Both Together
-            # ---------------------------------------------
+            student = cur.fetchone()
+
+
+            if not student:
+
+                raise RuntimeError(
+                    "Student record could not be created."
+                )
+
+
+            student_id = student["id"]
+
+
+            # =================================================
+            # Parent Relationship
+            # =================================================
+
+            cur.execute(
+                """
+                UPDATE students
+
+                SET
+                    parent_user_id = %s,
+                    parent_name = %s,
+                    parent_phone = %s,
+                    updated_at = NOW()
+
+                WHERE
+                    id = %s
+                    AND institution_id = %s
+                """,
+                (
+                    parent_user_id,
+                    parent_name,
+                    parent_phone,
+                    student_id,
+                    institution_id
+                )
+            )
+
+
+            # =================================================
+            # Save Photo To Common Folder
+            # =================================================
+
+            if photo_filename:
+
+                upload_folder = os.path.join(
+                    "static",
+                    "uploads"
+                )
+
+                os.makedirs(
+                    upload_folder,
+                    exist_ok=True
+                )
+
+
+                photo.save(
+                    os.path.join(
+                        upload_folder,
+                        photo_filename
+                    )
+                )
+
+
+            # =================================================
+            # Commit
+            # =================================================
 
             conn.commit()
 
 
-        except Exception:
+            flash(
+                f"Student added successfully. Admission No: {admission_no}",
+                "success"
+            )
 
+
+            return redirect(
+                url_for(
+                    "students.student_list"
+                )
+            )
+
+
+        # =================================================
+        # GET
+        # =================================================
+
+        return render_template(
+            "students/add.html",
+            classes=classes
+        )
+
+
+    except Exception as e:
+
+        if conn:
             conn.rollback()
 
-            flash(
-                "Unable to add student. No changes were saved.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/add.html",
-                classes=classes
-            )
-
-
-        # =================================================
-        # Success
-        # =================================================
-
-        cur.close()
-        conn.close()
-
-
         flash(
-            f"Student added successfully. Login ID: {admission_no}",
-            "success"
+            "Unable to add student. Please check the details and try again.",
+            "error"
+        )
+
+        return render_template(
+            "students/add.html",
+            classes=classes
         )
 
 
-        return redirect(
-            url_for(
-                "students.student_list"
-            )
-        )
+    finally:
 
+        if cur:
+            cur.close()
 
-    # =====================================================
-    # GET
-    # =====================================================
-
-    cur.close()
-    conn.close()
-
-
-    return render_template(
-        "students/add.html",
-        classes=classes
-    )
-
+        if conn:
+            conn.close()
 
 
 # =========================================================
@@ -1035,32 +1099,36 @@ def add_student():
 
 def edit_student(id):
 
-    conn = get_connection()
-    cur = conn.cursor()
-
-    role = session.get("role")
-    institution_id = session.get("institution_id")
-    user_id = session.get("user_id")
-
-    # =====================================================
-    # Basic Session Validation
-    # =====================================================
+    institution_id = session.get(
+        "institution_id"
+    )
 
     if not institution_id:
 
-        cur.close()
-        conn.close()
+        flash(
+            "Institution information is missing.",
+            "error"
+        )
 
-        return "Unauthorized", 403
+        return redirect(
+            url_for("portal.index")
+        )
+
+    conn = None
+    cur = None
+
+    try:
+
+        conn = get_connection()
+        cur = conn.cursor()
 
 
-    # =====================================================
-    # Get Allowed Classes
-    # =====================================================
+        # =================================================
+        # Active Classes
+        # =================================================
 
-    if role == "institution_admin":
-
-        cur.execute("""
+        cur.execute(
+            """
             SELECT
                 id,
                 class_name
@@ -1071,136 +1139,83 @@ def edit_student(id):
                 institution_id = %s
                 AND is_active = TRUE
 
-            ORDER BY class_name
-        """, (
-            institution_id,
-        ))
-
-
-    elif role == "staff":
-
-        cur.execute("""
-            SELECT DISTINCT
-                c.id,
-                c.class_name
-
-            FROM classes c
-
-            JOIN staff_classes sc
-                ON sc.class_id = c.id
-
-            WHERE
-                c.institution_id = %s
-                AND c.is_active = TRUE
-
-                AND sc.institution_id = %s
-                AND sc.staff_id = %s
-                AND sc.is_active = TRUE
-
-            ORDER BY c.class_name
-        """, (
-            institution_id,
-            institution_id,
-            user_id
-        ))
-
-
-    else:
-
-        cur.close()
-        conn.close()
-
-        return "Unauthorized", 403
-
-
-    classes = cur.fetchall()
-
-
-    # =====================================================
-    # Verify Student Access
-    # =====================================================
-
-    if role == "institution_admin":
-
-        cur.execute("""
-            SELECT
-                *
-
-            FROM students
-
-            WHERE
-                id = %s
-                AND institution_id = %s
-        """, (
-            id,
-            institution_id
-        ))
-
-
-    elif role == "staff":
-
-        cur.execute("""
-            SELECT DISTINCT
-                students.*
-
-            FROM students
-
-            JOIN staff_classes
-                ON staff_classes.class_id = students.class_id
-
-            WHERE
-                students.id = %s
-                AND students.institution_id = %s
-                AND students.is_active = TRUE
-
-                AND staff_classes.institution_id = %s
-                AND staff_classes.staff_id = %s
-                AND staff_classes.is_active = TRUE
-        """, (
-            id,
-            institution_id,
-            institution_id,
-            user_id
-        ))
-
-
-    else:
-
-        cur.close()
-        conn.close()
-
-        return "Unauthorized", 403
-
-
-    student = cur.fetchone()
-
-
-    # =====================================================
-    # Student Not Found / No Permission
-    # =====================================================
-
-    if not student:
-
-        cur.close()
-        conn.close()
-
-        flash(
-            "You do not have permission to edit this student.",
-            "error"
-        )
-
-        return redirect(
-            url_for(
-                "students.student_list"
+            ORDER BY
+                class_name
+            """,
+            (
+                institution_id,
             )
         )
 
+        classes = cur.fetchall()
 
-    # =====================================================
-    # POST
-    # =====================================================
 
-    if request.method == "POST":
+        # =================================================
+        # Get Student + Parent
+        # =================================================
+
+        cur.execute(
+            """
+            SELECT
+
+                s.*,
+
+                pu.full_name AS parent_user_name,
+                pu.username AS parent_username,
+                pu.email AS parent_email,
+                pu.phone AS parent_user_phone
+
+            FROM students s
+
+            LEFT JOIN users pu
+                ON pu.id = s.parent_user_id
+                AND pu.institution_id = s.institution_id
+
+            WHERE
+                s.id = %s
+                AND s.institution_id = %s
+
+            LIMIT 1
+            """,
+            (
+                id,
+                institution_id
+            )
+        )
+
+        student = cur.fetchone()
+
+
+        if not student:
+
+            flash(
+                "Student not found.",
+                "error"
+            )
+
+            return redirect(
+                url_for(
+                    "students.student_list"
+                )
+            )
+
+
+        # =================================================
+        # GET
+        # =================================================
+
+        if request.method == "GET":
+
+            return render_template(
+                "students/edit.html",
+                student=student,
+                classes=classes
+            )
+
+
+        # =================================================
+        # Form Values
+        # =================================================
 
         full_name = request.form.get(
             "full_name",
@@ -1208,16 +1223,19 @@ def edit_student(id):
         ).strip()
 
         gender = request.form.get(
-            "gender"
-        )
+            "gender",
+            ""
+        ).strip()
 
         date_of_birth = request.form.get(
-            "date_of_birth"
-        ) or None
+            "date_of_birth",
+            ""
+        ).strip()
 
         class_id = request.form.get(
-            "class_id"
-        )
+            "class_id",
+            ""
+        ).strip()
 
         parent_name = request.form.get(
             "parent_name",
@@ -1229,6 +1247,16 @@ def edit_student(id):
             ""
         ).strip()
 
+        parent_email = request.form.get(
+            "parent_email",
+            ""
+        ).strip()
+
+        parent_password = request.form.get(
+            "parent_password",
+            ""
+        )
+
         address = request.form.get(
             "address",
             ""
@@ -1236,7 +1264,18 @@ def edit_student(id):
 
 
         # =================================================
-        # Validate Full Name
+        # Photo
+        # =================================================
+
+        photo = request.files.get(
+            "photo"
+        )
+
+        photo_filename = None
+
+
+        # =================================================
+        # Validation
         # =================================================
 
         if not full_name:
@@ -1246,9 +1285,6 @@ def edit_student(id):
                 "error"
             )
 
-            cur.close()
-            conn.close()
-
             return render_template(
                 "students/edit.html",
                 student=student,
@@ -1256,53 +1292,19 @@ def edit_student(id):
             )
 
 
-        if len(full_name) > 150:
+        if not gender:
 
             flash(
-                "Student name is too long.",
+                "Gender is required.",
                 "error"
             )
 
-            cur.close()
-            conn.close()
-
             return render_template(
                 "students/edit.html",
                 student=student,
                 classes=classes
             )
 
-
-        # =================================================
-        # Validate Gender
-        # =================================================
-
-        allowed_genders = {
-            "Male",
-            "Female",
-            "Other"
-        }
-
-        if gender not in allowed_genders:
-
-            flash(
-                "Please select a valid gender.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/edit.html",
-                student=student,
-                classes=classes
-            )
-
-
-        # =================================================
-        # Validate Date of Birth
-        # =================================================
 
         if not date_of_birth:
 
@@ -1311,9 +1313,6 @@ def edit_student(id):
                 "error"
             )
 
-            cur.close()
-            conn.close()
-
             return render_template(
                 "students/edit.html",
                 student=student,
@@ -1321,19 +1320,12 @@ def edit_student(id):
             )
 
 
-        # =================================================
-        # Validate Class
-        # =================================================
-
         if not class_id:
 
             flash(
-                "Please select a class.",
+                "Class is required.",
                 "error"
             )
-
-            cur.close()
-            conn.close()
 
             return render_template(
                 "students/edit.html",
@@ -1346,15 +1338,57 @@ def edit_student(id):
 
             class_id = int(class_id)
 
-        except (TypeError, ValueError):
+        except (
+            TypeError,
+            ValueError
+        ):
 
             flash(
                 "Invalid class selected.",
                 "error"
             )
 
-            cur.close()
-            conn.close()
+            return render_template(
+                "students/edit.html",
+                student=student,
+                classes=classes
+            )
+
+
+        if not parent_name:
+
+            flash(
+                "Parent name is required.",
+                "error"
+            )
+
+            return render_template(
+                "students/edit.html",
+                student=student,
+                classes=classes
+            )
+
+
+        if not parent_phone:
+
+            flash(
+                "Parent phone is required.",
+                "error"
+            )
+
+            return render_template(
+                "students/edit.html",
+                student=student,
+                classes=classes
+            )
+
+
+        if not parent_email:
+
+            flash(
+                "Parent email is required.",
+                "error"
+            )
 
             return render_template(
                 "students/edit.html",
@@ -1364,10 +1398,11 @@ def edit_student(id):
 
 
         # =================================================
-        # Verify Class Belongs To Institution
+        # Validate Class
         # =================================================
 
-        cur.execute("""
+        cur.execute(
+            """
             SELECT
                 id
 
@@ -1377,10 +1412,14 @@ def edit_student(id):
                 id = %s
                 AND institution_id = %s
                 AND is_active = TRUE
-        """, (
-            class_id,
-            institution_id
-        ))
+
+            LIMIT 1
+            """,
+            (
+                class_id,
+                institution_id
+            )
+        )
 
         selected_class = cur.fetchone()
 
@@ -1388,12 +1427,9 @@ def edit_student(id):
         if not selected_class:
 
             flash(
-                "Invalid class selected.",
+                "Selected class is invalid or inactive.",
                 "error"
             )
-
-            cur.close()
-            conn.close()
 
             return render_template(
                 "students/edit.html",
@@ -1403,40 +1439,30 @@ def edit_student(id):
 
 
         # =================================================
-        # Staff → Assigned Class Check
+        # Validate Photo
         # =================================================
 
-        if role == "staff":
+        if photo and photo.filename:
 
-            cur.execute("""
-                SELECT
-                    id
-
-                FROM staff_classes
-
-                WHERE
-                    institution_id = %s
-                    AND staff_id = %s
-                    AND class_id = %s
-                    AND is_active = TRUE
-            """, (
-                institution_id,
-                user_id,
-                class_id
-            ))
-
-            assigned_class = cur.fetchone()
+            allowed_extensions = {
+                "jpg",
+                "jpeg",
+                "png",
+                "webp"
+            }
 
 
-            if not assigned_class:
+            original_filename = secure_filename(
+                photo.filename
+            )
+
+
+            if "." not in original_filename:
 
                 flash(
-                    "You cannot assign this student to an unassigned class.",
+                    "Invalid photo file.",
                     "error"
                 )
-
-                cur.close()
-                conn.close()
 
                 return render_template(
                     "students/edit.html",
@@ -1445,79 +1471,29 @@ def edit_student(id):
                 )
 
 
-        # =================================================
-        # Validate Parent Name
-        # =================================================
-
-        if not parent_name:
-
-            flash(
-                "Parent name is required.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/edit.html",
-                student=student,
-                classes=classes
+            extension = (
+                original_filename
+                .rsplit(".", 1)[-1]
+                .lower()
             )
 
 
-        if len(parent_name) > 150:
+            if extension not in allowed_extensions:
 
-            flash(
-                "Parent name is too long.",
-                "error"
-            )
+                flash(
+                    "Please upload a JPG, JPEG, PNG or WEBP image.",
+                    "error"
+                )
 
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/edit.html",
-                student=student,
-                classes=classes
-            )
+                return render_template(
+                    "students/edit.html",
+                    student=student,
+                    classes=classes
+                )
 
 
-        # =================================================
-        # Validate Parent Phone
-        # =================================================
-
-        if not parent_phone:
-
-            flash(
-                "Parent phone number is required.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/edit.html",
-                student=student,
-                classes=classes
-            )
-
-
-        if len(parent_phone) > 30:
-
-            flash(
-                "Parent phone number is too long.",
-                "error"
-            )
-
-            cur.close()
-            conn.close()
-
-            return render_template(
-                "students/edit.html",
-                student=student,
-                classes=classes
+            photo_filename = (
+                f"student_{uuid.uuid4().hex}.{extension}"
             )
 
 
@@ -1525,9 +1501,45 @@ def edit_student(id):
         # Update Student
         # =================================================
 
-        try:
+        if photo_filename:
 
-            cur.execute("""
+            cur.execute(
+                """
+                UPDATE students
+
+                SET
+                    full_name = %s,
+                    gender = %s,
+                    date_of_birth = %s,
+                    class_id = %s,
+                    parent_name = %s,
+                    parent_phone = %s,
+                    address = %s,
+                    photo = %s,
+                    updated_at = NOW()
+
+                WHERE
+                    id = %s
+                    AND institution_id = %s
+                """,
+                (
+                    full_name,
+                    gender,
+                    date_of_birth,
+                    class_id,
+                    parent_name,
+                    parent_phone,
+                    address or None,
+                    photo_filename,
+                    id,
+                    institution_id
+                )
+            )
+
+        else:
+
+            cur.execute(
+                """
                 UPDATE students
 
                 SET
@@ -1543,54 +1555,128 @@ def edit_student(id):
                 WHERE
                     id = %s
                     AND institution_id = %s
-            """, (
-                full_name,
-                gender,
-                date_of_birth,
-                class_id,
-                parent_name,
-                parent_phone,
-                address,
-                id,
-                institution_id
-            ))
+                """,
+                (
+                    full_name,
+                    gender,
+                    date_of_birth,
+                    class_id,
+                    parent_name,
+                    parent_phone,
+                    address or None,
+                    id,
+                    institution_id
+                )
+            )
 
 
-            if cur.rowcount != 1:
+        # =================================================
+        # Update Parent User
+        # =================================================
 
-                raise RuntimeError(
-                    "Student update failed."
+        if student["parent_user_id"]:
+
+            if parent_password:
+
+                if len(parent_password) < 6:
+
+                    conn.rollback()
+
+                    flash(
+                        "Parent password must be at least 6 characters.",
+                        "error"
+                    )
+
+                    return render_template(
+                        "students/edit.html",
+                        student=student,
+                        classes=classes
+                    )
+
+
+                cur.execute(
+                    """
+                    UPDATE users
+
+                    SET
+                        full_name = %s,
+                        email = %s,
+                        phone = %s,
+                        password = %s,
+                        updated_at = NOW()
+
+                    WHERE
+                        id = %s
+                        AND institution_id = %s
+                    """,
+                    (
+                        parent_name,
+                        parent_email,
+                        parent_phone,
+                        generate_password_hash(
+                            parent_password
+                        ),
+                        student["parent_user_id"],
+                        institution_id
+                    )
+                )
+
+            else:
+
+                cur.execute(
+                    """
+                    UPDATE users
+
+                    SET
+                        full_name = %s,
+                        email = %s,
+                        phone = %s,
+                        updated_at = NOW()
+
+                    WHERE
+                        id = %s
+                        AND institution_id = %s
+                    """,
+                    (
+                        parent_name,
+                        parent_email,
+                        parent_phone,
+                        student["parent_user_id"],
+                        institution_id
+                    )
                 )
 
 
-            conn.commit()
+        # =================================================
+        # Save New Photo
+        # =================================================
 
+        if photo_filename:
 
-        except Exception:
-
-            conn.rollback()
-
-            flash(
-                "Unable to update student. No changes were saved.",
-                "error"
+            upload_folder = os.path.join(
+                "static",
+                "uploads"
             )
 
-            cur.close()
-            conn.close()
+            os.makedirs(
+                upload_folder,
+                exist_ok=True
+            )
 
-            return render_template(
-                "students/edit.html",
-                student=student,
-                classes=classes
+
+            photo.save(
+                os.path.join(
+                    upload_folder,
+                    photo_filename
+                )
             )
 
 
         # =================================================
-        # Success
+        # Commit
         # =================================================
 
-        cur.close()
-        conn.close()
+        conn.commit()
 
 
         flash(
@@ -1601,123 +1687,19 @@ def edit_student(id):
 
         return redirect(
             url_for(
-                "students.student_list"
+                "students.view_student",
+                id=id
             )
         )
 
 
-    # =====================================================
-    # GET
-    # =====================================================
+    except Exception:
 
-    cur.close()
-    conn.close()
-
-
-    return render_template(
-        "students/edit.html",
-        student=student,
-        classes=classes
-    )
-
-
-# =========================================================
-# 4. Toggle Student Status
-# =========================================================
-
-def toggle_student_status(id):
-
-    conn = get_connection()
-    cur = conn.cursor()
-
-    role = session.get("role")
-    institution_id = session.get("institution_id")
-    staff_user_id = session.get("user_id")
-
-
-    # =====================================================
-    # Basic Session Validation
-    # =====================================================
-
-    if not institution_id:
-
-        cur.close()
-        conn.close()
-
-        return "Unauthorized", 403
-
-
-    # =====================================================
-    # Verify Student Access
-    # =====================================================
-
-    if role == "institution_admin":
-
-        cur.execute("""
-            SELECT
-                s.is_active,
-                s.user_id
-
-            FROM students s
-
-            WHERE
-                s.id = %s
-                AND s.institution_id = %s
-        """, (
-            id,
-            institution_id
-        ))
-
-
-    elif role == "staff":
-
-        cur.execute("""
-            SELECT DISTINCT
-                s.is_active,
-                s.user_id
-
-            FROM students s
-
-            JOIN staff_classes sc
-                ON sc.class_id = s.class_id
-
-            WHERE
-                s.id = %s
-                AND s.institution_id = %s
-
-                AND sc.institution_id = %s
-                AND sc.staff_id = %s
-                AND sc.is_active = TRUE
-        """, (
-            id,
-            institution_id,
-            institution_id,
-            staff_user_id
-        ))
-
-
-    else:
-
-        cur.close()
-        conn.close()
-
-        return "Unauthorized", 403
-
-
-    student = cur.fetchone()
-
-
-    # =====================================================
-    # Student Not Found / No Permission
-    # =====================================================
-
-    if not student:
-
-        cur.close()
-        conn.close()
+        if conn:
+            conn.rollback()
 
         flash(
-            "You do not have permission to change this student's status.",
+            "Unable to update student.",
             "error"
         )
 
@@ -1728,26 +1710,129 @@ def toggle_student_status(id):
         )
 
 
-    # =====================================================
-    # Calculate New Status
-    # =====================================================
+    finally:
 
-    new_status = not student["is_active"]
+        if cur:
+            cur.close()
 
-    student_user_id = student["user_id"]
+        if conn:
+            conn.close()
 
 
-    # =====================================================
-    # Update Student + User Together
-    # =====================================================
+# =========================================================
+# 4. Toggle Student Status
+# =========================================================
+
+def toggle_student_status(id):
+
+    institution_id = session.get(
+        "institution_id"
+    )
+
+    if not institution_id:
+
+        flash(
+            "Institution information is missing.",
+            "error"
+        )
+
+        return redirect(
+            url_for("portal.index")
+        )
+
+    conn = None
+    cur = None
 
     try:
 
-        # -----------------------------------------------
-        # Update Student
-        # -----------------------------------------------
+        conn = get_connection()
+        cur = conn.cursor()
 
-        cur.execute("""
+        # -------------------------------------------------
+        # Get student
+        # -------------------------------------------------
+
+        cur.execute(
+            """
+            SELECT
+                id,
+                user_id,
+                is_active
+
+            FROM students
+
+            WHERE
+                id = %s
+                AND institution_id = %s
+
+            LIMIT 1
+            """,
+            (
+                id,
+                institution_id
+            )
+        )
+
+        student = cur.fetchone()
+
+        if not student:
+
+            flash(
+                "Student not found.",
+                "error"
+            )
+
+            return _redirect_to_student_list()
+
+        # -------------------------------------------------
+        # Staff permission
+        # -------------------------------------------------
+
+        if session.get("role") == "staff":
+
+            cur.execute(
+                """
+                SELECT
+                    1
+
+                FROM students s
+
+                JOIN staff_classes sc
+                    ON sc.class_id = s.class_id
+                    AND sc.institution_id = s.institution_id
+
+                WHERE
+                    s.id = %s
+                    AND s.institution_id = %s
+                    AND sc.staff_id = %s
+                    AND sc.is_active = TRUE
+
+                LIMIT 1
+                """,
+                (
+                    id,
+                    institution_id,
+                    session.get("user_id")
+                )
+            )
+
+            if not cur.fetchone():
+
+                flash(
+                    "You don't have permission to change this student.",
+                    "error"
+                )
+
+                return _redirect_to_student_list()
+
+        new_status = not student["is_active"]
+
+        # -------------------------------------------------
+        # Update student
+        # -------------------------------------------------
+
+        cur.execute(
+            """
             UPDATE students
 
             SET
@@ -1757,279 +1842,275 @@ def toggle_student_status(id):
             WHERE
                 id = %s
                 AND institution_id = %s
-        """, (
-            new_status,
-            id,
-            institution_id
-        ))
-
-
-        if cur.rowcount != 1:
-
-            raise RuntimeError(
-                "Student status update failed."
+            """,
+            (
+                new_status,
+                id,
+                institution_id
             )
+        )
 
+        # -------------------------------------------------
+        # Update student login account
+        # -------------------------------------------------
 
-        # -----------------------------------------------
-        # Update Student Login Account
-        # -----------------------------------------------
+        if student["user_id"]:
 
-        if student_user_id is not None:
-
-            cur.execute("""
+            cur.execute(
+                """
                 UPDATE users
 
                 SET
-                    is_active = %s
+                    is_active = %s,
+                    updated_at = NOW()
 
                 WHERE
                     id = %s
                     AND institution_id = %s
-            """, (
-                new_status,
-                student_user_id,
-                institution_id
-            ))
-
-
-            if cur.rowcount != 1:
-
-                raise RuntimeError(
-                    "Student login account status update failed."
+                """,
+                (
+                    new_status,
+                    student["user_id"],
+                    institution_id
                 )
-
-
-        # -----------------------------------------------
-        # Commit Both Changes
-        # -----------------------------------------------
+            )
 
         conn.commit()
 
+        if new_status:
+
+            flash(
+                "Student activated successfully.",
+                "success"
+            )
+
+        else:
+
+            flash(
+                "Student deactivated successfully.",
+                "success"
+            )
+
+        return _redirect_to_student_list()
 
     except Exception:
 
-        conn.rollback()
+        if conn:
+            conn.rollback()
 
         flash(
-            "Unable to change student status. No changes were saved.",
+            "Unable to update student status.",
             "error"
         )
 
-        cur.close()
-        conn.close()
+        return _redirect_to_student_list()
 
-        return redirect(
-            url_for(
-                "students.student_list"
-            )
-        )
+    finally:
 
+        if cur:
+            cur.close()
 
-    # =====================================================
-    # Close Connection
-    # =====================================================
-
-    cur.close()
-    conn.close()
+        if conn:
+            conn.close()
 
 
-    # =====================================================
-    # Success Message
-    # =====================================================
-
-    if new_status:
-
-        flash(
-            "Student and student login account activated successfully.",
-            "success"
-        )
-
-    else:
-
-        flash(
-            "Student and student login account deactivated successfully.",
-            "success"
-        )
-
-
-    return redirect(
-        url_for(
-            "students.student_list"
-        )
-    )
-    
 # =========================================================
 # 5. Student Profile
 # =========================================================
 
 def student_profile(id):
 
-    conn = get_connection()
-    cur = conn.cursor()
-
-    role = session.get("role")
-    institution_id = session.get("institution_id")
-    user_id = session.get("user_id")
-
-    # =====================================================
-    # Basic Session Validation
-    # =====================================================
+    institution_id = session.get(
+        "institution_id"
+    )
 
     if not institution_id:
 
-        cur.close()
-        conn.close()
-
-        return "Unauthorized", 403
-
-
-    # =====================================================
-    # Institution Admin
-    # =====================================================
-
-    if role == "institution_admin":
-
-        cur.execute("""
-            SELECT
-                s.id,
-                s.institution_id,
-                s.admission_no,
-                s.full_name,
-                s.gender,
-                s.date_of_birth,
-                s.parent_name,
-                s.parent_phone,
-                s.address,
-                s.photo,
-                s.is_active,
-                s.created_at,
-                s.updated_at,
-                s.class_id,
-                s.user_id,
-                s.parent_user_id,
-
-                c.class_name,
-
-                u.is_active AS user_active
-
-            FROM students s
-
-            LEFT JOIN classes c
-                ON c.id = s.class_id
-
-            LEFT JOIN users u
-                ON u.id = s.user_id
-
-            WHERE
-                s.id = %s
-                AND s.institution_id = %s
-        """, (
-            id,
-            institution_id
-        ))
-
-
-    # =====================================================
-    # Staff
-    # =====================================================
-
-    elif role == "staff":
-
-        cur.execute("""
-            SELECT DISTINCT
-                s.id,
-                s.institution_id,
-                s.admission_no,
-                s.full_name,
-                s.gender,
-                s.date_of_birth,
-                s.parent_name,
-                s.parent_phone,
-                s.address,
-                s.photo,
-                s.is_active,
-                s.created_at,
-                s.updated_at,
-                s.class_id,
-                s.user_id,
-                s.parent_user_id,
-
-                c.class_name,
-
-                u.is_active AS user_active
-
-            FROM students s
-
-            JOIN staff_classes sc
-                ON sc.class_id = s.class_id
-
-            LEFT JOIN classes c
-                ON c.id = s.class_id
-
-            LEFT JOIN users u
-                ON u.id = s.user_id
-
-            WHERE
-                s.id = %s
-                AND s.institution_id = %s
-
-                AND sc.institution_id = %s
-                AND sc.staff_id = %s
-                AND sc.is_active = TRUE
-        """, (
-            id,
-            institution_id,
-            institution_id,
-            user_id
-        ))
-
-
-    else:
-
-        cur.close()
-        conn.close()
-
-        return "Unauthorized", 403
-
-
-    student = cur.fetchone()
-
-
-    # =====================================================
-    # Student Not Found / No Access
-    # =====================================================
-
-    if not student:
-
-        cur.close()
-        conn.close()
-
         flash(
-            "Student not found or you do not have permission to view this student.",
+            "Institution information is missing.",
             "error"
         )
 
         return redirect(
-            url_for(
-                "students.student_list"
+            url_for("portal.index")
+        )
+
+    conn = None
+    cur = None
+
+    try:
+
+        conn = get_connection()
+        cur = conn.cursor()
+
+        # -------------------------------------------------
+        # Get student
+        # -------------------------------------------------
+
+        cur.execute(
+            """
+            SELECT
+                students.*,
+                classes.class_name
+
+            FROM students
+
+            LEFT JOIN classes
+                ON students.class_id = classes.id
+                AND classes.institution_id = students.institution_id
+
+            WHERE
+                students.id = %s
+                AND students.institution_id = %s
+
+            LIMIT 1
+            """,
+            (
+                id,
+                institution_id
             )
         )
 
+        student = cur.fetchone()
 
-    # =====================================================
-    # Close Database
-    # =====================================================
+        if not student:
 
-    cur.close()
-    conn.close()
+            flash(
+                "Student not found.",
+                "error"
+            )
 
+            return _redirect_to_student_list()
 
-    # =====================================================
-    # Render Profile
-    # =====================================================
+        # -------------------------------------------------
+        # Staff permission
+        # -------------------------------------------------
 
-    return render_template(
-        "students/profile.html",
-        student=student
-    )    
+        if session.get("role") == "staff":
+
+            cur.execute(
+                """
+                SELECT
+                    1
+
+                FROM staff_classes
+
+                WHERE
+                    staff_id = %s
+                    AND institution_id = %s
+                    AND class_id = %s
+                    AND is_active = TRUE
+
+                LIMIT 1
+                """,
+                (
+                    session.get("user_id"),
+                    institution_id,
+                    student["class_id"]
+                )
+            )
+
+            if not cur.fetchone():
+
+                flash(
+                    "You don't have permission to view this student.",
+                    "error"
+                )
+
+                return _redirect_to_student_list()
+
+        # -------------------------------------------------
+        # Student statistics
+        # -------------------------------------------------
+
+        cur.execute(
+            """
+            SELECT
+                COUNT(*) AS total_days
+
+            FROM attendance
+
+            WHERE
+                student_id = %s
+                AND institution_id = %s
+            """,
+            (
+                id,
+                institution_id
+            )
+        )
+
+        attendance_summary = cur.fetchone()
+
+        # -------------------------------------------------
+        # Attendance counts
+        # -------------------------------------------------
+
+        cur.execute(
+            """
+            SELECT
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status = 'present'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS present_count,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status = 'absent'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS absent_count,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status = 'leave'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS leave_count
+
+            FROM attendance
+
+            WHERE
+                student_id = %s
+                AND institution_id = %s
+            """,
+            (
+                id,
+                institution_id
+            )
+        )
+
+        attendance_counts = cur.fetchone()
+
+        # -------------------------------------------------
+        # Return profile
+        # -------------------------------------------------
+
+        return render_template(
+            "students/profile.html",
+            student=student,
+            attendance_summary=attendance_summary,
+            attendance_counts=attendance_counts
+        )
+
+    finally:
+
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()

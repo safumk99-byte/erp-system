@@ -8,7 +8,9 @@ Student Profile
 
 <div class="max-w-6xl mx-auto">
 
+    <!-- ================================================= -->
     <!-- Header -->
+    <!-- ================================================= -->
 
     <div class="mb-8">
 
@@ -26,19 +28,46 @@ Student Profile
 
             </div>
 
-            <div class="flex gap-3">
+
+            <div class="flex flex-wrap gap-3">
 
                 <a
-                    href="{{ url_for('students.update_student', id=student.id) }}"
-                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+                    href="{{ url_for(
+                        'students.update_student',
+                        id=student.id
+                    ) }}"
+                    class="inline-flex items-center justify-center gap-2
+                           bg-indigo-600 hover:bg-indigo-700
+                           text-white px-5 py-3 rounded-xl
+                           transition"
+                >
+
+                    <i
+                        data-lucide="edit"
+                        class="w-4 h-4"
+                    ></i>
 
                     Edit Student
 
                 </a>
 
+
                 <a
-                    href="{{ url_for('students.student_list') }}"
-                    class="border border-slate-300 px-5 py-3 rounded-xl hover:bg-slate-50">
+                    href="{{ url_for(
+                        'students.student_list'
+                    ) }}"
+                    class="inline-flex items-center justify-center gap-2
+                           border border-slate-300
+                           px-5 py-3 rounded-xl
+                           hover:bg-slate-50
+                           text-slate-700
+                           transition"
+                >
+
+                    <i
+                        data-lucide="arrow-left"
+                        class="w-4 h-4"
+                    ></i>
 
                     Back
 
@@ -54,36 +83,59 @@ Student Profile
     {% include "components/alert.html" %}
 
 
+    <!-- ================================================= -->
     <!-- Profile Card -->
+    <!-- ================================================= -->
 
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div
+        class="bg-white rounded-2xl shadow-sm
+               border border-slate-200 overflow-hidden"
+    >
 
-        <!-- Top -->
+
+        <!-- ================================================= -->
+        <!-- Top Profile -->
+        <!-- ================================================= -->
 
         <div class="p-8">
 
             <div class="flex flex-col md:flex-row gap-8 items-start">
 
+
+                <!-- ================================================= -->
                 <!-- Photo -->
+                <!-- ================================================= -->
 
                 <div class="shrink-0">
 
                     {% if student.photo %}
 
                         <img
-                            src="{{ student.photo }}"
-                            alt="{{ student.full_name }}"
-                            class="w-32 h-32 rounded-2xl object-cover border border-slate-200 shadow-sm">
+    src="{{ url_for(
+        'students.student_photo',
+        filename=student.photo
+    ) }}"
+    alt="{{ student.full_name }}"
+    class="w-32 h-32 rounded-2xl object-cover border border-slate-200 shadow-sm"
+>
 
                     {% else %}
 
                         <div
-                            class="w-32 h-32 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center">
+                            class="w-32 h-32
+                                   rounded-2xl
+                                   bg-indigo-50
+                                   border border-indigo-100
+                                   flex items-center
+                                   justify-center"
+                        >
 
-                            <span class="text-4xl font-bold text-slate-400">
-
+                            <span
+                                class="text-4xl
+                                       font-bold
+                                       text-indigo-300"
+                            >
                                 {{ student.full_name[:1]|upper }}
-
                             </span>
 
                         </div>
@@ -93,35 +145,56 @@ Student Profile
                 </div>
 
 
+                <!-- ================================================= -->
                 <!-- Basic Information -->
+                <!-- ================================================= -->
 
-                <div class="flex-1">
+                <div class="flex-1 min-w-0">
 
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div
+                        class="flex flex-col sm:flex-row
+                               sm:items-center
+                               gap-3"
+                    >
 
-                        <h2 class="text-2xl font-bold text-slate-800">
-
+                        <h2
+                            class="text-2xl md:text-3xl
+                                   font-bold
+                                   text-slate-800
+                                   break-words"
+                        >
                             {{ student.full_name }}
-
                         </h2>
 
 
                         {% if student.is_active %}
 
                             <span
-                                class="inline-flex w-fit px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
-
+                                class="inline-flex
+                                       w-fit
+                                       px-3 py-1
+                                       rounded-full
+                                       text-sm
+                                       font-medium
+                                       bg-green-100
+                                       text-green-700"
+                            >
                                 Active
-
                             </span>
 
                         {% else %}
 
                             <span
-                                class="inline-flex w-fit px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700">
-
+                                class="inline-flex
+                                       w-fit
+                                       px-3 py-1
+                                       rounded-full
+                                       text-sm
+                                       font-medium
+                                       bg-red-100
+                                       text-red-700"
+                            >
                                 Inactive
-
                             </span>
 
                         {% endif %}
@@ -129,13 +202,15 @@ Student Profile
                     </div>
 
 
-                    <p class="text-slate-500 mt-2">
+                    <p class="text-slate-500 mt-3">
 
                         Admission No:
-                        <span class="font-semibold text-slate-700">
 
+                        <span
+                            class="font-semibold
+                                   text-slate-700"
+                        >
                             {{ student.admission_no }}
-
                         </span>
 
                     </p>
@@ -144,10 +219,12 @@ Student Profile
                     <p class="text-slate-500 mt-1">
 
                         Class:
-                        <span class="font-semibold text-slate-700">
 
+                        <span
+                            class="font-semibold
+                                   text-slate-700"
+                        >
                             {{ student.class_name or "Not Assigned" }}
-
                         </span>
 
                     </p>
@@ -159,18 +236,32 @@ Student Profile
         </div>
 
 
+        <!-- ================================================= -->
         <!-- Student Information -->
+        <!-- ================================================= -->
 
-        <div class="border-t border-slate-200 p-8">
+        <div
+            class="border-t border-slate-200
+                   p-8"
+        >
 
-            <h3 class="text-xl font-semibold text-slate-800 mb-6">
-
+            <h3
+                class="text-xl
+                       font-semibold
+                       text-slate-800
+                       mb-6"
+            >
                 Student Information
-
             </h3>
 
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+                class="grid
+                       grid-cols-1
+                       md:grid-cols-2
+                       lg:grid-cols-3
+                       gap-6"
+            >
 
 
                 <!-- Admission -->
@@ -181,7 +272,11 @@ Student Profile
                         Admission Number
                     </p>
 
-                    <p class="font-semibold text-slate-800 mt-1">
+                    <p
+                        class="font-semibold
+                               text-slate-800
+                               mt-1"
+                    >
                         {{ student.admission_no }}
                     </p>
 
@@ -196,10 +291,12 @@ Student Profile
                         Gender
                     </p>
 
-                    <p class="font-semibold text-slate-800 mt-1">
-
+                    <p
+                        class="font-semibold
+                               text-slate-800
+                               mt-1"
+                    >
                         {{ student.gender or "Not provided" }}
-
                     </p>
 
                 </div>
@@ -213,10 +310,12 @@ Student Profile
                         Date of Birth
                     </p>
 
-                    <p class="font-semibold text-slate-800 mt-1">
-
+                    <p
+                        class="font-semibold
+                               text-slate-800
+                               mt-1"
+                    >
                         {{ student.date_of_birth or "Not provided" }}
-
                     </p>
 
                 </div>
@@ -230,10 +329,12 @@ Student Profile
                         Class
                     </p>
 
-                    <p class="font-semibold text-slate-800 mt-1">
-
+                    <p
+                        class="font-semibold
+                               text-slate-800
+                               mt-1"
+                    >
                         {{ student.class_name or "Not Assigned" }}
-
                     </p>
 
                 </div>
@@ -249,19 +350,31 @@ Student Profile
 
                     {% if student.user_active %}
 
-                        <p class="font-semibold text-green-600 mt-1">
+                        <p
+                            class="font-semibold
+                                   text-green-600
+                                   mt-1"
+                        >
                             Active
                         </p>
 
                     {% elif student.user_id %}
 
-                        <p class="font-semibold text-red-600 mt-1">
+                        <p
+                            class="font-semibold
+                                   text-red-600
+                                   mt-1"
+                        >
                             Inactive
                         </p>
 
                     {% else %}
 
-                        <p class="font-semibold text-slate-500 mt-1">
+                        <p
+                            class="font-semibold
+                                   text-slate-500
+                                   mt-1"
+                        >
                             Not Available
                         </p>
 
@@ -280,13 +393,21 @@ Student Profile
 
                     {% if student.is_active %}
 
-                        <p class="font-semibold text-green-600 mt-1">
+                        <p
+                            class="font-semibold
+                                   text-green-600
+                                   mt-1"
+                        >
                             Active
                         </p>
 
                     {% else %}
 
-                        <p class="font-semibold text-red-600 mt-1">
+                        <p
+                            class="font-semibold
+                                   text-red-600
+                                   mt-1"
+                        >
                             Inactive
                         </p>
 
@@ -299,18 +420,31 @@ Student Profile
         </div>
 
 
+        <!-- ================================================= -->
         <!-- Parent Information -->
+        <!-- ================================================= -->
 
-        <div class="border-t border-slate-200 p-8">
+        <div
+            class="border-t border-slate-200
+                   p-8"
+        >
 
-            <h3 class="text-xl font-semibold text-slate-800 mb-6">
-
+            <h3
+                class="text-xl
+                       font-semibold
+                       text-slate-800
+                       mb-6"
+            >
                 Parent Information
-
             </h3>
 
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div
+                class="grid
+                       grid-cols-1
+                       md:grid-cols-2
+                       gap-6"
+            >
 
 
                 <!-- Parent Name -->
@@ -321,10 +455,12 @@ Student Profile
                         Parent Name
                     </p>
 
-                    <p class="font-semibold text-slate-800 mt-1">
-
+                    <p
+                        class="font-semibold
+                               text-slate-800
+                               mt-1"
+                    >
                         {{ student.parent_name or "Not provided" }}
-
                     </p>
 
                 </div>
@@ -342,15 +478,59 @@ Student Profile
 
                         <a
                             href="tel:{{ student.parent_phone }}"
-                            class="font-semibold text-indigo-600 hover:text-indigo-700 mt-1 inline-block">
-
+                            class="font-semibold
+                                   text-indigo-600
+                                   hover:text-indigo-700
+                                   mt-1
+                                   inline-block"
+                        >
                             {{ student.parent_phone }}
-
                         </a>
 
                     {% else %}
 
-                        <p class="font-semibold text-slate-500 mt-1">
+                        <p
+                            class="font-semibold
+                                   text-slate-500
+                                   mt-1"
+                        >
+                            Not provided
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Parent Email -->
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Parent Email
+                    </p>
+
+                    {% if student.parent_email %}
+
+                        <a
+                            href="mailto:{{ student.parent_email }}"
+                            class="font-semibold
+                                   text-indigo-600
+                                   hover:text-indigo-700
+                                   mt-1
+                                   inline-block
+                                   break-all"
+                        >
+                            {{ student.parent_email }}
+                        </a>
+
+                    {% else %}
+
+                        <p
+                            class="font-semibold
+                                   text-slate-500
+                                   mt-1"
+                        >
                             Not provided
                         </p>
 
@@ -367,10 +547,13 @@ Student Profile
                         Address
                     </p>
 
-                    <p class="font-semibold text-slate-800 mt-1 whitespace-pre-line">
-
+                    <p
+                        class="font-semibold
+                               text-slate-800
+                               mt-1
+                               whitespace-pre-line"
+                    >
                         {{ student.address or "Not provided" }}
-
                     </p>
 
                 </div>
@@ -380,19 +563,34 @@ Student Profile
         </div>
 
 
+        <!-- ================================================= -->
         <!-- Account Information -->
+        <!-- ================================================= -->
 
-        <div class="border-t border-slate-200 p-8">
+        <div
+            class="border-t border-slate-200
+                   p-8"
+        >
 
-            <h3 class="text-xl font-semibold text-slate-800 mb-6">
-
+            <h3
+                class="text-xl
+                       font-semibold
+                       text-slate-800
+                       mb-6"
+            >
                 Account Information
-
             </h3>
 
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div
+                class="grid
+                       grid-cols-1
+                       md:grid-cols-2
+                       gap-6"
+            >
 
+
+                <!-- User ID -->
 
                 <div>
 
@@ -400,14 +598,18 @@ Student Profile
                         User ID
                     </p>
 
-                    <p class="font-semibold text-slate-800 mt-1">
-
+                    <p
+                        class="font-semibold
+                               text-slate-800
+                               mt-1"
+                    >
                         {{ student.user_id or "Not available" }}
-
                     </p>
 
                 </div>
 
+
+                <!-- Parent User ID -->
 
                 <div>
 
@@ -415,10 +617,12 @@ Student Profile
                         Parent User ID
                     </p>
 
-                    <p class="font-semibold text-slate-800 mt-1">
-
+                    <p
+                        class="font-semibold
+                               text-slate-800
+                               mt-1"
+                    >
                         {{ student.parent_user_id or "Not available" }}
-
                     </p>
 
                 </div>
@@ -428,37 +632,116 @@ Student Profile
         </div>
 
 
+        <!-- ================================================= -->
         <!-- Actions -->
+        <!-- ================================================= -->
 
-        <div class="border-t border-slate-200 p-8">
+        <div
+            class="border-t border-slate-200
+                   p-8"
+        >
 
-            <div class="flex flex-col sm:flex-row gap-3">
+            <div
+                class="flex
+                       flex-col
+                       sm:flex-row
+                       gap-3"
+            >
+
+                <!-- Edit -->
 
                 <a
-                    href="{{ url_for('students.update_student', id=student.id) }}"
-                    class="text-center bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl">
+                    href="{{ url_for(
+                        'students.update_student',
+                        id=student.id
+                    ) }}"
+                    class="inline-flex
+                           items-center
+                           justify-center
+                           gap-2
+                           text-center
+                           bg-indigo-600
+                           hover:bg-indigo-700
+                           text-white
+                           px-6 py-3
+                           rounded-xl
+                           transition"
+                >
+
+                    <i
+                        data-lucide="edit"
+                        class="w-4 h-4"
+                    ></i>
 
                     Edit Student
 
                 </a>
 
 
+                <!-- Toggle -->
+
                 <a
-                    href="{{ url_for('students.toggle_student', id=student.id) }}"
-                    class="text-center border border-slate-300 hover:bg-slate-50 px-6 py-3 rounded-xl">
+                    href="{{ url_for(
+                        'students.toggle_student',
+                        id=student.id
+                    ) }}"
+                    class="inline-flex
+                           items-center
+                           justify-center
+                           gap-2
+                           text-center
+                           border border-slate-300
+                           hover:bg-slate-50
+                           px-6 py-3
+                           rounded-xl
+                           transition"
+                >
 
                     {% if student.is_active %}
+
+                        <i
+                            data-lucide="user-x"
+                            class="w-4 h-4"
+                        ></i>
+
                         Deactivate Student
+
                     {% else %}
+
+                        <i
+                            data-lucide="user-check"
+                            class="w-4 h-4"
+                        ></i>
+
                         Activate Student
+
                     {% endif %}
 
                 </a>
 
 
+                <!-- Back -->
+
                 <a
-                    href="{{ url_for('students.student_list') }}"
-                    class="text-center border border-slate-300 hover:bg-slate-50 px-6 py-3 rounded-xl">
+                    href="{{ url_for(
+                        'students.student_list'
+                    ) }}"
+                    class="inline-flex
+                           items-center
+                           justify-center
+                           gap-2
+                           text-center
+                           border border-slate-300
+                           hover:bg-slate-50
+                           px-6 py-3
+                           rounded-xl
+                           transition"
+                >
+
+                    <i
+                        data-lucide="arrow-left"
+                        class="w-4 h-4"
+                    ></i>
 
                     Back to Students
 

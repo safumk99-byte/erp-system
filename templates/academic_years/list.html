@@ -1,0 +1,282 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Academic Years
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- Header -->
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Academic Years
+            </h1>
+
+            <p class="text-slate-500 mt-2">
+                Manage academic years for your institution.
+            </p>
+
+        </div>
+
+        <a
+            href="{{ url_for('academic_years.create_academic_year') }}"
+            class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl font-medium transition"
+        >
+            + Add Academic Year
+        </a>
+
+    </div>
+
+
+    <!-- Alerts -->
+
+    {% include "components/alert.html" %}
+
+
+    <!-- Academic Years -->
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-sm">
+
+                <thead class="bg-slate-50 border-b border-slate-200">
+
+                    <tr>
+
+                        <th class="px-6 py-4 text-left font-semibold text-slate-600">
+                            Academic Year
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-slate-600">
+                            Start Date
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-slate-600">
+                            End Date
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-slate-600">
+                            Status
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-slate-600">
+                            Current
+                        </th>
+
+                        <th class="px-6 py-4 text-right font-semibold text-slate-600">
+                            Actions
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-slate-100">
+
+                    {% for year in academic_years %}
+
+                    <tr class="hover:bg-slate-50">
+
+                        <!-- Academic Year -->
+
+                        <td class="px-6 py-4">
+
+                            <div class="font-semibold text-slate-800">
+                                {{ year.year_name }}
+                            </div>
+
+                        </td>
+
+
+                        <!-- Start Date -->
+
+                        <td class="px-6 py-4 text-slate-600">
+                            {{ year.start_date }}
+                        </td>
+
+
+                        <!-- End Date -->
+
+                        <td class="px-6 py-4 text-slate-600">
+                            {{ year.end_date }}
+                        </td>
+
+
+                        <!-- Status -->
+
+                        <td class="px-6 py-4">
+
+                            {% if year.is_active %}
+
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                                    Inactive
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Current -->
+
+                        <td class="px-6 py-4">
+
+                            {% if year.is_current %}
+
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+                                    Current
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-slate-400">
+                                    —
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Actions -->
+
+                        <td class="px-6 py-4">
+
+                            <div class="flex items-center justify-end gap-2">
+
+                                <!-- Edit -->
+
+                                <a
+                                    href="{{ url_for(
+                                        'academic_years.update_academic_year',
+                                        id=year.id
+                                    ) }}"
+                                    class="px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition"
+                                >
+                                    Edit
+                                </a>
+
+
+                                <!-- Set Current -->
+
+                                {% if not year.is_current and year.is_active %}
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'academic_years.make_current_academic_year',
+                                        id=year.id
+                                    ) }}"
+                                    class="inline"
+                                    onsubmit="return confirm('Set {{ year.year_name }} as the current academic year?');"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="px-3 py-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition"
+                                    >
+                                        Set Current
+                                    </button>
+
+                                </form>
+
+                                {% endif %}
+
+
+                                <!-- Toggle Status -->
+
+                                {% if not year.is_current %}
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'academic_years.toggle_academic_year',
+                                        id=year.id
+                                    ) }}"
+                                    class="inline"
+                                    onsubmit="return confirm(
+                                        '{% if year.is_active %}Deactivate{% else %}Activate{% endif %} {{ year.year_name }}?'
+                                    );"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="px-3 py-2 rounded-lg transition
+                                        {% if year.is_active %}
+                                            bg-red-50 hover:bg-red-100 text-red-700
+                                        {% else %}
+                                            bg-green-50 hover:bg-green-100 text-green-700
+                                        {% endif %}"
+                                    >
+
+                                        {% if year.is_active %}
+                                            Deactivate
+                                        {% else %}
+                                            Activate
+                                        {% endif %}
+
+                                    </button>
+
+                                </form>
+
+                                {% endif %}
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="px-6 py-12 text-center"
+                        >
+
+                            <div class="text-slate-400 text-4xl mb-3">
+                                📅
+                            </div>
+
+                            <p class="text-slate-600 font-medium">
+                                No academic years found.
+                            </p>
+
+                            <p class="text-slate-400 text-sm mt-1">
+                                Add your institution's first academic year.
+                            </p>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

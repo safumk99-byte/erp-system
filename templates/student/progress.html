@@ -1,0 +1,897 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+My Progress
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- =================================================
+         Header
+    ================================================== -->
+
+    <div>
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            My Progress
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Track your academic achievements and skills.
+        </p>
+
+    </div>
+
+
+    <!-- =================================================
+         Student Information
+    ================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+
+            <div>
+                <p class="text-sm text-slate-500">
+                    Student Name
+                </p>
+
+                <p class="font-semibold text-slate-800 mt-1">
+                    {{ student.full_name }}
+                </p>
+            </div>
+
+
+            <div>
+                <p class="text-sm text-slate-500">
+                    Admission No
+                </p>
+
+                <p class="font-semibold text-slate-800 mt-1">
+                    {{ student.admission_no }}
+                </p>
+            </div>
+
+
+            <div>
+                <p class="text-sm text-slate-500">
+                    Class
+                </p>
+
+                <p class="font-semibold text-slate-800 mt-1">
+                    {{ student.class_name or "Not assigned" }}
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         Overall Summary
+    ================================================== -->
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+
+        <!-- Progress Points -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+            <div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
+
+                <i
+                    data-lucide="trophy"
+                    class="w-5 h-5">
+                </i>
+
+            </div>
+
+            <p class="text-sm text-slate-500">
+                Progress Points
+            </p>
+
+            <p class="text-3xl font-bold text-slate-800 mt-1">
+                {{ total_progress_points }}
+            </p>
+
+        </div>
+
+
+        <!-- Activities -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+            <div class="w-11 h-11 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4">
+
+                <i
+                    data-lucide="activity"
+                    class="w-5 h-5">
+                </i>
+
+            </div>
+
+            <p class="text-sm text-slate-500">
+                Approved Activities
+            </p>
+
+            <p class="text-3xl font-bold text-slate-800 mt-1">
+                {{ total_approved_activities }}
+            </p>
+
+        </div>
+
+
+        <!-- Attendance -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+            <div class="w-11 h-11 rounded-xl bg-green-100 text-green-600 flex items-center justify-center mb-4">
+
+                <i
+                    data-lucide="calendar-check"
+                    class="w-5 h-5">
+                </i>
+
+            </div>
+
+            <p class="text-sm text-slate-500">
+                Attendance
+            </p>
+
+            <p class="text-3xl font-bold text-green-600 mt-1">
+                {{ attendance.percentage }}%
+            </p>
+
+        </div>
+
+
+        <!-- Exam Performance -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+            <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
+
+                <i
+                    data-lucide="chart-column"
+                    class="w-5 h-5">
+                </i>
+
+            </div>
+
+            <p class="text-sm text-slate-500">
+                Exam Performance
+            </p>
+
+            <p class="text-3xl font-bold text-amber-600 mt-1">
+                {{ exam_performance.percentage }}%
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         Skills Overview
+    ================================================== -->
+
+    <div>
+
+        <h2 class="text-xl font-semibold text-slate-800 mb-4">
+            Skills & Activities
+        </h2>
+
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+
+            {% set skill_cards = [
+                ("Reading", "book-open", "blue"),
+                ("Writing", "pen-line", "purple"),
+                ("Speaking", "mic", "green"),
+                ("Language Skills", "languages", "amber"),
+                ("Achievements", "trophy", "red"),
+                ("Publications", "file-text", "indigo"),
+                ("Paper Presentation", "presentation", "cyan")
+            ] %}
+
+
+            {% for name, icon, color in skill_cards %}
+
+                {% set item = module_summary.get(name, {}) %}
+
+
+                <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+                    <div class="flex items-start justify-between">
+
+                        <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+
+                            <i
+                                data-lucide="{{ icon }}"
+                                class="w-5 h-5">
+                            </i>
+
+                        </div>
+
+                    </div>
+
+
+                    <h3 class="text-lg font-semibold text-slate-800 mt-5">
+                        {{ name }}
+                    </h3>
+
+
+                    <div class="grid grid-cols-2 gap-4 mt-4">
+
+                        <div>
+
+                            <p class="text-xs text-slate-500">
+                                Approved
+                            </p>
+
+                            <p class="text-xl font-bold text-slate-800 mt-1">
+                                {{ item.get("count", 0) }}
+                            </p>
+
+                        </div>
+
+
+                        <div>
+
+                            <p class="text-xs text-slate-500">
+                                Points
+                            </p>
+
+                            <p class="text-xl font-bold text-slate-800 mt-1">
+                                {{ item.get("points", 0) }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         Achievements
+    ================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+        <div class="flex items-center justify-between mb-5">
+
+            <div>
+
+                <h2 class="text-lg font-semibold text-slate-800">
+                    Achievements
+                </h2>
+
+                <p class="text-sm text-slate-500 mt-1">
+                    Your latest approved achievements.
+                </p>
+
+            </div>
+
+
+            <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+
+                <i
+                    data-lucide="award"
+                    class="w-5 h-5">
+                </i>
+
+            </div>
+
+        </div>
+
+
+        {% if achievements %}
+
+            <div class="space-y-3">
+
+                {% for achievement in achievements %}
+
+                    <div class="border border-slate-100 rounded-xl p-4">
+
+                        <div class="flex items-start justify-between gap-4">
+
+                            <div>
+
+                                <h3 class="font-semibold text-slate-800">
+                                    {{ achievement.title or achievement.event_name or achievement.achievement_type }}
+                                </h3>
+
+                                {% if achievement.issuing_organization %}
+
+                                    <p class="text-sm text-slate-500 mt-1">
+                                        {{ achievement.issuing_organization }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if achievement.position %}
+
+                                    <p class="text-sm text-slate-600 mt-2">
+                                        Position: {{ achievement.position }}
+                                    </p>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <div class="text-right">
+
+                                <p class="font-bold text-amber-600">
+                                    {{ (achievement.points or 0) + (achievement.bonus_points or 0) }}
+                                </p>
+
+                                <p class="text-xs text-slate-500">
+                                    points
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="text-center py-8">
+
+                <p class="text-sm text-slate-500">
+                    No achievements recorded yet.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =================================================
+         Reading
+    ================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+        <h2 class="text-lg font-semibold text-slate-800">
+            Reading Skill
+        </h2>
+
+        <p class="text-sm text-slate-500 mt-1 mb-5">
+            Recent approved reading activities.
+        </p>
+
+
+        {% if reading_records %}
+
+            <div class="space-y-3">
+
+                {% for record in reading_records %}
+
+                    <div class="border border-slate-100 rounded-xl p-4 flex items-center justify-between gap-4">
+
+                        <div>
+
+                            <p class="font-semibold text-slate-800">
+                                {{ record.book_title }}
+                            </p>
+
+                            {% if record.reading_type %}
+
+                                <p class="text-sm text-slate-500 mt-1">
+                                    {{ record.reading_type }}
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="text-right">
+
+                            <p class="font-bold text-blue-600">
+                                {{ record.points or 0 }}
+                            </p>
+
+                            <p class="text-xs text-slate-500">
+                                points
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p class="text-sm text-slate-500 py-5">
+                No reading activities recorded yet.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =================================================
+         Writing
+    ================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+        <h2 class="text-lg font-semibold text-slate-800">
+            Writing Skill
+        </h2>
+
+        <p class="text-sm text-slate-500 mt-1 mb-5">
+            Recent approved writing activities.
+        </p>
+
+
+        {% if writing_records %}
+
+            <div class="space-y-3">
+
+                {% for record in writing_records %}
+
+                    <div class="border border-slate-100 rounded-xl p-4 flex items-center justify-between gap-4">
+
+                        <div>
+
+                            <p class="font-semibold text-slate-800">
+                                {{ record.title }}
+                            </p>
+
+                            {% if record.writing_type %}
+
+                                <p class="text-sm text-slate-500 mt-1">
+                                    {{ record.writing_type }}
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="text-right">
+
+                            <p class="font-bold text-purple-600">
+                                {{ record.points or 0 }}
+                            </p>
+
+                            <p class="text-xs text-slate-500">
+                                points
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p class="text-sm text-slate-500 py-5">
+                No writing activities recorded yet.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =================================================
+         Speaking
+    ================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+        <h2 class="text-lg font-semibold text-slate-800">
+            Speaking Skill
+        </h2>
+
+        <p class="text-sm text-slate-500 mt-1 mb-5">
+            Recent approved speaking activities.
+        </p>
+
+
+        {% if speaking_records %}
+
+            <div class="space-y-3">
+
+                {% for record in speaking_records %}
+
+                    <div class="border border-slate-100 rounded-xl p-4 flex items-center justify-between gap-4">
+
+                        <div>
+
+                            <p class="font-semibold text-slate-800">
+                                {{ record.title }}
+                            </p>
+
+                            {% if record.presentation_date %}
+
+                                <p class="text-sm text-slate-500 mt-1">
+                                    {{ record.presentation_date }}
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="text-right">
+
+                            <p class="font-bold text-green-600">
+                                {{ record.points or 0 }}
+                            </p>
+
+                            <p class="text-xs text-slate-500">
+                                points
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p class="text-sm text-slate-500 py-5">
+                No speaking activities recorded yet.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =================================================
+         Language Skills
+    ================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+        <h2 class="text-lg font-semibold text-slate-800">
+            Language Skills
+        </h2>
+
+        <p class="text-sm text-slate-500 mt-1 mb-5">
+            Recent approved language assessments.
+        </p>
+
+
+        {% if language_records %}
+
+            <div class="space-y-3">
+
+                {% for record in language_records %}
+
+                    <div class="border border-slate-100 rounded-xl p-4 flex items-center justify-between gap-4">
+
+                        <div>
+
+                            <p class="font-semibold text-slate-800">
+
+                                {{ record.language_name }}
+
+                                {% if record.skill_type %}
+                                    — {{ record.skill_type }}
+                                {% endif %}
+
+                            </p>
+
+                            {% if record.title %}
+
+                                <p class="text-sm text-slate-500 mt-1">
+                                    {{ record.title }}
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="text-right">
+
+                            <p class="font-bold text-amber-600">
+
+                                {{
+                                    (record.points or 0)
+                                    +
+                                    (record.bonus_points or 0)
+                                }}
+
+                            </p>
+
+                            <p class="text-xs text-slate-500">
+                                points
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p class="text-sm text-slate-500 py-5">
+                No language skill assessments recorded yet.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =================================================
+         Publications
+    ================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+        <h2 class="text-lg font-semibold text-slate-800">
+            Publications
+        </h2>
+
+        <p class="text-sm text-slate-500 mt-1 mb-5">
+            Your approved publications.
+        </p>
+
+
+        {% if publication_records %}
+
+            <div class="space-y-3">
+
+                {% for record in publication_records %}
+
+                    <div class="border border-slate-100 rounded-xl p-4 flex items-center justify-between gap-4">
+
+                        <div>
+
+                            <p class="font-semibold text-slate-800">
+                                {{ record.title }}
+                            </p>
+
+                            {% if record.publication_type %}
+
+                                <p class="text-sm text-slate-500 mt-1">
+                                    {{ record.publication_type }}
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="text-right">
+
+                            <p class="font-bold text-indigo-600">
+
+                                {{
+                                    (record.points or 0)
+                                    +
+                                    (record.bonus_points or 0)
+                                }}
+
+                            </p>
+
+                            <p class="text-xs text-slate-500">
+                                points
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p class="text-sm text-slate-500 py-5">
+                No publications recorded yet.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =================================================
+         Paper Presentation
+    ================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+        <h2 class="text-lg font-semibold text-slate-800">
+            Paper Presentation
+        </h2>
+
+        <p class="text-sm text-slate-500 mt-1 mb-5">
+            Your approved paper presentations.
+        </p>
+
+
+        {% if paper_records %}
+
+            <div class="space-y-3">
+
+                {% for record in paper_records %}
+
+                    <div class="border border-slate-100 rounded-xl p-4 flex items-center justify-between gap-4">
+
+                        <div>
+
+                            <p class="font-semibold text-slate-800">
+                                {{ record.topic }}
+                            </p>
+
+                            {% if record.presentation_level %}
+
+                                <p class="text-sm text-slate-500 mt-1">
+                                    {{ record.presentation_level }}
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="text-right">
+
+                            <p class="font-bold text-cyan-600">
+                                {{ record.points or 0 }}
+                            </p>
+
+                            <p class="text-xs text-slate-500">
+                                points
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p class="text-sm text-slate-500 py-5">
+                No paper presentations recorded yet.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =================================================
+         Academic Performance
+    ================================================== -->
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+
+        <!-- Attendance -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Attendance
+            </h2>
+
+            <div class="grid grid-cols-3 gap-4 mt-5">
+
+                <div>
+                    <p class="text-xs text-slate-500">
+                        Present
+                    </p>
+
+                    <p class="text-2xl font-bold text-green-600 mt-1">
+                        {{ attendance.present_days }}
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-xs text-slate-500">
+                        Absent
+                    </p>
+
+                    <p class="text-2xl font-bold text-red-600 mt-1">
+                        {{ attendance.absent_days }}
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-xs text-slate-500">
+                        Leave
+                    </p>
+
+                    <p class="text-2xl font-bold text-amber-600 mt-1">
+                        {{ attendance.leave_days }}
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Exams -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Exam Performance
+            </h2>
+
+            <div class="mt-5">
+
+                <p class="text-3xl font-bold text-slate-800">
+                    {{ exam_performance.percentage }}%
+                </p>
+
+                <p class="text-sm text-slate-500 mt-2">
+
+                    {{ exam_performance.obtained }}
+
+                    /
+
+                    {{ exam_performance.possible }}
+
+                    marks
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    if (typeof lucide !== "undefined") {
+        lucide.createIcons();
+    }
+
+</script>
+
+{% endblock %}

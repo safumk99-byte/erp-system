@@ -6,169 +6,303 @@ Subjects
 
 {% block page_content %}
 
-<div class="flex items-center justify-between mb-6">
+<div class="max-w-7xl mx-auto">
 
-    <div>
+    <!-- Header -->
 
-        <h1 class="text-3xl font-bold text-slate-800">
-            Subjects
-        </h1>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
 
-        <p class="text-slate-500 mt-1">
-            Manage Subjects
-        </p>
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Subjects
+            </h1>
+
+            <p class="text-slate-500 mt-1">
+                Manage subjects for your institution.
+            </p>
+
+        </div>
+
+
+        <div class="flex flex-col sm:flex-row gap-3">
+
+            <!-- Search -->
+
+            <form method="GET">
+
+                <div class="flex gap-3">
+
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ search }}"
+                        placeholder="Search subject..."
+                        class="border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                    <button
+                        type="submit"
+                        class="bg-slate-800 hover:bg-slate-900 text-white px-6 rounded-xl transition"
+                    >
+                        Search
+                    </button>
+
+                </div>
+
+            </form>
+
+
+            <!-- Add Subject -->
+            <!-- Institution Admin only -->
+
+            {% if session.get("role") == "institution_admin" %}
+
+            <a
+                href="{{ url_for('subjects.create_subject') }}"
+                class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl transition"
+            >
+                + Add Subject
+            </a>
+
+            <a
+    href="{{ url_for('subjects.view_subjects') }}"
+    class="inline-flex
+           items-center
+           justify-center
+           gap-2
+           border border-slate-300
+           hover:bg-slate-50
+           text-slate-700
+           px-5 py-3
+           rounded-xl
+           transition"
+>
+
+    <i
+        data-lucide="list"
+        class="w-4 h-4"
+    ></i>
+
+    View Subjects
+
+</a>
+
+            {% endif %}
+
+        </div>
 
     </div>
 
-    <div class="flex gap-3">
 
-        <form method="GET">
+    <!-- Alerts -->
 
-            <div class="flex gap-3">
+    {% include "components/alert.html" %}
 
-                <input
-                    type="text"
-                    name="search"
-                    value="{{ search }}"
-                    placeholder="Search subject..."
-                    class="border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
 
-                <button
-                    type="submit"
-                    class="bg-slate-800 text-white px-6 rounded-xl">
+    <!-- Subjects Table -->
 
-                    Search
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
-                </button>
+        <div class="overflow-x-auto">
 
-            </div>
+            <table class="w-full text-sm">
 
-        </form>
+                <thead class="bg-slate-100 border-b border-slate-200">
 
-        <a href="{{ url_for('subjects.create_subject') }}"
-           class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl">
+                    <tr>
 
-            + Add Subject
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Class
+                        </th>
 
-        </a>
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Subject
+                        </th>
+
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Description
+                        </th>
+
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Status
+                        </th>
+
+                        <th class="text-center px-6 py-4 font-semibold text-slate-600">
+                            Actions
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-slate-100">
+
+                {% if subjects %}
+
+                    {% for subject in subjects %}
+
+                    <tr class="hover:bg-slate-50">
+
+                        <!-- Class -->
+
+                        <td class="px-6 py-4 text-slate-700">
+                            {{ subject.class_name }}
+                        </td>
+
+
+                        <!-- Subject -->
+
+                        <td class="px-6 py-4 font-medium text-slate-800">
+                            {{ subject.subject_name }}
+                        </td>
+
+
+                        <!-- Description -->
+
+                        <td class="px-6 py-4 text-slate-600">
+                            {{ subject.description or "-" }}
+                        </td>
+
+
+                        <!-- Status -->
+
+                        <td class="px-6 py-4">
+
+                            {% if subject.is_active %}
+
+                                <span class="inline-flex items-center bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="inline-flex items-center bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                                    Inactive
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Actions -->
+
+                        <td class="px-6 py-4 text-center">
+
+                            {% if session.get("role") == "institution_admin" %}
+
+                                <div class="flex items-center justify-center gap-3">
+
+                                    <!-- Edit -->
+
+                                    <a
+                                        href="{{ url_for(
+                                            'subjects.update_subject',
+                                            id=subject.id
+                                        ) }}"
+                                        class="text-indigo-600 hover:text-indigo-800 hover:underline"
+                                    >
+                                        Edit
+                                    </a>
+
+
+                                    <span class="text-slate-300">
+                                        |
+                                    </span>
+
+
+                                    <!-- Toggle -->
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for(
+                                            'subjects.toggle_subject',
+                                            id=subject.id
+                                        ) }}"
+                                        class="inline"
+                                        onsubmit="return confirm(
+                                            '{% if subject.is_active %}Deactivate{% else %}Activate{% endif %} {{ subject.subject_name }}?'
+                                        );"
+                                    >
+
+                                        {% if subject.is_active %}
+
+                                            <button
+                                                type="submit"
+                                                class="text-red-600 hover:text-red-800 hover:underline"
+                                            >
+                                                Deactivate
+                                            </button>
+
+                                        {% else %}
+
+                                            <button
+                                                type="submit"
+                                                class="text-green-600 hover:text-green-800 hover:underline"
+                                            >
+                                                Activate
+                                            </button>
+
+                                        {% endif %}
+
+                                    </form>
+
+                                </div>
+
+                            {% else %}
+
+                                <span class="text-slate-400 text-sm">
+                                    View only
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <tr>
+
+                        <td
+                            colspan="5"
+                            class="text-center py-12 text-slate-500"
+                        >
+
+                            <div class="text-4xl mb-3">
+                                📚
+                            </div>
+
+                            <p class="font-medium text-slate-600">
+                                No subjects found.
+                            </p>
+
+                            {% if session.get("role") == "institution_admin" %}
+
+                                <p class="text-sm text-slate-400 mt-1">
+                                    Add your institution's first subject.
+                                </p>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                {% endif %}
+
+                </tbody>
+
+            </table>
+
+        </div>
 
     </div>
-
-</div>
-
-<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-
-    <table class="w-full">
-
-        <thead class="bg-slate-100">
-
-            <tr>
-
-                <th class="text-left px-6 py-4">Class</th>
-                <th class="text-left px-6 py-4">Subject</th>
-                <th class="text-left px-6 py-4">Description</th>
-                <th class="text-left px-6 py-4">Status</th>
-                <th class="text-center px-6 py-4">Actions</th>
-
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-        {% if subjects %}
-
-            {% for subject in subjects %}
-
-            <tr class="border-t hover:bg-slate-50">
-
-                <td class="px-6 py-4">
-                    {{ subject.class_name }}
-                </td>
-
-                <td class="px-6 py-4 font-medium">
-                    {{ subject.subject_name }}
-                </td>
-
-                <td class="px-6 py-4">
-                    {{ subject.description or "-" }}
-                </td>
-
-                <td class="px-6 py-4">
-
-                    {% if subject.is_active %}
-
-                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                            Active
-                        </span>
-
-                    {% else %}
-
-                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
-                            Inactive
-                        </span>
-
-                    {% endif %}
-
-                </td>
-
-                <td class="px-6 py-4 text-center">
-
-                    <a href="{{ url_for('subjects.update_subject', id=subject.id) }}"
-                       class="text-indigo-600 hover:underline">
-
-                        Edit
-
-                    </a>
-
-                    <span class="mx-2 text-slate-300">|</span>
-
-                    {% if subject.is_active %}
-
-                        <a href="{{ url_for('subjects.toggle_subject', id=subject.id) }}"
-                           class="text-red-600 hover:underline"
-                           onclick="return confirm('Deactivate this subject?')">
-
-                            Deactivate
-
-                        </a>
-
-                    {% else %}
-
-                        <a href="{{ url_for('subjects.toggle_subject', id=subject.id) }}"
-                           class="text-green-600 hover:underline"
-                           onclick="return confirm('Activate this subject?')">
-
-                            Activate
-
-                        </a>
-
-                    {% endif %}
-
-                </td>
-
-            </tr>
-
-            {% endfor %}
-
-        {% else %}
-
-            <tr>
-
-                <td colspan="5"
-                    class="text-center py-10 text-slate-500">
-
-                    No subjects found.
-
-                </td>
-
-            </tr>
-
-        {% endif %}
-
-        </tbody>
-
-    </table>
 
 </div>
 

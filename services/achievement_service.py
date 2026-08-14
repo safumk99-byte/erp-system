@@ -14,6 +14,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from database.db import get_connection
+from services.notification_service import notify_student_and_parent
 
 
 # =========================================================
@@ -1207,6 +1208,8 @@ def approve_achievement(id):
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
+    user_id = session.get("user_id")
 
 
     if role not in (
@@ -1228,6 +1231,7 @@ def approve_achievement(id):
 
         cur.execute("""
             SELECT
+                a.student_id,
                 a.achievement_type,
                 a.position,
                 a.assigned_points,
@@ -1242,17 +1246,22 @@ def approve_achievement(id):
                 a.id = %s
                 AND a.institution_id = %s
                 AND s.institution_id = %s
+                AND s.is_active = TRUE
                 AND a.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"]
+            institution_id,
+            institution_id
         ))
+
 
     else:
 
         cur.execute("""
             SELECT
+                a.student_id,
                 a.achievement_type,
                 a.position,
                 a.assigned_points,
@@ -1270,17 +1279,20 @@ def approve_achievement(id):
                 a.id = %s
                 AND a.institution_id = %s
                 AND s.institution_id = %s
+                AND s.is_active = TRUE
                 AND a.status = 'Pending'
 
                 AND sc.institution_id = %s
                 AND sc.staff_id = %s
                 AND sc.is_active = TRUE
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"],
-            session["user_id"]
+            institution_id,
+            institution_id,
+            institution_id,
+            user_id
         ))
 
 
@@ -1302,6 +1314,11 @@ def approve_achievement(id):
                 "achievement.achievement_list"
             )
         )
+
+
+    student_id = achievement[
+        "student_id"
+    ]
 
 
     # =====================================================
@@ -1335,22 +1352,44 @@ def approve_achievement(id):
             id = %s
             AND institution_id = %s
             AND status = 'Pending'
+
     """, (
         points,
-        session.get("user_id"),
+        user_id,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
 
+    # =====================================================
+    # Notification
+    # =====================================================
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Achievement",
+        approved=True,
+        remarks=None,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # =====================================================
+    # Commit
+    # =====================================================
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
 
     flash(
-        f"Achievement approved. Points: {points}",
+        f"Achievement approved. "
+        f"Points: {points}. "
+        f"Notification sent.",
         "success"
     )
 
@@ -1372,6 +1411,8 @@ def reject_achievement(id):
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
+    user_id = session.get("user_id")
 
 
     if role not in (
@@ -1416,7 +1457,8 @@ def reject_achievement(id):
 
         cur.execute("""
             SELECT
-                a.id
+                a.id,
+                a.student_id
 
             FROM achievements a
 
@@ -1427,18 +1469,23 @@ def reject_achievement(id):
                 a.id = %s
                 AND a.institution_id = %s
                 AND s.institution_id = %s
+                AND s.is_active = TRUE
                 AND a.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"]
+            institution_id,
+            institution_id
         ))
+
 
     else:
 
         cur.execute("""
             SELECT
-                a.id
+                a.id,
+                a.student_id
 
             FROM achievements a
 
@@ -1452,17 +1499,20 @@ def reject_achievement(id):
                 a.id = %s
                 AND a.institution_id = %s
                 AND s.institution_id = %s
+                AND s.is_active = TRUE
                 AND a.status = 'Pending'
 
                 AND sc.institution_id = %s
                 AND sc.staff_id = %s
                 AND sc.is_active = TRUE
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"],
-            session["user_id"]
+            institution_id,
+            institution_id,
+            institution_id,
+            user_id
         ))
 
 
@@ -1486,6 +1536,11 @@ def reject_achievement(id):
         )
 
 
+    student_id = achievement[
+        "student_id"
+    ]
+
+
     # =====================================================
     # Reject
     # =====================================================
@@ -1506,22 +1561,42 @@ def reject_achievement(id):
             id = %s
             AND institution_id = %s
             AND status = 'Pending'
+
     """, (
-        session.get("user_id"),
+        user_id,
         reason,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
 
+    # =====================================================
+    # Notification
+    # =====================================================
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Achievement",
+        approved=False,
+        remarks=reason,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # =====================================================
+    # Commit
+    # =====================================================
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
 
     flash(
-        "Achievement rejected.",
+        "Achievement rejected and notification sent.",
         "success"
     )
 

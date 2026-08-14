@@ -1,0 +1,324 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+My Results
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- =====================================================
+         Header
+    ====================================================== -->
+
+    <div>
+
+        <h1 class="text-3xl font-bold text-slate-800">
+            My Results
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            View your examination results and subject-wise marks.
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         Student Information
+    ====================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-6">
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+
+            <div>
+
+                <p class="text-sm text-slate-500">
+                    Student Name
+                </p>
+
+                <p class="font-semibold text-slate-800 mt-1">
+                    {{ student.full_name }}
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <p class="text-sm text-slate-500">
+                    Admission No
+                </p>
+
+                <p class="font-semibold text-slate-800 mt-1">
+                    {{ student.admission_no }}
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <p class="text-sm text-slate-500">
+                    Class
+                </p>
+
+                <p class="font-semibold text-slate-800 mt-1">
+                    {{ student.class_name or "Not assigned" }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         Results
+    ====================================================== -->
+
+    {% if results %}
+
+        {% for result in results %}
+
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+
+            <!-- Exam Header -->
+
+            <div class="p-6 border-b border-slate-200">
+
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+
+                    <div>
+
+                        <h2 class="text-xl font-bold text-slate-800">
+                            {{ result.exam_name }}
+                        </h2>
+
+                        <div class="flex flex-wrap items-center gap-3 mt-2">
+
+                            <span class="text-sm text-slate-500">
+                                {{ result.exam_type }}
+                            </span>
+
+                            <span class="text-slate-300">
+                                •
+                            </span>
+
+                            <span class="text-sm text-slate-500">
+
+                                {{ result.exam_date.strftime("%d %b %Y") }}
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Summary -->
+
+                    <div class="flex flex-wrap gap-3">
+
+                        <div class="px-4 py-3 rounded-xl bg-slate-50">
+
+                            <p class="text-xs text-slate-500">
+                                Total
+                            </p>
+
+                            <p class="font-bold text-slate-800 mt-1">
+                                {{ result.total_obtained }}
+                                /
+                                {{ result.total_possible }}
+                            </p>
+
+                        </div>
+
+
+                        <div class="px-4 py-3 rounded-xl bg-blue-50">
+
+                            <p class="text-xs text-blue-600">
+                                Percentage
+                            </p>
+
+                            <p class="font-bold text-blue-700 mt-1">
+                                {{ result.percentage }}%
+                            </p>
+
+                        </div>
+
+
+                        <div class="px-4 py-3 rounded-xl bg-green-50">
+
+                            <p class="text-xs text-green-600">
+                                Grade
+                            </p>
+
+                            <p class="font-bold text-green-700 mt-1">
+                                {{ result.grade }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Subject Results -->
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full text-sm">
+
+                    <thead class="bg-slate-50 border-b border-slate-200">
+
+                        <tr>
+
+                            <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                                Subject
+                            </th>
+
+                            <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                                Mark
+                            </th>
+
+                            <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                                Percentage
+                            </th>
+
+                            <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                                Grade
+                            </th>
+
+                            <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                                Remark
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody class="divide-y divide-slate-100">
+
+                        {% for subject in result.subjects %}
+
+                        <tr class="hover:bg-slate-50 transition">
+
+                            <td class="px-6 py-4">
+
+                                <span class="font-medium text-slate-800">
+                                    {{ subject.subject_name }}
+                                </span>
+
+                            </td>
+
+
+                            <td class="px-6 py-4">
+
+                                <span class="font-semibold text-slate-800">
+
+                                    {{ subject.mark }}
+
+                                    /
+
+                                    {{ result.total_mark }}
+
+                                </span>
+
+                            </td>
+
+
+                            <td class="px-6 py-4">
+
+                                {% set subject_percentage =
+                                    (subject.mark / result.total_mark * 100)
+                                    if result.total_mark > 0
+                                    else 0
+                                %}
+
+                                {{ subject_percentage|round(2) }}%
+
+                            </td>
+
+
+                            <td class="px-6 py-4">
+
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-green-100 text-green-700 font-semibold text-xs">
+
+                                    {{ subject.grade }}
+
+                                </span>
+
+                            </td>
+
+
+                            <td class="px-6 py-4 text-slate-500">
+
+                                {{ subject.remark or "-" }}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <!-- =================================================
+             No Results
+        ================================================== -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-10 text-center">
+
+            <div class="w-14 h-14 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-4">
+
+                <i
+                    data-lucide="file-chart-column"
+                    class="w-7 h-7">
+                </i>
+
+            </div>
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                No Results Available
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Your examination results will appear here after marks are published.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<script>
+
+    if (typeof lucide !== "undefined") {
+
+        lucide.createIcons();
+
+    }
+
+</script>
+
+{% endblock %}

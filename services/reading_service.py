@@ -9,6 +9,8 @@ from flask import (
 
 from database.db import get_connection
 
+from services.notification_service import notify_student_and_parent
+
 
 # =========================================================
 # Verify Student Access
@@ -430,6 +432,8 @@ def approve_reading(id):
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
+    user_id = session.get("user_id")
 
 
     # -----------------------------------------------------
@@ -440,6 +444,7 @@ def approve_reading(id):
 
         cur.execute("""
             SELECT
+                r.student_id,
                 r.reading_type,
                 r.pages
 
@@ -453,16 +458,20 @@ def approve_reading(id):
                 AND r.institution_id = %s
                 AND s.institution_id = %s
                 AND r.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"]
+            institution_id,
+            institution_id
         ))
+
 
     elif role == "staff":
 
         cur.execute("""
             SELECT
+                r.student_id,
                 r.reading_type,
                 r.pages
 
@@ -483,13 +492,16 @@ def approve_reading(id):
                 AND sc.institution_id = %s
                 AND sc.staff_id = %s
                 AND sc.is_active = TRUE
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"],
-            session["user_id"]
+            institution_id,
+            institution_id,
+            institution_id,
+            user_id
         ))
+
 
     else:
 
@@ -519,8 +531,14 @@ def approve_reading(id):
         )
 
 
+    student_id = reading["student_id"]
     reading_type = reading["reading_type"]
     pages = reading["pages"]
+
+
+    # -----------------------------------------------------
+    # Calculate Points
+    # -----------------------------------------------------
 
     points = 0
 
@@ -528,13 +546,20 @@ def approve_reading(id):
     if reading_type == "Fiction":
 
         if pages >= 50:
+
             points = 3
+
 
     elif reading_type == "Non-Fiction":
 
         if pages >= 25:
+
             points = 5
 
+
+    # -----------------------------------------------------
+    # Approve Reading
+    # -----------------------------------------------------
 
     cur.execute("""
         UPDATE reading_submissions
@@ -554,20 +579,39 @@ def approve_reading(id):
 
     """, (
         points,
-        session.get("user_id"),
+        user_id,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
 
+    # -----------------------------------------------------
+    # Notification
+    # -----------------------------------------------------
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Reading Skill",
+        approved=True,
+        remarks=None,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # -----------------------------------------------------
+    # Commit
+    # -----------------------------------------------------
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
 
     flash(
-        "Reading submission approved.",
+        "Reading submission approved and notification sent.",
         "success"
     )
 
@@ -589,12 +633,19 @@ def reject_reading(id):
     cur = conn.cursor()
 
     role = session.get("role")
+    institution_id = session.get("institution_id")
+    user_id = session.get("user_id")
+
 
     reason = request.form.get(
         "rejection_reason",
         ""
     ).strip()
 
+
+    # -----------------------------------------------------
+    # Validate Reason
+    # -----------------------------------------------------
 
     if not reason:
 
@@ -621,7 +672,8 @@ def reject_reading(id):
 
         cur.execute("""
             SELECT
-                r.id
+                r.id,
+                r.student_id
 
             FROM reading_submissions r
 
@@ -633,17 +685,21 @@ def reject_reading(id):
                 AND r.institution_id = %s
                 AND s.institution_id = %s
                 AND r.status = 'Pending'
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"]
+            institution_id,
+            institution_id
         ))
+
 
     elif role == "staff":
 
         cur.execute("""
             SELECT
-                r.id
+                r.id,
+                r.student_id
 
             FROM reading_submissions r
 
@@ -662,13 +718,16 @@ def reject_reading(id):
                 AND sc.institution_id = %s
                 AND sc.staff_id = %s
                 AND sc.is_active = TRUE
+
+            FOR UPDATE
         """, (
             id,
-            session["institution_id"],
-            session["institution_id"],
-            session["institution_id"],
-            session["user_id"]
+            institution_id,
+            institution_id,
+            institution_id,
+            user_id
         ))
+
 
     else:
 
@@ -698,6 +757,13 @@ def reject_reading(id):
         )
 
 
+    student_id = reading["student_id"]
+
+
+    # -----------------------------------------------------
+    # Reject Reading
+    # -----------------------------------------------------
+
     cur.execute("""
         UPDATE reading_submissions
 
@@ -715,21 +781,40 @@ def reject_reading(id):
             AND status = 'Pending'
 
     """, (
-        session.get("user_id"),
+        user_id,
         reason,
         id,
-        session["institution_id"]
+        institution_id
     ))
 
 
+    # -----------------------------------------------------
+    # Notification
+    # -----------------------------------------------------
+
+    notify_student_and_parent(
+        student_id=student_id,
+        module_name="Reading Skill",
+        approved=False,
+        remarks=reason,
+        institution_id=institution_id,
+        cur=cur
+    )
+
+
+    # -----------------------------------------------------
+    # Commit
+    # -----------------------------------------------------
+
     conn.commit()
+
 
     cur.close()
     conn.close()
 
 
     flash(
-        "Reading submission rejected.",
+        "Reading submission rejected and notification sent.",
         "success"
     )
 

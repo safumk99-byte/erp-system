@@ -1,0 +1,3 @@
+-- Compatibility marker.
+-- Canonical core identity schema is created earlier in migration 003a_core_identity_schema.sql
+-- so that all subsequent enhancement migrations can safely reference these tables.

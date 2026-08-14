@@ -8,7 +8,9 @@ Students
 
 <div class="max-w-7xl mx-auto">
 
+    <!-- ================================================= -->
     <!-- Header -->
+    <!-- ================================================= -->
 
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-6">
 
@@ -27,90 +29,87 @@ Students
 
         <div class="flex flex-col sm:flex-row gap-3">
 
-            <!-- Search -->
+            <!-- Search / Filter -->
 
             <form
-    method="GET"
-    class="flex flex-col sm:flex-row gap-2">
+                method="GET"
+                class="flex flex-col sm:flex-row gap-2"
+            >
 
-    <!-- Search -->
-
-    <input
-        type="text"
-        name="search"
-        value="{{ search }}"
-        placeholder="Search student..."
-        class="border border-slate-300 rounded-xl px-4 py-3
-               focus:outline-none focus:ring-2 focus:ring-indigo-500">
-
-
-    <!-- Class Filter -->
-
-    <select
-        name="class_id"
-        class="border border-slate-300 rounded-xl px-4 py-3
-               bg-white
-               focus:outline-none focus:ring-2 focus:ring-indigo-500">
-
-        <option value="">
-            All Classes
-        </option>
-
-        {% for class_item in classes %}
-
-            <option
-                value="{{ class_item.id }}"
-                {% if class_id|string == class_item.id|string %}
-                    selected
-                {% endif %}>
-
-                {{ class_item.class_name }}
-
-            </option>
-
-        {% endfor %}
-
-    </select>
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search }}"
+                    placeholder="Search student..."
+                    class="border border-slate-300 rounded-xl px-4 py-3
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
 
 
-    <!-- Search Button -->
+                <select
+                    name="class_id"
+                    class="border border-slate-300 rounded-xl px-4 py-3
+                           bg-white
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
 
-    <button
-        type="submit"
-        class="bg-slate-800 hover:bg-slate-900 text-white
-               px-5 py-3 rounded-xl">
+                    <option value="">
+                        All Classes
+                    </option>
 
-        Search
+                    {% for class_item in classes %}
 
-    </button>
+                        <option
+                            value="{{ class_item.id }}"
+                            {% if class_id|string == class_item.id|string %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ class_item.class_name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
 
 
-    <!-- Clear -->
+                <button
+                    type="submit"
+                    class="bg-slate-800 hover:bg-slate-900
+                           text-white px-5 py-3 rounded-xl
+                           transition"
+                >
+                    Search
+                </button>
 
-    {% if search or class_id %}
 
-        <a
-            href="{{ url_for('students.student_list') }}"
-            class="border border-slate-300 hover:bg-slate-50
-                   px-5 py-3 rounded-xl text-center">
+                {% if search or class_id %}
 
-            Clear
+                    <a
+                        href="{{ url_for('students.student_list') }}"
+                        class="border border-slate-300
+                               hover:bg-slate-50
+                               px-5 py-3 rounded-xl
+                               text-center transition"
+                    >
+                        Clear
+                    </a>
 
-        </a>
+                {% endif %}
 
-    {% endif %}
-
-</form>
+            </form>
 
 
             <!-- Add Student -->
 
             <a
                 href="{{ url_for('students.create_student') }}"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-center">
-
+                class="inline-flex items-center justify-center
+                       bg-indigo-600 hover:bg-indigo-700
+                       text-white px-5 py-3 rounded-xl
+                       transition"
+            >
                 + Add Student
-
             </a>
 
         </div>
@@ -118,42 +117,59 @@ Students
     </div>
 
 
+    <!-- ================================================= -->
+    <!-- Alerts -->
+    <!-- ================================================= -->
+
     {% include "components/alert.html" %}
 
 
+    <!-- ================================================= -->
     <!-- Students Table -->
+    <!-- ================================================= -->
 
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm
+                border border-slate-200 overflow-hidden">
 
         <div class="overflow-x-auto">
 
-            <table class="w-full min-w-[850px]">
+            <table class="w-full min-w-[950px] text-sm">
 
-                <thead class="bg-slate-100">
+                <!-- ================================================= -->
+                <!-- Header -->
+                <!-- ================================================= -->
+
+                <thead class="bg-slate-100 border-b border-slate-200">
 
                     <tr>
 
-                        <th class="text-left px-6 py-4">
+                        <th class="text-left px-6 py-4
+                                   font-semibold text-slate-600">
+                            Student
+                        </th>
+
+                        <th class="text-left px-6 py-4
+                                   font-semibold text-slate-600">
                             Admission No
                         </th>
 
-                        <th class="text-left px-6 py-4">
-                            Student Name
-                        </th>
-
-                        <th class="text-left px-6 py-4">
+                        <th class="text-left px-6 py-4
+                                   font-semibold text-slate-600">
                             Class
                         </th>
 
-                        <th class="text-left px-6 py-4">
+                        <th class="text-left px-6 py-4
+                                   font-semibold text-slate-600">
                             Parent
                         </th>
 
-                        <th class="text-left px-6 py-4">
+                        <th class="text-left px-6 py-4
+                                   font-semibold text-slate-600">
                             Status
                         </th>
 
-                        <th class="text-center px-6 py-4">
+                        <th class="text-center px-6 py-4
+                                   font-semibold text-slate-600">
                             Actions
                         </th>
 
@@ -162,62 +178,85 @@ Students
                 </thead>
 
 
-                <tbody>
+                <!-- ================================================= -->
+                <!-- Body -->
+                <!-- ================================================= -->
+
+                <tbody class="divide-y divide-slate-100">
 
                 {% if students %}
 
                     {% for student in students %}
 
-                    <tr class="border-t border-slate-100 hover:bg-slate-50">
+                    <tr class="hover:bg-slate-50 transition">
 
 
-                        <!-- Admission Number -->
-
-                        <td class="px-6 py-4">
-
-                            <span class="font-medium text-slate-700">
-
-                                {{ student.admission_no }}
-
-                            </span>
-
-                        </td>
-
-
-                        <!-- Student Name -->
+                        <!-- ================================================= -->
+                        <!-- Student -->
+                        <!-- ================================================= -->
 
                         <td class="px-6 py-4">
 
-                            <div class="flex items-center gap-3">
-
-                                {% if student.photo %}
-
-                                    <img
-                                        src="{{ student.photo }}"
-                                        alt="{{ student.full_name }}"
-                                        class="w-10 h-10 rounded-full object-cover border">
-
-                                {% else %}
-
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-indigo-100
-                                               flex items-center justify-center
-                                               text-indigo-600 font-bold">
-
-                                        {{ student.full_name[:1]|upper }}
-
-                                    </div>
-
-                                {% endif %}
+                            <div class="flex items-center gap-4">
 
 
-                                <div>
+                                <!-- Photo -->
 
-                                    <div class="font-medium text-slate-800">
+                                <div class="shrink-0">
+
+                                    {% if student.photo %}
+
+                                        <img
+    src="{{ url_for(
+        'students.student_photo',
+        filename=student.photo
+    ) }}"
+    alt="{{ student.full_name }}"
+    class="w-10 h-10 rounded-full object-cover border"
+>
+
+                                    {% else %}
+
+                                        <div
+                                            class="w-12 h-12
+                                                   rounded-xl
+                                                   bg-indigo-50
+                                                   border border-indigo-100
+                                                   flex items-center
+                                                   justify-center"
+                                        >
+
+                                            <i
+                                                data-lucide="user"
+                                                class="w-6 h-6 text-indigo-400"
+                                            ></i>
+
+                                        </div>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <!-- Name -->
+
+                                <div class="min-w-0">
+
+                                    <p class="font-semibold
+                                              text-slate-800
+                                              truncate">
 
                                         {{ student.full_name }}
 
-                                    </div>
+                                    </p>
+
+                                    <p class="text-xs
+                                              text-slate-400
+                                              mt-0.5">
+
+                                        Student
+
+                                    </p>
 
                                 </div>
 
@@ -226,32 +265,115 @@ Students
                         </td>
 
 
+                        <!-- ================================================= -->
+                        <!-- Admission -->
+                        <!-- ================================================= -->
+
+                        <td class="px-6 py-4">
+
+                            <span
+                                class="inline-flex items-center
+                                       px-3 py-1.5
+                                       rounded-lg
+                                       bg-slate-100
+                                       text-slate-700
+                                       font-medium"
+                            >
+
+                                {{ student.admission_no }}
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- ================================================= -->
                         <!-- Class -->
+                        <!-- ================================================= -->
 
                         <td class="px-6 py-4">
 
-                            {{ student.class_name or "Not Assigned" }}
+                            {% if student.class_name %}
+
+                                <span
+                                    class="inline-flex items-center
+                                           px-3 py-1.5
+                                           rounded-lg
+                                           bg-blue-50
+                                           text-blue-700
+                                           font-medium"
+                                >
+
+                                    {{ student.class_name }}
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-slate-400">
+                                    Not Assigned
+                                </span>
+
+                            {% endif %}
 
                         </td>
 
 
+                        <!-- ================================================= -->
                         <!-- Parent -->
+                        <!-- ================================================= -->
 
                         <td class="px-6 py-4">
 
-                            {{ student.parent_name or "Not provided" }}
+                            <div>
+
+                                <p class="font-medium
+                                          text-slate-700">
+
+                                    {{ student.parent_name or "Not provided" }}
+
+                                </p>
+
+                                {% if student.parent_phone %}
+
+                                    <p class="text-xs
+                                              text-slate-400
+                                              mt-1">
+
+                                        {{ student.parent_phone }}
+
+                                    </p>
+
+                                {% endif %}
+
+                            </div>
 
                         </td>
 
 
+                        <!-- ================================================= -->
                         <!-- Status -->
+                        <!-- ================================================= -->
 
                         <td class="px-6 py-4">
 
                             {% if student.is_active %}
 
                                 <span
-                                    class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                                    class="inline-flex items-center gap-1.5
+                                           bg-green-100
+                                           text-green-700
+                                           px-3 py-1.5
+                                           rounded-full
+                                           text-xs
+                                           font-semibold"
+                                >
+
+                                    <span
+                                        class="w-1.5 h-1.5
+                                               rounded-full
+                                               bg-green-500"
+                                    ></span>
 
                                     Active
 
@@ -260,7 +382,20 @@ Students
                             {% else %}
 
                                 <span
-                                    class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                                    class="inline-flex items-center gap-1.5
+                                           bg-red-100
+                                           text-red-700
+                                           px-3 py-1.5
+                                           rounded-full
+                                           text-xs
+                                           font-semibold"
+                                >
+
+                                    <span
+                                        class="w-1.5 h-1.5
+                                               rounded-full
+                                               bg-red-500"
+                                    ></span>
 
                                     Inactive
 
@@ -271,66 +406,125 @@ Students
                         </td>
 
 
+                        <!-- ================================================= -->
                         <!-- Actions -->
+                        <!-- ================================================= -->
 
                         <td class="px-6 py-4">
 
-                            <div class="flex items-center justify-center gap-3">
-
+                            <div
+                                class="flex items-center
+                                       justify-center
+                                       gap-2"
+                            >
 
                                 <!-- View -->
 
                                 <a
-                                    href="{{ url_for('students.view_student', id=student.id) }}"
-                                    class="text-indigo-600 hover:text-indigo-800 font-medium">
+                                    href="{{ url_for(
+                                        'students.view_student',
+                                        id=student.id
+                                    ) }}"
+                                    title="View Student"
+                                    class="inline-flex items-center
+                                           justify-center
+                                           w-9 h-9
+                                           rounded-lg
+                                           bg-indigo-50
+                                           text-indigo-600
+                                           hover:bg-indigo-100
+                                           transition"
+                                >
 
-                                    View
+                                    <i
+                                        data-lucide="eye"
+                                        class="w-4 h-4"
+                                    ></i>
 
                                 </a>
-
-
-                                <span class="text-slate-300">
-                                    |
-                                </span>
 
 
                                 <!-- Edit -->
 
                                 <a
-                                    href="{{ url_for('students.update_student', id=student.id) }}"
-                                    class="text-slate-700 hover:text-indigo-600 font-medium">
+                                    href="{{ url_for(
+                                        'students.update_student',
+                                        id=student.id
+                                    ) }}"
+                                    title="Edit Student"
+                                    class="inline-flex items-center
+                                           justify-center
+                                           w-9 h-9
+                                           rounded-lg
+                                           bg-slate-100
+                                           text-slate-600
+                                           hover:bg-slate-200
+                                           transition"
+                                >
 
-                                    Edit
+                                    <i
+                                        data-lucide="edit"
+                                        class="w-4 h-4"
+                                    ></i>
 
                                 </a>
 
 
-                                <span class="text-slate-300">
-                                    |
-                                </span>
-
-
-                                <!-- Activate / Deactivate -->
+                                <!-- Toggle -->
 
                                 {% if student.is_active %}
 
                                     <a
-                                        href="{{ url_for('students.toggle_student', id=student.id) }}"
-                                        class="text-red-600 hover:text-red-800 font-medium"
-                                        onclick="return confirm('Deactivate this student?')">
+                                        href="{{ url_for(
+                                            'students.toggle_student',
+                                            id=student.id
+                                        ) }}"
+                                        title="Deactivate Student"
+                                        class="inline-flex items-center
+                                               justify-center
+                                               w-9 h-9
+                                               rounded-lg
+                                               bg-red-50
+                                               text-red-600
+                                               hover:bg-red-100
+                                               transition"
+                                        onclick="return confirm(
+                                            'Deactivate this student?'
+                                        )"
+                                    >
 
-                                        Deactivate
+                                        <i
+                                            data-lucide="user-x"
+                                            class="w-4 h-4"
+                                        ></i>
 
                                     </a>
 
                                 {% else %}
 
                                     <a
-                                        href="{{ url_for('students.toggle_student', id=student.id) }}"
-                                        class="text-green-600 hover:text-green-800 font-medium"
-                                        onclick="return confirm('Activate this student?')">
+                                        href="{{ url_for(
+                                            'students.toggle_student',
+                                            id=student.id
+                                        ) }}"
+                                        title="Activate Student"
+                                        class="inline-flex items-center
+                                               justify-center
+                                               w-9 h-9
+                                               rounded-lg
+                                               bg-green-50
+                                               text-green-600
+                                               hover:bg-green-100
+                                               transition"
+                                        onclick="return confirm(
+                                            'Activate this student?'
+                                        )"
+                                    >
 
-                                        Activate
+                                        <i
+                                            data-lucide="user-check"
+                                            class="w-4 h-4"
+                                        ></i>
 
                                     </a>
 
@@ -347,28 +541,60 @@ Students
 
                 {% else %}
 
+                    <!-- ================================================= -->
                     <!-- Empty State -->
+                    <!-- ================================================= -->
 
                     <tr>
 
                         <td
                             colspan="6"
-                            class="text-center py-12">
+                            class="text-center py-16"
+                        >
 
-                            <div class="text-slate-400 text-4xl mb-3">
-                                👨‍🎓
+                            <div
+                                class="w-16 h-16
+                                       mx-auto mb-4
+                                       rounded-2xl
+                                       bg-indigo-50
+                                       flex items-center
+                                       justify-center"
+                            >
+
+                                <i
+                                    data-lucide="graduation-cap"
+                                    class="w-8 h-8 text-indigo-400"
+                                ></i>
+
                             </div>
 
-                            <p class="text-slate-500 font-medium">
+
+                            <p
+                                class="text-slate-600
+                                       font-semibold"
+                            >
                                 No students found.
                             </p>
 
-                            {% if search %}
 
-                                <p class="text-sm text-slate-400 mt-1">
+                            {% if search or class_id %}
 
-                                    Try a different search term.
+                                <p
+                                    class="text-sm
+                                           text-slate-400
+                                           mt-1"
+                                >
+                                    Try changing your search or class filter.
+                                </p>
 
+                            {% else %}
+
+                                <p
+                                    class="text-sm
+                                           text-slate-400
+                                           mt-1"
+                                >
+                                    Add your institution's first student.
                                 </p>
 
                             {% endif %}

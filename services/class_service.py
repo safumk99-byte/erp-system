@@ -296,4 +296,178 @@ def toggle_class_status(id):
 
     return redirect(
         url_for("classes.class_list")
-    )            
+    )
+    
+# =========================================================
+# View Students Of Class
+# =========================================================
+
+def view_class_students(id):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    # -----------------------------------------------------
+    # Get Class
+    # -----------------------------------------------------
+
+    cur.execute("""
+        SELECT
+            id,
+            class_name,
+            description,
+            is_active
+
+        FROM classes
+
+        WHERE
+            id = %s
+            AND institution_id = %s
+
+        LIMIT 1
+    """, (
+        id,
+        session["institution_id"]
+    ))
+
+    class_item = cur.fetchone()
+
+
+    if not class_item:
+
+        cur.close()
+        conn.close()
+
+        flash(
+            "Class not found.",
+            "error"
+        )
+
+        return redirect(
+            url_for(
+                "classes.class_list"
+            )
+        )
+
+
+    # -----------------------------------------------------
+    # Get Students
+    # -----------------------------------------------------
+
+    cur.execute("""
+        SELECT
+            id,
+            admission_no,
+            full_name,
+            photo,
+            is_active
+
+        FROM students
+
+        WHERE
+            institution_id = %s
+            AND class_id = %s
+
+        ORDER BY
+            full_name ASC
+    """, (
+        session["institution_id"],
+        id
+    ))
+
+    students = cur.fetchall()
+
+
+    cur.close()
+    conn.close()
+
+
+    return render_template(
+        "classes/students.html",
+
+        class_item=class_item,
+
+        students=students
+    )
+    
+    
+# =========================================================
+# View Students of a Class
+# =========================================================
+
+def class_students(class_id):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    # -----------------------------------------------------
+    # Verify class belongs to current institution
+    # -----------------------------------------------------
+
+    cur.execute("""
+        SELECT
+            id,
+            class_name,
+            description,
+            is_active
+        FROM classes
+        WHERE
+            id = %s
+            AND institution_id = %s
+    """, (
+        class_id,
+        session["institution_id"]
+    ))
+
+    class_item = cur.fetchone()
+
+    if not class_item:
+
+        cur.close()
+        conn.close()
+
+        flash(
+            "Class not found.",
+            "error"
+        )
+
+        return redirect(
+            url_for("classes.class_list")
+        )
+
+    # -----------------------------------------------------
+    # Get students
+    # -----------------------------------------------------
+
+    cur.execute("""
+        SELECT
+            s.id,
+            s.admission_no,
+            s.full_name,
+            s.gender,
+            s.photo,
+            s.is_active
+
+        FROM students s
+
+        WHERE
+            s.class_id = %s
+            AND s.institution_id = %s
+
+        ORDER BY
+            s.full_name ASC
+    """, (
+        class_id,
+        session["institution_id"]
+    ))
+
+    students = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template(
+        "classes/students.html",
+        class_item=class_item,
+        students=students
+    )                    

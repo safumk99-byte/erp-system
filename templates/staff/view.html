@@ -1,0 +1,466 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Staff Profile
+{% endblock %}
+
+
+{% block page_content %}
+
+<div class="max-w-6xl mx-auto">
+
+    <!-- ================================================= -->
+    <!-- Header -->
+    <!-- ================================================= -->
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Staff Profile
+            </h1>
+
+            <p class="text-slate-500 mt-1">
+                View staff information and assignments.
+            </p>
+
+        </div>
+
+
+        <div class="flex gap-3">
+
+            <a
+                href="{{ url_for(
+                    'staff.update_staff',
+                    id=staff.id
+                ) }}"
+                class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+            >
+
+                <i
+                    data-lucide="edit"
+                    class="w-4 h-4"
+                ></i>
+
+                Edit
+
+            </a>
+
+
+            <a
+                href="{{ url_for(
+                    'staff.staff_list'
+                ) }}"
+                class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
+            >
+
+                <i
+                    data-lucide="arrow-left"
+                    class="w-4 h-4"
+                ></i>
+
+                Back
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    {% include "components/alert.html" %}
+
+
+    <!-- ================================================= -->
+    <!-- Profile Card -->
+    <!-- ================================================= -->
+
+    <div class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden mb-8">
+
+        <div class="p-6 md:p-8">
+
+            <div class="flex flex-col md:flex-row md:items-center gap-6">
+
+               <!-- Photo -->
+
+<div class="shrink-0">
+
+    {% if staff.photo %}
+
+        <div class="w-24 h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
+
+            <img
+                src="{{ url_for(
+                    'staff.staff_photo',
+                    filename=staff.photo
+                ) }}"
+                alt="{{ staff.full_name }}"
+                class="w-full h-full object-cover"
+            >
+
+        </div>
+
+    {% else %}
+
+        <div class="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+
+            <i
+                data-lucide="user"
+                class="w-12 h-12 text-indigo-400"
+            ></i>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+                <!-- Basic Information -->
+
+                <div class="flex-1">
+
+                    <div class="flex flex-wrap items-center gap-3 mb-2">
+
+                        <h2 class="text-2xl md:text-3xl font-bold text-slate-800">
+                            {{ staff.full_name }}
+                        </h2>
+
+
+                        {% if staff.is_active %}
+
+                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
+
+                                Active
+
+                            </span>
+
+                        {% else %}
+
+                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm font-semibold">
+
+                                Inactive
+
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <p class="text-indigo-600 font-medium">
+                        Staff
+                    </p>
+
+
+                    <p class="text-slate-500 mt-2">
+                        @{{ staff.username }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Contact Information -->
+
+        <div class="border-t border-slate-200 bg-slate-50 p-6 md:p-8">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+                <!-- Username -->
+
+                <div>
+
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-1">
+                        Username
+                    </p>
+
+                    <p class="font-medium text-slate-800">
+                        {{ staff.username or "-" }}
+                    </p>
+
+                </div>
+
+
+                <!-- Email -->
+
+                <div>
+
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-1">
+                        Email
+                    </p>
+
+                    <p class="font-medium text-slate-800 break-all">
+                        {{ staff.email or "-" }}
+                    </p>
+
+                </div>
+
+
+                <!-- Phone -->
+
+                <div>
+
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-1">
+                        Phone
+                    </p>
+
+                    <p class="font-medium text-slate-800">
+                        {{ staff.phone or "-" }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Assignment Summary -->
+    <!-- ================================================= -->
+
+    <div class="grid grid-cols-2 gap-4 mb-8">
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5">
+
+            <p class="text-sm text-slate-500">
+                Assigned Classes
+            </p>
+
+            <p class="text-3xl font-bold text-blue-600 mt-1">
+                {{ classes|length }}
+            </p>
+
+        </div>
+
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5">
+
+            <p class="text-sm text-slate-500">
+                Assigned Subjects
+            </p>
+
+            <p class="text-3xl font-bold text-purple-600 mt-1">
+                {{ subjects|length }}
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Classes -->
+    <!-- ================================================= -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-8">
+
+        <div class="p-6 border-b border-slate-200">
+
+            <div class="flex items-center gap-3">
+
+                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+
+                    <i
+                        data-lucide="school"
+                        class="w-5 h-5 text-blue-600"
+                    ></i>
+
+                </div>
+
+                <div>
+
+                    <h2 class="text-xl font-semibold text-slate-800">
+                        Assigned Classes
+                    </h2>
+
+                    <p class="text-sm text-slate-500">
+                        Classes assigned to this staff member.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="p-6">
+
+            {% if classes %}
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                    {% for class_item in classes %}
+
+                        <div class="border border-slate-200 rounded-xl p-4 hover:border-blue-300 hover:bg-blue-50/40 transition">
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+
+                                    <i
+                                        data-lucide="graduation-cap"
+                                        class="w-5 h-5 text-blue-600"
+                                    ></i>
+
+                                </div>
+
+                                <div>
+
+                                    <p class="font-semibold text-slate-800">
+                                        {{ class_item.class_name }}
+                                    </p>
+
+                                    <p class="text-xs text-slate-500">
+                                        Class
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="text-center py-8">
+
+                    <i
+                        data-lucide="school"
+                        class="w-10 h-10 mx-auto text-slate-300 mb-3"
+                    ></i>
+
+                    <p class="font-medium text-slate-600">
+                        No classes assigned
+                    </p>
+
+                    <p class="text-sm text-slate-400 mt-1">
+                        Assign classes to this staff member.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Subjects -->
+    <!-- ================================================= -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+        <div class="p-6 border-b border-slate-200">
+
+            <div class="flex items-center gap-3">
+
+                <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+
+                    <i
+                        data-lucide="book-open"
+                        class="w-5 h-5 text-purple-600"
+                    ></i>
+
+                </div>
+
+                <div>
+
+                    <h2 class="text-xl font-semibold text-slate-800">
+                        Assigned Subjects
+                    </h2>
+
+                    <p class="text-sm text-slate-500">
+                        Subjects assigned to this staff member.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="p-6">
+
+            {% if subjects %}
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                    {% for subject in subjects %}
+
+                        <div class="border border-slate-200 rounded-xl p-4 hover:border-purple-300 hover:bg-purple-50/40 transition">
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+
+                                    <i
+                                        data-lucide="book-open"
+                                        class="w-5 h-5 text-purple-600"
+                                    ></i>
+
+                                </div>
+
+                                <div class="min-w-0">
+
+                                    <p class="font-semibold text-slate-800 truncate">
+                                        {{ subject.subject_name }}
+                                    </p>
+
+                                    <p class="text-xs text-slate-500 truncate">
+                                        {{ subject.class_name or "Class not assigned" }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="text-center py-8">
+
+                    <i
+                        data-lucide="book-open"
+                        class="w-10 h-10 mx-auto text-slate-300 mb-3"
+                    ></i>
+
+                    <p class="font-medium text-slate-600">
+                        No subjects assigned
+                    </p>
+
+                    <p class="text-sm text-slate-400 mt-1">
+                        Assign subjects to this staff member.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

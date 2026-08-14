@@ -8,6 +8,11 @@ Edit Parent
 
 <div class="max-w-4xl mx-auto">
 
+
+    <!-- =================================================
+         Page Header
+    ================================================== -->
+
     <div class="mb-8">
 
         <h1 class="text-3xl font-bold text-slate-800">
@@ -15,94 +20,318 @@ Edit Parent
         </h1>
 
         <p class="text-slate-500 mt-2">
-            Update parent information.
+            Update parent information and login details.
         </p>
 
     </div>
 
+
     {% include "components/alert.html" %}
 
-    <form method="POST"
-          class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- =================================================
+         Form
+    ================================================== -->
 
-            <div>
+    <form
+        method="POST"
+        class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8"
+    >
 
-                <label class="block mb-2 font-medium">
-                    Full Name
-                </label>
 
-                <input
-                    type="text"
-                    name="full_name"
-                    value="{{ parent.full_name }}"
-                    required
-                    class="w-full border rounded-xl px-4 py-3">
+        <!-- =================================================
+             Parent Information
+        ================================================== -->
 
-            </div>
+        <div>
 
-            <div>
+            <div class="mb-5">
 
-                <label class="block mb-2 font-medium">
-                    Username
-                </label>
+                <h2 class="text-xl font-semibold text-slate-800">
+                    Parent Details
+                </h2>
 
-                <input
-                    type="text"
-                    name="username"
-                    value="{{ parent.username }}"
-                    required
-                    class="w-full border rounded-xl px-4 py-3">
+                <p class="text-sm text-slate-500 mt-1">
+                    Update the parent's contact information.
+                </p>
 
             </div>
 
-            <div>
 
-                <label class="block mb-2 font-medium">
-                    Email
-                </label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                <input
-                    type="email"
-                    name="email"
-                    value="{{ parent.email or '' }}"
-                    class="w-full border rounded-xl px-4 py-3">
 
-            </div>
+                <!-- Parent Name -->
 
-            <div>
+                <div>
 
-                <label class="block mb-2 font-medium">
-                    Phone
-                </label>
+                    <label class="block mb-2 font-medium text-slate-700">
+                        Parent Name
+                    </label>
 
-                <input
-                    type="text"
-                    name="phone"
-                    value="{{ parent.phone }}"
-                    required
-                    class="w-full border rounded-xl px-4 py-3">
+                    <input
+                        type="text"
+                        name="full_name"
+                        value="{{ parent.full_name }}"
+                        required
+                        maxlength="150"
+                        class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+
+                <!-- Parent Phone -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium text-slate-700">
+                        Parent Phone
+                    </label>
+
+                    <input
+                        type="text"
+                        name="phone"
+                        value="{{ parent.phone or '' }}"
+                        required
+                        maxlength="30"
+                        class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+
+                <!-- Email -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium text-slate-700">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        name="email"
+                        value="{{ parent.email or '' }}"
+                        maxlength="255"
+                        class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                    <p class="text-xs text-slate-500 mt-2">
+                        Optional
+                    </p>
+
+                </div>
+
+
+                <!-- Username -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium text-slate-700">
+                        Parent Username
+                    </label>
+
+                    <input
+                        type="text"
+                        value="{{ parent.username }}"
+                        readonly
+                        class="w-full border border-slate-200 bg-slate-100 text-slate-500 rounded-xl px-4 py-3 cursor-not-allowed"
+                    >
+
+                    <p class="text-xs text-slate-500 mt-2">
+                        Username is generated automatically and cannot be changed.
+                    </p>
+
+                </div>
 
             </div>
 
         </div>
 
+
+        <!-- =================================================
+             Divider
+        ================================================== -->
+
+        <div class="border-t border-slate-200 my-8"></div>
+
+
+        <!-- =================================================
+             Student Information
+        ================================================== -->
+
+        <div>
+
+            <div class="mb-5">
+
+                <h2 class="text-xl font-semibold text-slate-800">
+                    Linked Student
+                </h2>
+
+                <p class="text-sm text-slate-500 mt-1">
+                    This parent account is linked to the following student.
+                </p>
+
+            </div>
+
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-5">
+
+
+                {% if parent.student_name %}
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+
+                    <!-- Student -->
+
+                    <div>
+
+                        <p class="text-xs text-slate-500 mb-1">
+                            Student
+                        </p>
+
+                        <p class="font-semibold text-slate-800">
+                            {{ parent.student_name }}
+                        </p>
+
+                    </div>
+
+
+                    <!-- Admission -->
+
+                    <div>
+
+                        <p class="text-xs text-slate-500 mb-1">
+                            Admission No
+                        </p>
+
+                        <span class="inline-flex px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium">
+
+                            {{ parent.admission_no }}
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- Class -->
+
+                    <div>
+
+                        <p class="text-xs text-slate-500 mb-1">
+                            Class
+                        </p>
+
+                        <p class="font-medium text-slate-700">
+                            {{ parent.class_name or "-" }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                {% else %}
+
+                <div class="flex items-center gap-3">
+
+                    <i
+                        data-lucide="alert-circle"
+                        class="w-5 h-5 text-amber-500"
+                    ></i>
+
+                    <div>
+
+                        <p class="font-medium text-slate-700">
+                            No student linked
+                        </p>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            This parent account is not currently linked to an active student.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             Divider
+        ================================================== -->
+
+        <div class="border-t border-slate-200 my-8"></div>
+
+
+        <!-- =================================================
+             Password
+        ================================================== -->
+
+        <div>
+
+            <div class="mb-5">
+
+                <h2 class="text-xl font-semibold text-slate-800">
+                    Login Password
+                </h2>
+
+                <p class="text-sm text-slate-500 mt-1">
+                    Change the parent's login password if required.
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <label class="block mb-2 font-medium text-slate-700">
+                    New Password
+                </label>
+
+                <input
+                    type="password"
+                    name="new_password"
+                    minlength="6"
+                    placeholder="Leave blank to keep current password"
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+
+                <p class="text-xs text-slate-500 mt-2">
+                    Leave this field blank if you do not want to change the password.
+                    Minimum 6 characters.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             Actions
+        ================================================== -->
+
         <div class="mt-8 flex justify-end gap-3">
 
-            <a href="{{ url_for('parents.parent_list') }}"
-               class="px-6 py-3 rounded-xl border">
-
+            <a
+                href="{{ url_for('parents.parent_list') }}"
+                class="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 transition"
+            >
                 Cancel
-
             </a>
+
 
             <button
                 type="submit"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl">
-
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl transition"
+            >
                 Update Parent
-
             </button>
 
         </div>

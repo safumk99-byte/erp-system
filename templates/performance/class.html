@@ -1,0 +1,226 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+{{ class_data.class_name }} Performance
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- Header -->
+
+    <div class="mb-8">
+
+        <a
+            href="{{ url_for('performance.performance_page') }}"
+            class="text-sm text-indigo-600 hover:text-indigo-700"
+        >
+            ← Back to Performance Matrix
+        </a>
+
+        <h1 class="text-3xl font-bold text-slate-800 mt-4">
+            {{ class_data.class_name }}
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Class Performance
+        </p>
+
+    </div>
+
+
+    <!-- Summary -->
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+
+            <p class="text-sm text-slate-500">
+                Students
+            </p>
+
+            <p class="text-3xl font-bold text-slate-800 mt-2">
+                {{ total_students }}
+            </p>
+
+        </div>
+
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+
+            <p class="text-sm text-slate-500">
+                Average CSS
+            </p>
+
+            <p class="text-3xl font-bold text-indigo-600 mt-2">
+                {{ average_css }}
+            </p>
+
+        </div>
+
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+
+            <p class="text-sm text-slate-500">
+                Average Exam
+            </p>
+
+            <p class="text-3xl font-bold text-slate-800 mt-2">
+
+                {% if average_exam is not none %}
+                    {{ average_exam }}%
+                {% else %}
+                    —
+                {% endif %}
+
+            </p>
+
+        </div>
+
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+
+            <p class="text-sm text-slate-500">
+                Average Attendance
+            </p>
+
+            <p class="text-3xl font-bold text-slate-800 mt-2">
+
+                {% if average_attendance is not none %}
+                    {{ average_attendance }}%
+                {% else %}
+                    —
+                {% endif %}
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- Students -->
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+
+        <div class="p-6 border-b border-slate-200">
+
+            <h2 class="text-xl font-semibold text-slate-800">
+                Student Performance
+            </h2>
+
+        </div>
+
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-sm">
+
+                <thead class="bg-slate-50">
+
+                    <tr>
+
+                        <th class="px-6 py-4 text-left">
+                            #
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Admission No.
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Student
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            CSS Points
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Exam %
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Attendance %
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-slate-100">
+
+                    {% for student in students %}
+
+                    <tr class="hover:bg-slate-50">
+
+                        <td class="px-6 py-4">
+                            {{ loop.index }}
+                        </td>
+
+                        <td class="px-6 py-4 font-medium">
+                            {{ student.admission_no }}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            {{ student.full_name }}
+                        </td>
+
+                        <td class="px-6 py-4">
+
+                            <span class="font-bold text-indigo-600">
+                                {{ student.css_points }}
+                            </span>
+
+                        </td>
+
+                        <td class="px-6 py-4">
+
+                            {% if student.exam_percentage is not none %}
+                                {{ student.exam_percentage }}%
+                            {% else %}
+                                —
+                            {% endif %}
+
+                        </td>
+
+                        <td class="px-6 py-4">
+
+                            {% if student.attendance_percentage is not none %}
+                                {{ student.attendance_percentage }}%
+                            {% else %}
+                                —
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="px-6 py-10 text-center text-slate-500"
+                        >
+                            No students found.
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

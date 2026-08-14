@@ -1,0 +1,615 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Central Performance Report
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- ================================================= -->
+    <!-- Header -->
+    <!-- ================================================= -->
+
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Central Performance Report
+            </h1>
+
+            <p class="text-slate-500 mt-2">
+                Consolidated academic, CSS and attendance performance.
+            </p>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Export Buttons -->
+        <!-- ================================================= -->
+
+        {% if selected_academic_year %}
+
+        <div class="flex flex-wrap gap-3">
+
+            <!-- PDF -->
+
+            <a
+                href="{{ url_for(
+                    'reports.central_report_pdf_page',
+                    academic_year_id=selected_academic_year,
+                    month=selected_month,
+                    class_id=selected_class
+                ) }}"
+                target="_blank"
+                class="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl font-medium shadow-sm"
+            >
+
+                <span>
+                    PDF
+                </span>
+
+                <span>
+                    ↓
+                </span>
+
+            </a>
+
+
+            <!-- Excel -->
+
+            <a
+                href="{{ url_for(
+                    'reports.central_report_excel_page',
+                    academic_year_id=selected_academic_year,
+                    month=selected_month,
+                    class_id=selected_class
+                ) }}"
+                class="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl font-medium shadow-sm"
+            >
+
+                <span>
+                    Excel
+                </span>
+
+                <span>
+                    ↓
+                </span>
+
+            </a>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Filters -->
+    <!-- ================================================= -->
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+
+        <form
+            method="GET"
+            action="{{ url_for('reports.central_report_page') }}"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"
+        >
+
+            <!-- Academic Year -->
+
+            <div>
+
+                <label class="block text-sm font-medium text-slate-700 mb-2">
+                    Academic Year
+                </label>
+
+                <select
+                    name="academic_year_id"
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+
+                    <option value="">
+                        All Academic Years
+                    </option>
+
+                    {% for year in academic_years %}
+
+                    <option
+                        value="{{ year.id }}"
+                        {% if selected_academic_year|string == year.id|string %}
+                            selected
+                        {% endif %}
+                    >
+
+                        {{ year.year_name }}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- Month -->
+
+            <div>
+
+                <label class="block text-sm font-medium text-slate-700 mb-2">
+                    Month
+                </label>
+
+                <select
+                    name="month"
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+
+                    <option value="">
+                        All Months
+                    </option>
+
+                    <option value="1"
+                        {% if selected_month == "1" %}
+                            selected
+                        {% endif %}
+                    >
+                        January
+                    </option>
+
+                    <option value="2"
+                        {% if selected_month == "2" %}
+                            selected
+                        {% endif %}
+                    >
+                        February
+                    </option>
+
+                    <option value="3"
+                        {% if selected_month == "3" %}
+                            selected
+                        {% endif %}
+                    >
+                        March
+                    </option>
+
+                    <option value="4"
+                        {% if selected_month == "4" %}
+                            selected
+                        {% endif %}
+                    >
+                        April
+                    </option>
+
+                    <option value="5"
+                        {% if selected_month == "5" %}
+                            selected
+                        {% endif %}
+                    >
+                        May
+                    </option>
+
+                    <option value="6"
+                        {% if selected_month == "6" %}
+                            selected
+                        {% endif %}
+                    >
+                        June
+                    </option>
+
+                    <option value="7"
+                        {% if selected_month == "7" %}
+                            selected
+                        {% endif %}
+                    >
+                        July
+                    </option>
+
+                    <option value="8"
+                        {% if selected_month == "8" %}
+                            selected
+                        {% endif %}
+                    >
+                        August
+                    </option>
+
+                    <option value="9"
+                        {% if selected_month == "9" %}
+                            selected
+                        {% endif %}
+                    >
+                        September
+                    </option>
+
+                    <option value="10"
+                        {% if selected_month == "10" %}
+                            selected
+                        {% endif %}
+                    >
+                        October
+                    </option>
+
+                    <option value="11"
+                        {% if selected_month == "11" %}
+                            selected
+                        {% endif %}
+                    >
+                        November
+                    </option>
+
+                    <option value="12"
+                        {% if selected_month == "12" %}
+                            selected
+                        {% endif %}
+                    >
+                        December
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- Class -->
+
+            <div>
+
+                <label class="block text-sm font-medium text-slate-700 mb-2">
+                    Class
+                </label>
+
+                <select
+                    name="class_id"
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+
+                    <option value="">
+                        All Classes
+                    </option>
+
+                    {% for class in classes %}
+
+                    <option
+                        value="{{ class.id }}"
+                        {% if selected_class|string == class.id|string %}
+                            selected
+                        {% endif %}
+                    >
+
+                        {{ class.class_name }}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- Apply -->
+
+            <div class="flex items-end">
+
+                <button
+                    type="submit"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl font-medium"
+                >
+
+                    Apply Filters
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Summary Cards -->
+    <!-- ================================================= -->
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+
+
+        <!-- Total Students -->
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+
+            <p class="text-sm text-slate-500">
+                Total Students
+            </p>
+
+            <p class="text-3xl font-bold text-slate-800 mt-2">
+                {{ total_students }}
+            </p>
+
+        </div>
+
+
+        <!-- Total CSS -->
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+
+            <p class="text-sm text-slate-500">
+                Total CSS Points
+            </p>
+
+            <p class="text-3xl font-bold text-indigo-600 mt-2">
+                {{ total_css }}
+            </p>
+
+        </div>
+
+
+        <!-- Average Exam -->
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+
+            <p class="text-sm text-slate-500">
+                Average Exam
+            </p>
+
+            <p class="text-3xl font-bold text-blue-600 mt-2">
+
+                {% if average_exam is not none %}
+
+                    {{ average_exam }}%
+
+                {% else %}
+
+                    —
+
+                {% endif %}
+
+            </p>
+
+        </div>
+
+
+        <!-- Average Attendance -->
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+
+            <p class="text-sm text-slate-500">
+                Average Attendance
+            </p>
+
+            <p class="text-3xl font-bold text-green-600 mt-2">
+
+                {% if average_attendance is not none %}
+
+                    {{ average_attendance }}%
+
+                {% else %}
+
+                    —
+
+                {% endif %}
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- Student Performance -->
+    <!-- ================================================= -->
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+        <div class="p-6 border-b border-slate-200">
+
+            <h2 class="text-xl font-semibold text-slate-800">
+                Student Performance
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Consolidated performance of students.
+            </p>
+
+        </div>
+
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-sm">
+
+                <thead class="bg-slate-50">
+
+                    <tr>
+
+                        <th class="px-6 py-4 text-left">
+                            #
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Admission No.
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Student
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Class
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            CSS Points
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Exam %
+                        </th>
+
+                        <th class="px-6 py-4 text-left">
+                            Attendance %
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-slate-100">
+
+                    {% for student in report_data %}
+
+                    <tr class="hover:bg-slate-50">
+
+
+                        <!-- Number -->
+
+                        <td class="px-6 py-4">
+
+                            {{ loop.index }}
+
+                        </td>
+
+
+                        <!-- Admission -->
+
+                        <td class="px-6 py-4 font-medium text-slate-700">
+
+                            {{ student.admission_no }}
+
+                        </td>
+
+
+                        <!-- Student -->
+
+                        <td class="px-6 py-4">
+
+                            {{ student.full_name }}
+
+                        </td>
+
+
+                        <!-- Class -->
+
+                        <td class="px-6 py-4">
+
+                            {{ student.class_name }}
+
+                        </td>
+
+
+                        <!-- CSS -->
+
+                        <td class="px-6 py-4">
+
+                            <span class="font-semibold text-indigo-600">
+
+                                {{ student.css_points }}
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- Exam -->
+
+                        <td class="px-6 py-4">
+
+                            {% if student.exam_percentage is not none %}
+
+                                <span class="font-medium">
+
+                                    {{ student.exam_percentage }}%
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-slate-400">
+
+                                    No Data
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Attendance -->
+
+                        <td class="px-6 py-4">
+
+                            {% if student.attendance_percentage is not none %}
+
+                                <span class="font-medium">
+
+                                    {{ student.attendance_percentage }}%
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-slate-400">
+
+                                    No Data
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+
+                    {% else %}
+
+                    <!-- Empty State -->
+
+                    <tr>
+
+                        <td
+                            colspan="7"
+                            class="px-6 py-12 text-center"
+                        >
+
+                            <div class="text-slate-400">
+
+                                <p class="text-lg font-medium">
+
+                                    No performance data found.
+
+                                </p>
+
+                                <p class="text-sm mt-1">
+
+                                    Try changing the selected filters.
+
+                                </p>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
