@@ -463,12 +463,37 @@ def update_logo():
         )
 
 
+    conn = None
+    cur = None
+
+
     try:
 
+        # =================================================
+        # Upload to Cloudinary
+        # =================================================
+
+        public_id = (
+            f"institution_{institution_id}_logo"
+        )
+
+
         result = cloudinary.uploader.upload(
+
             logo,
-            folder="alif_erp/institutions",
-            resource_type="image"
+
+            folder="alif-erp/institutions",
+
+            public_id=public_id,
+
+            resource_type="image",
+
+            overwrite=True,
+
+            invalidate=True,
+
+            unique_filename=False
+
         )
 
 
@@ -483,6 +508,10 @@ def update_logo():
                 "Cloudinary did not return a logo URL."
             )
 
+
+        # =================================================
+        # Save URL to Database
+        # =================================================
 
         conn = get_connection()
         cur = conn.cursor()
@@ -516,10 +545,6 @@ def update_logo():
         conn.commit()
 
 
-        cur.close()
-        conn.close()
-
-
         flash(
             "Institution logo updated successfully.",
             "success"
@@ -528,26 +553,33 @@ def update_logo():
 
     except Exception as e:
 
+        if conn:
+
+            conn.rollback()
+
+
         print(
             "Logo upload error:",
             e
         )
-
-        try:
-
-            conn.rollback()
-            cur.close()
-            conn.close()
-
-        except Exception:
-
-            pass
 
 
         flash(
             "Unable to upload institution logo.",
             "error"
         )
+
+
+    finally:
+
+        if cur:
+
+            cur.close()
+
+
+        if conn:
+
+            conn.close()
 
 
     return redirect(
