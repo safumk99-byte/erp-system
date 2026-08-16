@@ -93,6 +93,10 @@ Classes
                         </th>
 
                         <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Course
+                        </th>
+
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
                             Description
                         </th>
 
@@ -152,6 +156,20 @@ Classes
 
                         </td>
 
+                        <td class="px-6 py-4">
+
+    {% if class_item.course_name %}
+        <span class="inline-flex px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold">
+            {{ class_item.course_name }}
+        </span>
+    {% else %}
+        <span class="text-sm text-slate-400">
+            Not assigned
+        </span>
+    {% endif %}
+
+</td>
+
 
                         <!-- Description -->
 
@@ -199,9 +217,9 @@ Classes
 
                             <a
                                 href="{{ url_for(
-                                    'classes.class_students_page',
-                                    id=class_item.id
-                                ) }}"
+    'classes.class_students_page',
+    class_id=class_item.id
+) }}"
                                 class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium transition"
                             >
 

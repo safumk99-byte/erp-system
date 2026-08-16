@@ -1,0 +1,1114 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Institution Dashboard
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- =====================================================
+         Dashboard Header
+    ====================================================== -->
+
+    <div>
+
+        <p class="text-sm font-medium text-indigo-600">
+            Institution Administration
+        </p>
+
+        <h1 class="text-3xl md:text-4xl font-bold text-slate-800 mt-1">
+            Welcome back, {{ session.get("full_name") }}
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Manage your institution and monitor academic activities.
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         DASHBOARD FILTERS
+    ====================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+            <div>
+
+                <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wide">
+                    Dashboard Filters
+                </p>
+
+                <h2 class="text-lg font-bold text-slate-800 mt-1">
+                    Report Context
+                </h2>
+
+                <p class="text-sm text-slate-500 mt-1">
+                    Select a month, academic year or course to filter dashboard data.
+                </p>
+
+            </div>
+
+
+            <!-- Clear Filters -->
+
+            <a
+                href="{{ url_for('institution_dashboard.dashboard') }}"
+                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+            >
+
+                <i
+                    data-lucide="rotate-ccw"
+                    class="w-4 h-4"
+                ></i>
+
+                Clear Filters
+
+            </a>
+
+        </div>
+
+
+        <!-- =================================================
+             Filter Form
+        ================================================== -->
+
+        <form
+            method="GET"
+            action="{{ url_for('institution_dashboard.dashboard') }}"
+            class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6"
+        >
+
+            <!-- =================================================
+                 MONTH
+            ================================================== -->
+
+            <div>
+
+                <label
+                    for="dashboard-month"
+                    class="block text-sm font-semibold text-slate-700 mb-2"
+                >
+                    Month
+                </label>
+
+                <div class="relative">
+
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+
+                        <i
+                            data-lucide="calendar-days"
+                            class="w-5 h-5 text-indigo-500"
+                        ></i>
+
+                    </div>
+
+
+                    <select
+                        id="dashboard-month"
+                        name="month"
+                        class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+
+                        <option value="">
+                            All Months
+                        </option>
+
+                        <option value="1" {% if selected_month == 1 %}selected{% endif %}>
+                            January
+                        </option>
+
+                        <option value="2" {% if selected_month == 2 %}selected{% endif %}>
+                            February
+                        </option>
+
+                        <option value="3" {% if selected_month == 3 %}selected{% endif %}>
+                            March
+                        </option>
+
+                        <option value="4" {% if selected_month == 4 %}selected{% endif %}>
+                            April
+                        </option>
+
+                        <option value="5" {% if selected_month == 5 %}selected{% endif %}>
+                            May
+                        </option>
+
+                        <option value="6" {% if selected_month == 6 %}selected{% endif %}>
+                            June
+                        </option>
+
+                        <option value="7" {% if selected_month == 7 %}selected{% endif %}>
+                            July
+                        </option>
+
+                        <option value="8" {% if selected_month == 8 %}selected{% endif %}>
+                            August
+                        </option>
+
+                        <option value="9" {% if selected_month == 9 %}selected{% endif %}>
+                            September
+                        </option>
+
+                        <option value="10" {% if selected_month == 10 %}selected{% endif %}>
+                            October
+                        </option>
+
+                        <option value="11" {% if selected_month == 11 %}selected{% endif %}>
+                            November
+                        </option>
+
+                        <option value="12" {% if selected_month == 12 %}selected{% endif %}>
+                            December
+                        </option>
+
+                    </select>
+
+
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+
+                        <i
+                            data-lucide="chevron-down"
+                            class="w-4 h-4 text-slate-400"
+                        ></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 ACADEMIC YEAR
+            ================================================== -->
+
+            <div>
+
+                <label
+                    for="dashboard-academic-year"
+                    class="block text-sm font-semibold text-slate-700 mb-2"
+                >
+                    Academic Year
+                </label>
+
+                <div class="relative">
+
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+
+                        <i
+                            data-lucide="graduation-cap"
+                            class="w-5 h-5 text-emerald-500"
+                        ></i>
+
+                    </div>
+
+
+                    <select
+                        id="dashboard-academic-year"
+                        name="academic_year_id"
+                        class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+
+                        <!-- All Academic Years -->
+
+                        <option value="">
+                            All Academic Years
+                        </option>
+
+
+                        {% for academic_year in academic_years %}
+
+                        <option
+                            value="{{ academic_year.id }}"
+                            {% if selected_academic_year_id == academic_year.id %}selected{% endif %}
+                        >
+
+                            {{ academic_year.year_name }}
+
+                            {% if academic_year.is_current %}
+                                (Current)
+                            {% endif %}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+
+                        <i
+                            data-lucide="chevron-down"
+                            class="w-4 h-4 text-slate-400"
+                        ></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 COURSE
+            ================================================== -->
+
+            <div>
+
+                <label
+                    for="dashboard-course"
+                    class="block text-sm font-semibold text-slate-700 mb-2"
+                >
+                    Course
+                </label>
+
+                <div class="relative">
+
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+
+                        <i
+                            data-lucide="book-open"
+                            class="w-5 h-5 text-amber-500"
+                        ></i>
+
+                    </div>
+
+
+                    <select
+                        id="dashboard-course"
+                        name="course_id"
+                        class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    >
+
+                        <option value="">
+                            All Courses
+                        </option>
+
+
+                        {% for course in courses %}
+
+                        <option
+                            value="{{ course.id }}"
+                            {% if selected_course_id == course.id %}selected{% endif %}
+                        >
+
+                            {{ course.course_name }}
+
+                            {% if course.course_code %}
+                                ({{ course.course_code }})
+                            {% endif %}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+
+                        <i
+                            data-lucide="chevron-down"
+                            class="w-4 h-4 text-slate-400"
+                        ></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 APPLY BUTTON
+            ================================================== -->
+
+            <div class="md:col-span-3 flex justify-end">
+
+                <button
+                    type="submit"
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm transition"
+                >
+
+                    <i
+                        data-lucide="filter"
+                        class="w-4 h-4"
+                    ></i>
+
+                    Apply Filters
+
+                </button>
+
+            </div>
+
+        </form>
+
+
+        <!-- =================================================
+             ACTIVE FILTERS
+        ================================================== -->
+
+        <div class="flex flex-wrap items-center gap-2 mt-5 pt-5 border-t border-slate-100">
+
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                Showing:
+            </span>
+
+
+            <!-- Month -->
+
+            {% if selected_month %}
+
+                {% set month_names = [
+                    "",
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September",
+                    "October",
+                    "November",
+                    "December"
+                ] %}
+
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold">
+
+                    <i
+                        data-lucide="calendar"
+                        class="w-3.5 h-3.5"
+                    ></i>
+
+                    {{ month_names[selected_month] }}
+
+                </span>
+
+            {% endif %}
+
+
+            <!-- Academic Year -->
+
+            {% if selected_academic_year %}
+
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-semibold">
+
+                    <i
+                        data-lucide="graduation-cap"
+                        class="w-3.5 h-3.5"
+                    ></i>
+
+                    {{ selected_academic_year.year_name }}
+
+                </span>
+
+            {% endif %}
+
+
+            <!-- Course -->
+
+            {% if selected_course %}
+
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-semibold">
+
+                    <i
+                        data-lucide="book-open"
+                        class="w-3.5 h-3.5"
+                    ></i>
+
+                    {{ selected_course.course_name }}
+
+                </span>
+
+            {% endif %}
+
+
+            <!-- No Filter -->
+
+            {% if
+                not selected_month
+                and not selected_academic_year
+                and not selected_course
+            %}
+
+                <span class="text-xs text-slate-500">
+                    All available data
+                </span>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MAIN STATISTICS
+    ====================================================== -->
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+
+
+        <!-- Students -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-start justify-between">
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Total Students
+                    </p>
+
+                    <p class="text-3xl font-bold text-slate-800 mt-2">
+                        {{ total_students }}
+                    </p>
+
+                    <p class="text-xs text-slate-400 mt-2">
+                        Active students
+                    </p>
+
+                </div>
+
+                <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+
+                    <i
+                        data-lucide="users"
+                        class="w-6 h-6"
+                    ></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Staff -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-start justify-between">
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Staff
+                    </p>
+
+                    <p class="text-3xl font-bold text-slate-800 mt-2">
+                        {{ total_staff }}
+                    </p>
+
+                    <p class="text-xs text-slate-400 mt-2">
+                        Active staff members
+                    </p>
+
+                </div>
+
+                <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+
+                    <i
+                        data-lucide="graduation-cap"
+                        class="w-6 h-6"
+                    ></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Classes -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-start justify-between">
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Classes
+                    </p>
+
+                    <p class="text-3xl font-bold text-slate-800 mt-2">
+                        {{ total_classes }}
+                    </p>
+
+                    <p class="text-xs text-slate-400 mt-2">
+                        Active classes
+                    </p>
+
+                </div>
+
+                <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+
+                    <i
+                        data-lucide="school"
+                        class="w-6 h-6"
+                    ></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Subjects -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-start justify-between">
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Subjects
+                    </p>
+
+                    <p class="text-3xl font-bold text-slate-800 mt-2">
+                        {{ total_subjects }}
+                    </p>
+
+                    <p class="text-xs text-slate-400 mt-2">
+                        Active subjects
+                    </p>
+
+                </div>
+
+                <div class="w-12 h-12 rounded-xl bg-green-100 text-green-600 flex items-center justify-center">
+
+                    <i
+                        data-lucide="book-open"
+                        class="w-6 h-6"
+                    ></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ATTENDANCE + PENDING
+    ====================================================== -->
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+
+        <!-- Attendance -->
+
+        <div class="xl:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <h2 class="text-lg font-semibold text-slate-800">
+                        Attendance
+                    </h2>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        Attendance for the selected period
+                    </p>
+
+                </div>
+
+                <div class="w-11 h-11 rounded-xl bg-green-100 text-green-600 flex items-center justify-center">
+
+                    <i
+                        data-lucide="calendar-check"
+                        class="w-5 h-5"
+                    ></i>
+
+                </div>
+
+            </div>
+
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+
+                <div class="rounded-xl bg-slate-50 p-4">
+
+                    <p class="text-xs text-slate-500">
+                        Total
+                    </p>
+
+                    <p class="text-2xl font-bold text-slate-800 mt-1">
+                        {{ attendance_total }}
+                    </p>
+
+                </div>
+
+
+                <div class="rounded-xl bg-green-50 p-4">
+
+                    <p class="text-xs text-green-600">
+                        Present
+                    </p>
+
+                    <p class="text-2xl font-bold text-green-600 mt-1">
+                        {{ attendance_present }}
+                    </p>
+
+                </div>
+
+
+                <div class="rounded-xl bg-red-50 p-4">
+
+                    <p class="text-xs text-red-600">
+                        Absent
+                    </p>
+
+                    <p class="text-2xl font-bold text-red-600 mt-1">
+                        {{ attendance_absent }}
+                    </p>
+
+                </div>
+
+
+                <div class="rounded-xl bg-amber-50 p-4">
+
+                    <p class="text-xs text-amber-600">
+                        Leave
+                    </p>
+
+                    <p class="text-2xl font-bold text-amber-600 mt-1">
+                        {{ attendance_leave }}
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="mt-6">
+
+                <div class="flex justify-between text-sm mb-2">
+
+                    <span class="text-slate-500">
+                        Attendance Rate
+                    </span>
+
+                    <span class="font-semibold text-slate-800">
+                        {{ attendance_percentage }}%
+                    </span>
+
+                </div>
+
+                <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+
+                    <div
+                        class="h-full bg-green-500 rounded-full"
+                        style="width: {{ [attendance_percentage, 100]|min }}%;"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Pending -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <h2 class="text-lg font-semibold text-slate-800">
+                        Pending Approvals
+                    </h2>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        Requires your attention
+                    </p>
+
+                </div>
+
+                <div class="w-11 h-11 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
+
+                    <i
+                        data-lucide="clock-3"
+                        class="w-5 h-5"
+                    ></i>
+
+                </div>
+
+            </div>
+
+
+            <div class="mt-6">
+
+                <p class="text-4xl font-bold text-orange-600">
+                    {{ total_pending_approvals }}
+                </p>
+
+                <p class="text-sm text-slate-500 mt-1">
+                    submissions waiting for review
+                </p>
+
+            </div>
+
+
+            <div class="mt-5 pt-5 border-t border-slate-100">
+
+                <div class="flex items-center justify-between text-sm">
+
+                    <span class="text-slate-500">
+                        Leave Applications
+                    </span>
+
+                    <span class="font-semibold text-slate-800">
+                        {{ pending_leaves }}
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         APPROVAL CENTER
+    ====================================================== -->
+
+    <div>
+
+        <div class="mb-4">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Approval Center
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Pending submissions across academic modules.
+            </p>
+
+        </div>
+
+
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+
+            {% set approvals = [
+                ("Reading", pending_reading),
+                ("Writing", pending_writing),
+                ("Speaking", pending_speaking),
+                ("Publication", pending_publication),
+                ("Presentation", pending_presentation),
+                ("Language", pending_language),
+                ("Achievement", pending_achievement)
+            ] %}
+
+
+            {% for name, count in approvals %}
+
+            <div class="bg-white border border-slate-200 rounded-xl p-4">
+
+                <p class="text-xs text-slate-500">
+                    {{ name }}
+                </p>
+
+                <p class="text-2xl font-bold text-slate-800 mt-1">
+                    {{ count }}
+                </p>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         RECENT STUDENTS + UPCOMING EXAMS
+    ====================================================== -->
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+
+        <!-- Recent Students -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-center justify-between mb-5">
+
+                <div>
+
+                    <h2 class="text-lg font-semibold text-slate-800">
+                        Recent Students
+                    </h2>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        Students matching the selected course
+                    </p>
+
+                </div>
+
+                <i
+                    data-lucide="users"
+                    class="w-5 h-5 text-slate-400"
+                ></i>
+
+            </div>
+
+
+            <div class="space-y-3">
+
+                {% for student in recent_students %}
+
+                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50">
+
+                    <div>
+
+                        <p class="font-medium text-slate-800">
+                            {{ student.full_name }}
+                        </p>
+
+                        <p class="text-xs text-slate-500 mt-1">
+                            {{ student.admission_no or "No admission number" }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+                {% else %}
+
+                <p class="text-sm text-slate-500 py-5 text-center">
+                    No students found.
+                </p>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+        <!-- Upcoming Exams -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-center justify-between mb-5">
+
+                <div>
+
+                    <h2 class="text-lg font-semibold text-slate-800">
+                        Upcoming Exams
+                    </h2>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        Exams matching the selected filters
+                    </p>
+
+                </div>
+
+                <i
+                    data-lucide="calendar-days"
+                    class="w-5 h-5 text-slate-400"
+                ></i>
+
+            </div>
+
+
+            <div class="space-y-3">
+
+                {% for exam in upcoming_exams %}
+
+                <div class="flex items-center justify-between p-4 rounded-xl bg-slate-50">
+
+                    <div>
+
+                        <p class="font-medium text-slate-800">
+                            {{ exam.exam_name }}
+                        </p>
+
+                        <p class="text-xs text-slate-500 mt-1">
+                            {{ exam.exam_type }}
+                        </p>
+
+                    </div>
+
+                    <div class="text-right">
+
+                        <p class="text-sm font-semibold text-indigo-600">
+                            {{ exam.exam_date }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+                {% else %}
+
+                <p class="text-sm text-slate-500 py-5 text-center">
+                    No upcoming exams.
+                </p>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         QUICK ACTIONS
+    ====================================================== -->
+
+    <div>
+
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">
+            Quick Actions
+        </h2>
+
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+
+            <!-- Students -->
+
+            <a
+                href="{{ url_for('students.student_list') }}"
+                class="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition"
+            >
+
+                <i
+                    data-lucide="user-plus"
+                    class="w-6 h-6 text-blue-600"
+                ></i>
+
+                <p class="font-semibold text-slate-800 mt-4">
+                    Students
+                </p>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Manage students
+                </p>
+
+            </a>
+
+
+            <!-- Staff -->
+
+            <a
+                href="{{ url_for('staff.staff_list') }}"
+                class="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition"
+            >
+
+                <i
+                    data-lucide="user-cog"
+                    class="w-6 h-6 text-purple-600"
+                ></i>
+
+                <p class="font-semibold text-slate-800 mt-4">
+                    Staff
+                </p>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Manage staff
+                </p>
+
+            </a>
+
+
+            <!-- Notifications -->
+
+            <a
+                href="{{ url_for('notifications.notification_list') }}"
+                class="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition"
+            >
+
+                <i
+                    data-lucide="bell"
+                    class="w-6 h-6 text-amber-600"
+                ></i>
+
+                <p class="font-semibold text-slate-800 mt-4">
+                    Notifications
+                </p>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    {{ unread_notifications }} unread
+                </p>
+
+            </a>
+
+
+            <!-- Leave -->
+
+            <a
+                href="{{ url_for('student_leave.student_leave_requests_route') }}"
+                class="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition"
+            >
+
+                <i
+                    data-lucide="calendar-off"
+                    class="w-6 h-6 text-green-600"
+                ></i>
+
+                <p class="font-semibold text-slate-800 mt-4">
+                    Leave Requests
+                </p>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    {{ pending_leaves }} pending
+                </p>
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     Lucide Icons
+========================================================= -->
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            if (
+                typeof lucide !== "undefined"
+            ) {
+
+                lucide.createIcons();
+
+            }
+
+        }
+    );
+
+</script>
+
+{% endblock %}

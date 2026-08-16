@@ -1,5 +1,7 @@
 from datetime import date
 
+from flask import request, session
+
 from database.db import get_connection
 
 
@@ -9,23 +11,19 @@ from database.db import get_connection
 
 def get_month_context():
 
-    selected_month = None
+    selected_month = request.args.get(
+        "month",
+        ""
+    ).strip()
 
-    try:
-        from flask import request
-
-        selected_month = request.args.get(
-            "month",
-            ""
-        ).strip()
-
-    except Exception:
-        selected_month = ""
-
+    # -----------------------------------------------------
+    # Selected Month
+    # -----------------------------------------------------
 
     if selected_month:
 
         try:
+
             month_number = int(selected_month)
 
             if 1 <= month_number <= 12:
@@ -43,10 +41,16 @@ def get_month_context():
                     "is_selected": True
                 }
 
-        except (ValueError, TypeError):
+        except (
+            ValueError,
+            TypeError
+        ):
 
             pass
 
+    # -----------------------------------------------------
+    # Default Month
+    # -----------------------------------------------------
 
     today = date.today()
 
@@ -64,8 +68,6 @@ def get_month_context():
 
 def get_academic_year_context():
 
-    from flask import session
-
     institution_id = session.get(
         "institution_id"
     )
@@ -74,11 +76,68 @@ def get_academic_year_context():
 
         return None
 
+    selected_year_id = request.args.get(
+        "academic_year",
+        ""
+    ).strip()
 
     conn = get_connection()
     cur = conn.cursor()
 
     try:
+
+        # -------------------------------------------------
+        # Selected Academic Year
+        # -------------------------------------------------
+
+        if selected_year_id:
+
+            try:
+
+                selected_year_id = int(
+                    selected_year_id
+                )
+
+            except (
+                ValueError,
+                TypeError
+            ):
+
+                selected_year_id = None
+
+
+            if selected_year_id:
+
+                cur.execute("""
+                    SELECT
+                        id,
+                        year_name,
+                        start_date,
+                        end_date,
+                        is_current
+
+                    FROM academic_years
+
+                    WHERE
+                        id = %s
+                        AND institution_id = %s
+                        AND is_active = TRUE
+
+                    LIMIT 1
+                """, (
+                    selected_year_id,
+                    institution_id
+                ))
+
+                academic_year = cur.fetchone()
+
+                if academic_year:
+
+                    return academic_year
+
+        # -------------------------------------------------
+        # Default → Current Academic Year
+        # -------------------------------------------------
 
         cur.execute("""
             SELECT
@@ -100,9 +159,7 @@ def get_academic_year_context():
             institution_id,
         ))
 
-        academic_year = cur.fetchone()
-
-        return academic_year
+        return cur.fetchone()
 
     finally:
 
@@ -116,29 +173,164 @@ def get_academic_year_context():
 
 def get_course_context():
 
-    from flask import request
+    institution_id = session.get(
+        "institution_id"
+    )
 
-    course = request.args.get(
+    if not institution_id:
+
+        return None
+
+    selected_course_id = request.args.get(
         "course",
         ""
     ).strip()
 
-
-    if not course:
+    if not selected_course_id:
 
         return None
 
+    try:
 
-    allowed_courses = {
-        "kithab": "Kithab",
-        "academic": "Academic",
-        "language": "Language"
-    }
+        selected_course_id = int(
+            selected_course_id
+        )
+
+    except (
+        ValueError,
+        TypeError
+    ):
+
+        return None
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+
+        cur.execute("""
+            SELECT
+                id,
+                course_name,
+                course_code,
+                description,
+                is_active
+
+            FROM courses
+
+            WHERE
+                id = %s
+                AND institution_id = %s
+                AND is_active = TRUE
+
+            LIMIT 1
+        """, (
+            selected_course_id,
+            institution_id
+        ))
+
+        return cur.fetchone()
+
+    finally:
+
+        cur.close()
+        conn.close()
 
 
-    return allowed_courses.get(
-        course.lower()
+# =========================================================
+# Available Academic Years
+# =========================================================
+
+def get_available_academic_years():
+
+    institution_id = session.get(
+        "institution_id"
     )
+
+    if not institution_id:
+
+        return []
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+
+        cur.execute("""
+            SELECT
+                id,
+                year_name,
+                start_date,
+                end_date,
+                is_current
+
+            FROM academic_years
+
+            WHERE
+                institution_id = %s
+                AND is_active = TRUE
+
+            ORDER BY
+                start_date DESC NULLS LAST,
+                id DESC
+        """, (
+            institution_id,
+        ))
+
+        return cur.fetchall()
+
+    finally:
+
+        cur.close()
+        conn.close()
+
+
+# =========================================================
+# Available Courses
+# =========================================================
+
+def get_available_courses():
+
+    institution_id = session.get(
+        "institution_id"
+    )
+
+    if not institution_id:
+
+        return []
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+
+        cur.execute("""
+            SELECT
+                id,
+                course_name,
+                course_code,
+                description,
+                is_active
+
+            FROM courses
+
+            WHERE
+                institution_id = %s
+                AND is_active = TRUE
+
+            ORDER BY
+                course_name ASC,
+                id ASC
+        """, (
+            institution_id,
+        ))
+
+        return cur.fetchall()
+
+    finally:
+
+        cur.close()
+        conn.close()
 
 
 # =========================================================
@@ -147,12 +339,37 @@ def get_course_context():
 
 def get_report_context():
 
+    month = get_month_context()
+
     academic_year = get_academic_year_context()
 
+    course = get_course_context()
+
+    academic_years = get_available_academic_years()
+
+    courses = get_available_courses()
+
     return {
-        "month_context": get_month_context(),
 
-        "academic_year_context": academic_year,
+        # -------------------------------------------------
+        # Current selections
+        # -------------------------------------------------
 
-        "course_context": get_course_context()
+        "month_context": month,
+
+        "academic_year_context":
+            academic_year,
+
+        "course_context":
+            course,
+
+        # -------------------------------------------------
+        # Dropdown options
+        # -------------------------------------------------
+
+        "academic_years":
+            academic_years,
+
+        "courses":
+            courses
     }

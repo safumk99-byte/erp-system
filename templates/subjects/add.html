@@ -8,89 +8,243 @@ Add Subject
 
 <div class="max-w-3xl mx-auto">
 
+    <!-- =====================================================
+         Header
+    ====================================================== -->
+
     <div class="mb-8">
 
-        <h1 class="text-3xl font-bold text-slate-800">
-            Add Subject
-        </h1>
+        <div class="flex items-center gap-3">
 
-        <p class="text-slate-500 mt-2">
-            Create a new subject.
-        </p>
+            <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+
+                <i
+                    data-lucide="book-plus"
+                    class="w-5 h-5">
+                </i>
+
+            </div>
+
+            <div>
+
+                <h1 class="text-3xl font-bold text-slate-800">
+                    Add Subject
+                </h1>
+
+                <p class="text-slate-500 mt-1">
+                    Create a subject and assign it to a course and class.
+                </p>
+
+            </div>
+
+        </div>
 
     </div>
 
+
     {% include "components/alert.html" %}
 
-    <form method="POST"
-          class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-6">
+
+    <!-- =====================================================
+         Form
+    ====================================================== -->
+
+    <form
+        method="POST"
+        class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-6"
+    >
+
+        <!-- =================================================
+             Course
+        ================================================== -->
 
         <div>
 
-            <label class="block mb-2 font-medium">
-                Class
+            <label
+                for="course_id"
+                class="block mb-2 font-medium text-slate-700"
+            >
+                Course
             </label>
 
             <select
-                name="class_id"
+                id="course_id"
+                name="course_id"
                 required
-                class="w-full border rounded-xl px-4 py-3">
+                class="w-full border border-slate-200 rounded-xl px-4 py-3 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
 
                 <option value="">
-                    Select Class
+                    Select Course
                 </option>
 
-                {% for class_item in classes %}
+                {% for course in courses %}
 
-                <option value="{{ class_item.id }}">
-                    {{ class_item.class_name }}
+                <option
+                    value="{{ course.id }}"
+                    {% if selected_course_id|string == course.id|string %}
+                        selected
+                    {% endif %}
+                >
+                    {{ course.course_name }}
+
+                    {% if course.course_code %}
+                        ({{ course.course_code }})
+                    {% endif %}
+
                 </option>
 
                 {% endfor %}
 
             </select>
 
+            <p class="text-xs text-slate-400 mt-2">
+                Select the course to which this subject belongs.
+            </p>
+
         </div>
+
+
+        <!-- =================================================
+             Class
+        ================================================== -->
 
         <div>
 
-            <label class="block mb-2 font-medium">
+            <label
+                for="class_id"
+                class="block mb-2 font-medium text-slate-700"
+            >
+                Class
+            </label>
+
+            <select
+                id="class_id"
+                name="class_id"
+                required
+                {% if not selected_course_id %}
+                    disabled
+                {% endif %}
+                class="w-full border border-slate-200 rounded-xl px-4 py-3 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50 disabled:text-slate-400"
+            >
+
+                {% if selected_course_id %}
+
+                    <option value="">
+                        Select Class
+                    </option>
+
+                    {% for class_item in classes %}
+
+                    <option
+                        value="{{ class_item.id }}"
+                        {% if selected_class_id|string == class_item.id|string %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ class_item.class_name }}
+                    </option>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <option value="">
+                        Select a course first
+                    </option>
+
+                {% endif %}
+
+            </select>
+
+            <p class="text-xs text-slate-400 mt-2">
+                Only classes belonging to the selected course are shown.
+            </p>
+
+        </div>
+
+
+        <!-- =================================================
+             Subject Name
+        ================================================== -->
+
+        <div>
+
+            <label
+                for="subject_name"
+                class="block mb-2 font-medium text-slate-700"
+            >
                 Subject Name
             </label>
 
             <input
                 type="text"
+                id="subject_name"
                 name="subject_name"
+                value="{{ request.form.get('subject_name', '') }}"
+                placeholder="Enter subject name"
                 required
-                class="w-full border rounded-xl px-4 py-3">
+                maxlength="150"
+                class="w-full border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
 
         </div>
 
+
+        <!-- =================================================
+             Description
+        ================================================== -->
+
         <div>
 
-            <label class="block mb-2 font-medium">
+            <label
+                for="description"
+                class="block mb-2 font-medium text-slate-700"
+            >
                 Description
             </label>
 
             <textarea
+                id="description"
                 name="description"
                 rows="4"
-                class="w-full border rounded-xl px-4 py-3"></textarea>
+                placeholder="Optional description"
+                class="w-full border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >{{ request.form.get('description', '') }}</textarea>
 
         </div>
 
-        <div class="flex justify-end gap-3">
 
-            <a href="{{ url_for('subjects.subject_list') }}"
-               class="px-6 py-3 rounded-xl border">
+        <!-- =================================================
+             Actions
+        ================================================== -->
+
+        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-100">
+
+            <a
+                href="{{ url_for('subjects.subject_list') }}"
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition"
+            >
+
+                <i
+                    data-lucide="arrow-left"
+                    class="w-4 h-4">
+                </i>
 
                 Cancel
 
             </a>
 
+
             <button
                 type="submit"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl">
+                class="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition"
+            >
+
+                <i
+                    data-lucide="save"
+                    class="w-4 h-4">
+                </i>
 
                 Save Subject
 
@@ -101,5 +255,149 @@ Add Subject
     </form>
 
 </div>
+
+
+<!-- =========================================================
+     Course → Class
+     ========================================================= -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const courseSelect = document.getElementById("course_id");
+    const classSelect = document.getElementById("class_id");
+
+    if (!courseSelect || !classSelect) {
+        return;
+    }
+
+
+    courseSelect.addEventListener("change", function () {
+
+        const courseId = this.value;
+
+
+        // -------------------------------------------------
+        // No Course
+        // -------------------------------------------------
+
+        if (!courseId) {
+
+            classSelect.innerHTML = `
+                <option value="">
+                    Select a course first
+                </option>
+            `;
+
+            classSelect.disabled = true;
+
+            return;
+        }
+
+
+        // -------------------------------------------------
+        // Load Classes
+        // -------------------------------------------------
+
+        classSelect.disabled = true;
+
+        classSelect.innerHTML = `
+            <option value="">
+                Loading classes...
+            </option>
+        `;
+
+
+        fetch(
+            "{{ url_for('subjects.subject_classes') }}?course_id="
+            + encodeURIComponent(courseId)
+        )
+
+        .then(function (response) {
+
+            if (!response.ok) {
+                throw new Error(
+                    "Unable to load classes."
+                );
+            }
+
+            return response.json();
+
+        })
+
+        .then(function (data) {
+
+            classSelect.innerHTML = `
+                <option value="">
+                    Select Class
+                </option>
+            `;
+
+
+            if (
+                data.classes &&
+                data.classes.length > 0
+            ) {
+
+                data.classes.forEach(function (item) {
+
+                    const option =
+                        document.createElement("option");
+
+                    option.value = item.id;
+
+                    option.textContent =
+                        item.class_name;
+
+                    classSelect.appendChild(
+                        option
+                    );
+
+                });
+
+                classSelect.disabled = false;
+
+            } else {
+
+                classSelect.innerHTML = `
+                    <option value="">
+                        No classes available
+                    </option>
+                `;
+
+                classSelect.disabled = true;
+            }
+
+        })
+
+        .catch(function (error) {
+
+            console.error(error);
+
+            classSelect.innerHTML = `
+                <option value="">
+                    Unable to load classes
+                </option>
+            `;
+
+            classSelect.disabled = true;
+
+        });
+
+    });
+
+
+    // -----------------------------------------------------
+    // Lucide
+    // -----------------------------------------------------
+
+    if (typeof lucide !== "undefined") {
+        lucide.createIcons();
+    }
+
+});
+
+</script>
 
 {% endblock %}

@@ -1,5 +1,5 @@
 <!-- =========================================================
-     Report Context
+     Institution Dashboard Report Filters
      Month / Academic Year / Course
      ========================================================= -->
 
@@ -15,14 +15,9 @@
 
             <div class="flex items-center gap-4">
 
-                <!-- Icon -->
-
                 <div class="w-11 h-11 shrink-0 rounded-xl bg-indigo-50 flex items-center justify-center text-xl">
                     📅
                 </div>
-
-
-                <!-- Content -->
 
                 <div class="flex-1 min-w-0">
 
@@ -30,30 +25,23 @@
                         Month
                     </p>
 
+                    <form method="GET" class="mt-1">
 
-                    <form
-                        method="GET"
-                        class="mt-1"
-                    >
+                        {% if request.args.get("academic_year_id") %}
+                            <input
+                                type="hidden"
+                                name="academic_year_id"
+                                value="{{ request.args.get('academic_year_id') }}"
+                            >
+                        {% endif %}
 
-                        <!--
-                            Preserve existing query parameters
-                            except month.
-                        -->
-
-                        {% for key, value in request.args.items() %}
-
-                            {% if key != "month" %}
-
-                                <input
-                                    type="hidden"
-                                    name="{{ key }}"
-                                    value="{{ value }}"
-                                >
-
-                            {% endif %}
-
-                        {% endfor %}
+                        {% if request.args.get("course_id") %}
+                            <input
+                                type="hidden"
+                                name="course_id"
+                                value="{{ request.args.get('course_id') }}"
+                            >
+                        {% endif %}
 
 
                         <select
@@ -62,111 +50,53 @@
                             class="w-full bg-transparent border-0 p-0 pr-6 text-lg font-bold text-slate-800 focus:ring-0 focus:outline-none cursor-pointer"
                         >
 
-                            <option
-                                value="1"
-                                {% if report_context.month_context.month_number == 1 %}
-                                    selected
-                                {% endif %}
-                            >
+                            {% set current_month = report_context.month_context.month_number %}
+
+                            <option value="1" {% if current_month == 1 %}selected{% endif %}>
                                 January
                             </option>
 
-                            <option
-                                value="2"
-                                {% if report_context.month_context.month_number == 2 %}
-                                    selected
-                                {% endif %}
-                            >
+                            <option value="2" {% if current_month == 2 %}selected{% endif %}>
                                 February
                             </option>
 
-                            <option
-                                value="3"
-                                {% if report_context.month_context.month_number == 3 %}
-                                    selected
-                                {% endif %}
-                            >
+                            <option value="3" {% if current_month == 3 %}selected{% endif %}>
                                 March
                             </option>
 
-                            <option
-                                value="4"
-                                {% if report_context.month_context.month_number == 4 %}
-                                    selected
-                                {% endif %}
-                            >
+                            <option value="4" {% if current_month == 4 %}selected{% endif %}>
                                 April
                             </option>
 
-                            <option
-                                value="5"
-                                {% if report_context.month_context.month_number == 5 %}
-                                    selected
-                                {% endif %}
-                            >
+                            <option value="5" {% if current_month == 5 %}selected{% endif %}>
                                 May
                             </option>
 
-                            <option
-                                value="6"
-                                {% if report_context.month_context.month_number == 6 %}
-                                    selected
-                                {% endif %}
-                            >
+                            <option value="6" {% if current_month == 6 %}selected{% endif %}>
                                 June
                             </option>
 
-                            <option
-                                value="7"
-                                {% if report_context.month_context.month_number == 7 %}
-                                    selected
-                                {% endif %}
-                            >
+                            <option value="7" {% if current_month == 7 %}selected{% endif %}>
                                 July
                             </option>
 
-                            <option
-                                value="8"
-                                {% if report_context.month_context.month_number == 8 %}
-                                    selected
-                                {% endif %}
-                            >
+                            <option value="8" {% if current_month == 8 %}selected{% endif %}>
                                 August
                             </option>
 
-                            <option
-                                value="9"
-                                {% if report_context.month_context.month_number == 9 %}
-                                    selected
-                                {% endif %}
-                            >
+                            <option value="9" {% if current_month == 9 %}selected{% endif %}>
                                 September
                             </option>
 
-                            <option
-                                value="10"
-                                {% if report_context.month_context.month_number == 10 %}
-                                    selected
-                                {% endif %}
-                            >
+                            <option value="10" {% if current_month == 10 %}selected{% endif %}>
                                 October
                             </option>
 
-                            <option
-                                value="11"
-                                {% if report_context.month_context.month_number == 11 %}
-                                    selected
-                                {% endif %}
-                            >
+                            <option value="11" {% if current_month == 11 %}selected{% endif %}>
                                 November
                             </option>
 
-                            <option
-                                value="12"
-                                {% if report_context.month_context.month_number == 12 %}
-                                    selected
-                                {% endif %}
-                            >
+                            <option value="12" {% if current_month == 12 %}selected{% endif %}>
                                 December
                             </option>
 
@@ -193,14 +123,9 @@
 
             <div class="flex items-center gap-4">
 
-                <!-- Icon -->
-
                 <div class="w-11 h-11 shrink-0 rounded-xl bg-emerald-50 flex items-center justify-center text-xl">
                     🎓
                 </div>
-
-
-                <!-- Content -->
 
                 <div class="flex-1 min-w-0">
 
@@ -208,20 +133,59 @@
                         Academic Year
                     </p>
 
+                    <form method="GET" class="mt-1">
 
-                    {% if report_context.academic_year_context %}
+                        {% if request.args.get("month") %}
+                            <input
+                                type="hidden"
+                                name="month"
+                                value="{{ request.args.get('month') }}"
+                            >
+                        {% endif %}
 
-                        <p class="text-lg font-bold text-slate-800 truncate">
-                            {{ report_context.academic_year_context.year_name }}
-                        </p>
+                        {% if request.args.get("course_id") %}
+                            <input
+                                type="hidden"
+                                name="course_id"
+                                value="{{ request.args.get('course_id') }}"
+                            >
+                        {% endif %}
 
-                    {% else %}
 
-                        <p class="text-lg font-bold text-slate-400">
-                            Not Set
-                        </p>
+                        <select
+                            name="academic_year_id"
+                            onchange="this.form.submit()"
+                            class="w-full bg-transparent border-0 p-0 pr-6 text-lg font-bold text-slate-800 focus:ring-0 focus:outline-none cursor-pointer"
+                        >
 
-                    {% endif %}
+                            {% for year in report_context.academic_years %}
+
+                                <option
+                                    value="{{ year.id }}"
+                                    {% if report_context.academic_year_context and report_context.academic_year_context.id == year.id %}
+                                        selected
+                                    {% endif %}
+                                >
+
+                                    {{ year.year_name }}
+
+                                    {% if year.is_current %}
+                                        (Current)
+                                    {% endif %}
+
+                                </option>
+
+                            {% else %}
+
+                                <option value="">
+                                    No Academic Year
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </form>
 
                 </div>
 
@@ -242,14 +206,9 @@
 
             <div class="flex items-center gap-4">
 
-                <!-- Icon -->
-
                 <div class="w-11 h-11 shrink-0 rounded-xl bg-amber-50 flex items-center justify-center text-xl">
                     📚
                 </div>
-
-
-                <!-- Content -->
 
                 <div class="flex-1 min-w-0">
 
@@ -257,20 +216,57 @@
                         Course
                     </p>
 
+                    <form method="GET" class="mt-1">
 
-                    {% if report_context.course_context %}
+                        {% if request.args.get("month") %}
+                            <input
+                                type="hidden"
+                                name="month"
+                                value="{{ request.args.get('month') }}"
+                            >
+                        {% endif %}
 
-                        <p class="text-lg font-bold text-slate-800 truncate">
-                            {{ report_context.course_context }}
-                        </p>
+                        {% if request.args.get("academic_year_id") %}
+                            <input
+                                type="hidden"
+                                name="academic_year_id"
+                                value="{{ request.args.get('academic_year_id') }}"
+                            >
+                        {% endif %}
 
-                    {% else %}
 
-                        <p class="text-lg font-bold text-slate-400">
-                            —
-                        </p>
+                        <select
+                            name="course_id"
+                            onchange="this.form.submit()"
+                            class="w-full bg-transparent border-0 p-0 pr-6 text-lg font-bold text-slate-800 focus:ring-0 focus:outline-none cursor-pointer"
+                        >
 
-                    {% endif %}
+                            <option value="">
+                                All Courses
+                            </option>
+
+                            {% for course in report_context.courses %}
+
+                                <option
+                                    value="{{ course.id }}"
+                                    {% if report_context.course_context and report_context.course_context.id == course.id %}
+                                        selected
+                                    {% endif %}
+                                >
+
+                                    {{ course.course_name }}
+
+                                    {% if course.course_code %}
+                                        — {{ course.course_code }}
+                                    {% endif %}
+
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </form>
 
                 </div>
 

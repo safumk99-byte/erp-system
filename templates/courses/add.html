@@ -1,0 +1,144 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Add Course
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-3xl mx-auto">
+
+    <div class="mb-6">
+
+        <a
+            href="{{ url_for('courses.course_list') }}"
+            class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-indigo-600"
+        >
+
+            <i
+                data-lucide="arrow-left"
+                class="w-4 h-4">
+            </i>
+
+            Back to Courses
+
+        </a>
+
+        <h1 class="text-3xl font-bold text-slate-800 mt-4">
+            Add Course
+        </h1>
+
+        <p class="text-slate-500 mt-1">
+            Create a new course for your institution.
+        </p>
+
+    </div>
+
+
+    {% include "components/alert.html" %}
+
+
+    <form
+        method="POST"
+        class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-6"
+    >
+
+        <!-- Course Name -->
+
+        <div>
+
+            <label class="block text-sm font-medium text-slate-700 mb-2">
+                Course Name
+                <span class="text-red-500">*</span>
+            </label>
+
+            <input
+                type="text"
+                name="course_name"
+                required
+                maxlength="150"
+                placeholder="e.g. Kithab"
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+
+        </div>
+
+
+        <!-- Course Code -->
+
+        <div>
+
+            <label class="block text-sm font-medium text-slate-700 mb-2">
+                Course Code
+            </label>
+
+            <input
+                type="text"
+                name="course_code"
+                maxlength="50"
+                placeholder="e.g. KIT"
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+
+        </div>
+
+
+        <!-- Description -->
+
+        <div>
+
+            <label class="block text-sm font-medium text-slate-700 mb-2">
+                Description
+            </label>
+
+            <textarea
+                name="description"
+                rows="4"
+                placeholder="Brief description of the course..."
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            ></textarea>
+
+        </div>
+
+
+        <!-- Actions -->
+
+        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+
+            <a
+                href="{{ url_for('courses.course_list') }}"
+                class="px-5 py-3 rounded-xl border border-slate-300 text-slate-700 text-center font-medium hover:bg-slate-50"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700"
+            >
+
+                <i
+                    data-lucide="plus"
+                    class="w-5 h-5">
+                </i>
+
+                Add Course
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<script>
+
+if (typeof lucide !== "undefined") {
+    lucide.createIcons();
+}
+
+</script>
+
+{% endblock %}

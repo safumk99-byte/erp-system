@@ -8,7 +8,8 @@ from services.subject_service import (
     add_subject,
     edit_subject,
     toggle_subject_status,
-    view_all_subjects
+    view_all_subjects,
+    get_course_classes_for_subject
 )
 
 
@@ -85,3 +86,10 @@ def update_subject(id):
 def toggle_subject(id):
 
     return toggle_subject_status(id)
+
+@subjects.route("/subjects/classes")
+@login_required
+@role_required("institution_admin")
+def subject_classes():
+
+    return get_course_classes_for_subject()

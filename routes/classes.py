@@ -8,9 +8,9 @@ from services.class_service import (
     add_class,
     edit_class,
     toggle_class_status,
-    view_class_students,
     class_students
 )
+
 
 classes = Blueprint(
     "classes",
@@ -18,53 +18,76 @@ classes = Blueprint(
 )
 
 
+# =========================================================
+# Class List
+# =========================================================
+
 @classes.route("/classes")
 @login_required
-@role_required("institution_admin", "staff")
+@role_required(
+    "institution_admin",
+    "staff"
+)
 def class_list():
 
     return list_classes()
 
-@classes.route("/classes/add", methods=["GET", "POST"])
-@login_required
-@role_required("institution_admin", "staff")
-def create_class():
-
-    return add_class()
-
-@classes.route("/classes/edit/<int:id>", methods=["GET", "POST"])
-@login_required
-@role_required("institution_admin", "staff")
-def update_class(id):
-
-    return edit_class(id)
-
-
-@classes.route("/classes/toggle/<int:id>")
-@login_required
-@role_required("institution_admin", "staff")
-def toggle_class(id):
-
-    return toggle_class_status(id)
 
 # =========================================================
-# View Students Of Class
+# Add Class
 # =========================================================
 
 @classes.route(
-    "/classes/<int:id>/students"
+    "/classes/add",
+    methods=["GET", "POST"]
 )
 @login_required
 @role_required(
     "institution_admin",
     "staff"
 )
-def class_students(id):
+def create_class():
 
-    return view_class_students(id)
+    return add_class()
+
 
 # =========================================================
-# View Students of Class
+# Edit Class
+# =========================================================
+
+@classes.route(
+    "/classes/edit/<int:id>",
+    methods=["GET", "POST"]
+)
+@login_required
+@role_required(
+    "institution_admin",
+    "staff"
+)
+def update_class(id):
+
+    return edit_class(id)
+
+
+# =========================================================
+# Toggle Class Status
+# =========================================================
+
+@classes.route(
+    "/classes/toggle/<int:id>"
+)
+@login_required
+@role_required(
+    "institution_admin",
+    "staff"
+)
+def toggle_class(id):
+
+    return toggle_class_status(id)
+
+
+# =========================================================
+# View Students Of Class
 # =========================================================
 
 @classes.route(

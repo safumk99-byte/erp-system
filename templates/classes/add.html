@@ -8,71 +8,339 @@ Add Class
 
 <div class="max-w-3xl mx-auto">
 
+    <!-- =====================================================
+         Header
+    ====================================================== -->
+
     <div class="mb-8">
 
-        <h1 class="text-3xl font-bold text-slate-800">
-            Add Class
-        </h1>
+        <div class="flex items-center gap-3 mb-3">
 
-        <p class="text-slate-500 mt-2">
-            Create a new class.
-        </p>
+            <div class="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+
+                <i
+                    data-lucide="school"
+                    class="w-6 h-6">
+                </i>
+
+            </div>
+
+            <div>
+
+                <h1 class="text-3xl font-bold text-slate-800">
+                    Add Class
+                </h1>
+
+                <p class="text-slate-500 mt-1">
+                    Create a new class and assign it to a course.
+                </p>
+
+            </div>
+
+        </div>
 
     </div>
 
+
     {% include "components/alert.html" %}
 
-    <form method="POST"
-          class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-6">
 
-        <div>
+    <!-- =====================================================
+         Form
+    ====================================================== -->
 
-            <label class="block mb-2 font-medium">
-                Class Name
-            </label>
+    <form
+        method="POST"
+        class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
+    >
 
-            <input
-                type="text"
-                name="class_name"
-                required
-                class="w-full border rounded-xl px-4 py-3">
+        <!-- =================================================
+             Form Header
+        ================================================== -->
 
-        </div>
+        <div class="px-8 py-6 border-b border-slate-100 bg-slate-50">
 
-        <div>
+            <h2 class="text-lg font-semibold text-slate-800">
+                Class Information
+            </h2>
 
-            <label class="block mb-2 font-medium">
-                Description
-            </label>
-
-            <textarea
-                name="description"
-                rows="4"
-                class="w-full border rounded-xl px-4 py-3"></textarea>
+            <p class="text-sm text-slate-500 mt-1">
+                Enter the basic details of the class.
+            </p>
 
         </div>
 
-        <div class="flex justify-end gap-3">
 
-            <a href="{{ url_for('classes.class_list') }}"
-               class="px-6 py-3 rounded-xl border">
+        <!-- =================================================
+             Fields
+        ================================================== -->
 
-                Cancel
+        <div class="p-8 space-y-6">
 
-            </a>
 
-            <button
-                type="submit"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl">
+            <!-- =================================================
+                 Course
+            ================================================== -->
 
-                Save Class
+            <div>
 
-            </button>
+                <label
+                    for="course_id"
+                    class="block mb-2 text-sm font-semibold text-slate-700"
+                >
+                    Course
+                    <span class="text-red-500">*</span>
+                </label>
+
+
+                <div class="relative">
+
+                    <i
+                        data-lucide="book-open"
+                        class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none"
+                    ></i>
+
+
+                    <select
+                        id="course_id"
+                        name="course_id"
+                        required
+                        class="w-full appearance-none border border-slate-300 rounded-xl pl-12 pr-10 py-3.5 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                    >
+
+                        <option value="">
+                            Select Course
+                        </option>
+
+
+                        {% for course in courses %}
+
+                            <option
+                                value="{{ course.id }}"
+                                {% if request.form.get("course_id") == course.id|string %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                {{ course.course_name }}
+
+                                {% if course.course_code %}
+                                    ({{ course.course_code }})
+                                {% endif %}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+
+                    <i
+                        data-lucide="chevron-down"
+                        class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none"
+                    ></i>
+
+                </div>
+
+
+                {% if not courses %}
+
+                    <p class="text-sm text-amber-600 mt-2 flex items-center gap-2">
+
+                        <i
+                            data-lucide="triangle-alert"
+                            class="w-4 h-4">
+                        </i>
+
+                        No active courses available. Please create a course first.
+
+                    </p>
+
+                {% else %}
+
+                    <p class="text-xs text-slate-400 mt-2">
+                        Select the course to which this class belongs.
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- =================================================
+                 Class Name
+            ================================================== -->
+
+            <div>
+
+                <label
+                    for="class_name"
+                    class="block mb-2 text-sm font-semibold text-slate-700"
+                >
+                    Class Name
+                    <span class="text-red-500">*</span>
+                </label>
+
+
+                <div class="relative">
+
+                    <i
+                        data-lucide="school"
+                        class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none"
+                    ></i>
+
+
+                    <input
+                        type="text"
+                        id="class_name"
+                        name="class_name"
+                        value="{{ request.form.get('class_name', '') }}"
+                        placeholder="e.g. Class 10 A"
+                        required
+                        maxlength="150"
+                        class="w-full border border-slate-300 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                    >
+
+                </div>
+
+
+                <p class="text-xs text-slate-400 mt-2">
+                    Enter a unique name for this class.
+                </p>
+
+            </div>
+
+            <div>
+
+    <label class="block mb-2 font-medium text-slate-700">
+        Course
+    </label>
+
+    <select
+        name="course_id"
+        class="w-full border border-slate-300 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    >
+
+        <option value="">
+            Select Course
+        </option>
+
+        {% for course in courses %}
+
+            <option value="{{ course.id }}">
+
+                {{ course.course_name }}
+
+                {% if course.course_code %}
+                    ({{ course.course_code }})
+                {% endif %}
+
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+</div>
+
+
+            <!-- =================================================
+                 Description
+            ================================================== -->
+
+            <div>
+
+                <label
+                    for="description"
+                    class="block mb-2 text-sm font-semibold text-slate-700"
+                >
+                    Description
+                    <span class="text-xs font-normal text-slate-400">
+                        (Optional)
+                    </span>
+                </label>
+
+
+                <textarea
+                    id="description"
+                    name="description"
+                    rows="4"
+                    placeholder="Add a short description about this class..."
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none"
+                >{{ request.form.get('description', '') }}</textarea>
+
+
+                <p class="text-xs text-slate-400 mt-2">
+                    You can add additional information about the class here.
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =================================================
+             Footer Actions
+        ================================================== -->
+
+        <div class="px-8 py-5 bg-slate-50 border-t border-slate-100">
+
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+
+
+                <!-- Cancel -->
+
+                <a
+                    href="{{ url_for('classes.class_list') }}"
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50 transition"
+                >
+
+                    <i
+                        data-lucide="x"
+                        class="w-4 h-4">
+                    </i>
+
+                    Cancel
+
+                </a>
+
+
+                <!-- Save -->
+
+                <button
+                    type="submit"
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm transition"
+                >
+
+                    <i
+                        data-lucide="plus"
+                        class="w-5 h-5">
+                    </i>
+
+                    Save Class
+
+                </button>
+
+            </div>
 
         </div>
 
     </form>
 
 </div>
+
+
+<!-- =====================================================
+     Lucide Icons
+====================================================== -->
+
+<script>
+
+    if (typeof lucide !== "undefined") {
+        lucide.createIcons();
+    }
+
+</script>
 
 {% endblock %}

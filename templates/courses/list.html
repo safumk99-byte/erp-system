@@ -1,0 +1,312 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Courses
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header -->
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-slate-800">
+                Courses
+            </h1>
+
+            <p class="text-slate-500 mt-1">
+                Manage the courses offered by your institution.
+            </p>
+
+        </div>
+
+
+        <a
+            href="{{ url_for('courses.add_course') }}"
+            class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition"
+        >
+
+            <i
+                data-lucide="plus"
+                class="w-5 h-5">
+            </i>
+
+            Add Course
+
+        </a>
+
+    </div>
+
+
+    {% include "components/alert.html" %}
+
+
+    <!-- Course List -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+        {% if courses %}
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-sm">
+
+                <thead class="bg-slate-50 border-b border-slate-200">
+
+                    <tr>
+
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Course
+                        </th>
+
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Code
+                        </th>
+
+                        <th class="text-left px-6 py-4 font-semibold text-slate-600">
+                            Description
+                        </th>
+
+                        <th class="text-center px-6 py-4 font-semibold text-slate-600">
+                            Status
+                        </th>
+
+                        <th class="text-right px-6 py-4 font-semibold text-slate-600">
+                            Actions
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-slate-100">
+
+                    {% for course in courses %}
+
+                    <tr class="hover:bg-slate-50 transition">
+
+                        <!-- Course -->
+
+                        <td class="px-6 py-5">
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+
+                                    <i
+                                        data-lucide="book-open"
+                                        class="w-5 h-5">
+                                    </i>
+
+                                </div>
+
+                                <div>
+
+                                    <p class="font-semibold text-slate-800">
+                                        {{ course.course_name }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- Code -->
+
+                        <td class="px-6 py-5">
+
+                            {% if course.course_code %}
+
+                                <span class="inline-flex px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold">
+                                    {{ course.course_code }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-slate-400">
+                                    —
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Description -->
+
+                        <td class="px-6 py-5 text-slate-600 max-w-md">
+
+                            {% if course.description %}
+
+                                <p class="truncate">
+                                    {{ course.description }}
+                                </p>
+
+                            {% else %}
+
+                                <span class="text-slate-400">
+                                    No description
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Status -->
+
+                        <td class="px-6 py-5 text-center">
+
+                            {% if course.is_active %}
+
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+
+                                    Active
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 text-xs font-semibold">
+
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+
+                                    Inactive
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Actions -->
+
+                        <td class="px-6 py-5">
+
+                            <div class="flex items-center justify-end gap-2">
+
+                                <a
+                                    href="{{ url_for(
+                                        'courses.edit_course',
+                                        id=course.id
+                                    ) }}"
+                                    class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 text-slate-600 hover:bg-indigo-100 hover:text-indigo-600 transition"
+                                    title="Edit"
+                                >
+
+                                    <i
+                                        data-lucide="pencil"
+                                        class="w-4 h-4">
+                                    </i>
+
+                                </a>
+
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'courses.toggle_course',
+                                        id=course.id
+                                    ) }}"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg
+                                        {% if course.is_active %}
+                                            bg-red-50 text-red-600 hover:bg-red-100
+                                        {% else %}
+                                            bg-green-50 text-green-600 hover:bg-green-100
+                                        {% endif %}
+                                        transition"
+                                        title="{% if course.is_active %}Deactivate{% else %}Activate{% endif %}"
+                                    >
+
+                                        <i
+                                            data-lucide="{% if course.is_active %}power{% else %}check-circle{% endif %}"
+                                            class="w-4 h-4">
+                                        </i>
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <!-- Empty -->
+
+        <div class="py-16 text-center">
+
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
+
+                <i
+                    data-lucide="book-open"
+                    class="w-8 h-8">
+                </i>
+
+            </div>
+
+            <h3 class="mt-5 text-lg font-semibold text-slate-800">
+                No courses yet
+            </h3>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Add your first course to get started.
+            </p>
+
+            <a
+                href="{{ url_for('courses.add_course') }}"
+                class="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700"
+            >
+
+                <i
+                    data-lucide="plus"
+                    class="w-4 h-4">
+                </i>
+
+                Add Course
+
+            </a>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<script>
+
+if (typeof lucide !== "undefined") {
+    lucide.createIcons();
+}
+
+</script>
+
+{% endblock %}
