@@ -1,8 +1,74 @@
-<aside class="w-72 bg-slate-900 text-white flex flex-col h-screen">
+<!-- =========================================================
+     MOBILE SIDEBAR OVERLAY
+     ========================================================= -->
 
-    <!-- ========================= -->
-    <!-- Logo -->
-    <!-- ========================= -->
+<div
+    id="mobile-sidebar-overlay"
+    class="fixed inset-0 bg-black/50 z-[9998] hidden md:hidden"
+></div>
+
+
+
+
+
+<!-- =========================================================
+     SIDEBAR
+     ========================================================= -->
+
+<aside
+    id="main-sidebar"
+    class="
+        w-72
+        bg-slate-900
+        text-white
+        flex
+        flex-col
+        h-screen
+        flex-shrink-0
+    "
+>
+
+    <!-- =====================================================
+         MOBILE CLOSE BUTTON
+         ===================================================== -->
+
+    <div
+        class="
+            hidden
+            justify-end
+            p-3
+        "
+        id="mobile-sidebar-close-wrapper"
+    >
+
+        <button
+            type="button"
+            id="mobile-sidebar-close"
+            aria-label="Close menu"
+            class="
+                w-10 h-10
+                rounded-xl
+                flex items-center justify-center
+                text-slate-300
+                hover:text-white
+                hover:bg-slate-800
+                transition
+            "
+        >
+
+            <i
+                data-lucide="x"
+                class="w-6 h-6"
+            ></i>
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         LOGO
+         ===================================================== -->
 
     <div class="border-b border-slate-800 p-6">
 
@@ -14,6 +80,7 @@
             Institution Management System
         </p>
 
+
         <div class="mt-4 rounded-lg bg-slate-800 p-3">
 
             <p class="text-xs text-slate-400">
@@ -21,382 +88,1152 @@
             </p>
 
             <p class="font-semibold mt-1">
-
-                {{ session.get("full_name","Guest") }}
-
+                {{ session.get("full_name", "Guest") }}
             </p>
 
             <p class="text-xs text-slate-400">
-
-                {{ session.get("role","-")|replace("_"," ")|title }}
-
+                {{ session.get("role", "-")|replace("_", " ")|title }}
             </p>
 
         </div>
 
     </div>
 
-    <!-- ========================= -->
-    <!-- Navigation -->
-    <!-- ========================= -->
+
+    <!-- =====================================================
+         NAVIGATION
+         ===================================================== -->
 
     <nav class="flex-1 overflow-y-auto px-4 py-5 space-y-2">
 
-    <!-- Dashboard -->
-    <a href="{{ url_for('dashboard.dashboard') }}"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+        <!-- =================================================
+             DASHBOARD
+             ================================================= -->
 
-        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-        <span>Dashboard</span>
+        <a
+            href="{{ url_for('dashboard.dashboard') }}"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+        >
 
-    </a>
+            <i
+                data-lucide="layout-dashboard"
+                class="w-5 h-5"
+            ></i>
 
-    {% if session.get("role") == "super_admin" %}
-
-        <a href="{{ url_for('institution.institutions') }}"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-            <i data-lucide="building-2" class="w-5 h-5"></i>
-            <span>Institutions</span>
-
-        </a>
-
-    {% elif session.get("role") == "institution_admin" %}
-
-        <a href="{{ url_for('staff.staff_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-            <i data-lucide="briefcase-business" class="w-5 h-5"></i>
-            <span>Staff</span>
+            <span>
+                Dashboard
+            </span>
 
         </a>
 
-        <a href="{{ url_for('classes.class_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
 
-    <i data-lucide="school" class="w-5 h-5"></i>
+        <!-- =================================================
+             SUPER ADMIN
+             ================================================= -->
 
-    <span>Classes</span>
+        {% if session.get("role") == "super_admin" %}
 
-</a>
+            <a
+                href="{{ url_for('institution.institutions') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
 
-        <a href="{{ url_for('students.student_list') }}"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
+                <i
+                    data-lucide="building-2"
+                    class="w-5 h-5"
+                ></i>
 
-            <i data-lucide="users" class="w-5 h-5"></i>
-            <span>Students</span>
+                <span>
+                    Institutions
+                </span>
+
+            </a>
+
+
+        <!-- =================================================
+             INSTITUTION ADMIN
+             ================================================= -->
+
+        {% elif session.get("role") == "institution_admin" %}
+
+            <a
+                href="{{ url_for('staff.staff_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="briefcase-business"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Staff
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('classes.class_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="school"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Classes
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('students.student_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="users"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Students
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('subjects.create_subject') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="book-copy"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Subjects
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('courses.course_list') }}"
+                class="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-slate-200 hover:bg-white/10 hover:text-white transition"
+            >
+
+                <i
+                    data-lucide="book-open"
+                    class="w-5 h-5 shrink-0"
+                ></i>
+
+                <span class="whitespace-nowrap">
+                    Courses
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('parents.parent_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="user-round"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Parents
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('attendance.attendance_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="calendar-check-2"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Attendance
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('exams.exam_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="clipboard-list"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Exams
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('reading.reading_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="book-open"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Reading
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('writing.writing_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="pen-line"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Writing
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('speaking.speaking_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="mic-2"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Speaking
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('publication.publication_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="book-open"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Publications
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('language.language_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="languages"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Language Skills
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('achievement.achievement_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="trophy"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Achievements
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('paper_presentation.paper_presentation_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="presentation"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Paper Presentation
+                </span>
+
+            </a>
+
+
+            <a
+                href="#"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="bar-chart-3"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Reports
+                </span>
+
+            </a>
+
+
+            <a
+                href="#"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="settings"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Settings
+                </span>
+
+            </a>
+
+
+        <!-- =================================================
+             STAFF
+             ================================================= -->
+
+        {% elif session.get("role") == "staff" %}
+
+            <a
+                href="{{ url_for('students.student_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="users"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Students
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('attendance.attendance_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="calendar-check-2"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Attendance
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('student_leave.student_leave_requests_route') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="calendar-check"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Student Leave Requests
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('staff_attendance.staff_attendance_list') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="user-check"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    My Attendance
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('staff_attendance.staff_leave_requests_page') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="calendar-clock"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    My Leave
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('portion_completion.portion_completion_page_route') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="book-open-check"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Add Portions
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('portion_completion.portion_completion_list_route') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="book-open-check"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Portion Completion
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('mentoring.mentoring_list_route') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="heart-handshake"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Mentoring
+                </span>
+
+            </a>
+
+
+        <!-- =================================================
+             PARENT
+             ================================================= -->
+
+        {% elif session.get("role") == "parent" %}
+
+            <a
+                href="{{ url_for('dashboard.dashboard') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-white hover:bg-white/10 transition"
+            >
+
+                <i
+                    data-lucide="users"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    My Children
+                </span>
+
+            </a>
+
+
+        <!-- =================================================
+             STUDENT
+             ================================================= -->
+
+        {% elif session.get("role") == "student" %}
+
+            <a
+                href="{{ url_for('students.student_progress_page') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="book-open"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    My Progress
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('student_leave.student_leave_page_route') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+            >
+
+                <i
+                    data-lucide="calendar-off"
+                    class="w-5 h-5"
+                ></i>
+
+                <span>
+                    Leave Application
+                </span>
+
+            </a>
+
+        {% endif %}
+
+    </nav>
+
+
+    <!-- =====================================================
+         LOGOUT
+         ===================================================== -->
+
+    <div class="border-t border-slate-800 p-4">
+
+        <a
+            href="{{ url_for('auth.logout') }}"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-600 hover:text-white transition"
+        >
+
+            <i
+                data-lucide="log-out"
+                class="w-5 h-5"
+            ></i>
+
+            <span>
+                Logout
+            </span>
 
         </a>
 
-        <a  href="{{ url_for('subjects.create_subject') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="book-copy" class="w-5 h-5"></i>
-
-    <span>Subjects</span>
-
-</a>
-
-<a
-    href="{{ url_for('courses.course_list') }}"
-    class="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-slate-200 hover:bg-white/10 hover:text-white transition"
->
-
-    <i
-        data-lucide="book-open"
-        class="w-5 h-5 shrink-0"
-    ></i>
-
-    <span class="whitespace-nowrap">
-        Courses
-    </span>
-
-</a>
-
-
-        <a href="{{ url_for('parents.parent_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="user-round" class="w-5 h-5"></i>
-
-    <span>Parents</span>
-
-</a>
-
-        <a href="{{ url_for('attendance.attendance_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="calendar-check-2" class="w-5 h-5"></i>
-
-    <span>Attendance</span>
-
-</a>
-
-        <a href="{{ url_for('exams.exam_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="clipboard-list" class="w-5 h-5"></i>
-
-    <span>Exams</span>
-
-</a>
-
-<a href="{{ url_for('reading.reading_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="book-open" class="w-5 h-5"></i>
-
-    <span>Reading</span>
-
-</a>
-
-<a href="{{ url_for('writing.writing_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="pen-line" class="w-5 h-5"></i>
-
-    <span>Writing</span>
-
-</a>
-
-<a href="{{ url_for('speaking.speaking_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="mic-2" class="w-5 h-5"></i>
-
-    <span>Speaking</span>
-
-</a>
-
-<a href="{{ url_for('publication.publication_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="book-open" class="w-5 h-5"></i>
-
-    <span>Publications</span>
-
-</a>
-
-<a href="{{ url_for('language.language_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="languages" class="w-5 h-5"></i>
-
-    <span>Language Skills</span>
-
-</a>
-
-        <a href="{{ url_for('achievement.achievement_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="trophy" class="w-5 h-5"></i>
-
-    <span>Achievements</span>
-
-</a>
-
-    <a href="{{ url_for('paper_presentation.paper_presentation_list') }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-    <i data-lucide="presentation" class="w-5 h-5"></i>
-
-    <span>Paper Presentation</span>
-
-</a>
-
-
-
-
-
-        <a href="#"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-            <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-            <span>Reports</span>
-
-        </a>
-
-        <a href="#"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-            <i data-lucide="settings" class="w-5 h-5"></i>
-            <span>Settings</span>
-
-        </a>
-
-    {% elif session.get("role") == "staff" %}
-
-    <!-- Students -->
-
-    <a href="{{ url_for('students.student_list') }}"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-        <i data-lucide="users" class="w-5 h-5"></i>
-
-        <span>Students</span>
-
-    </a>
-
-
-    <!-- Attendance -->
-
-    <a href="{{ url_for('attendance.attendance_list') }}"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-        <i data-lucide="calendar-check-2" class="w-5 h-5"></i>
-
-        <span>Attendance</span>
-
-    </a>
-
-
-    <!-- Student Leave Requests -->
-
-    <a href="{{ url_for(
-        'student_leave.student_leave_requests_route'
-    ) }}"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-        <i data-lucide="calendar-check" class="w-5 h-5"></i>
-
-        <span>Student Leave Requests</span>
-
-    </a>
-
-
-    <!-- Staff Attendance -->
-
-    <a href="{{ url_for(
-        'staff_attendance.staff_attendance_list'
-    ) }}"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-        <i data-lucide="user-check" class="w-5 h-5"></i>
-
-        <span>My Attendance</span>
-
-    </a>
-
-
-    <!-- Staff Leave -->
-
-    <a href="{{ url_for(
-        'staff_attendance.staff_leave_requests_page'
-    ) }}"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-        <i data-lucide="calendar-clock" class="w-5 h-5"></i>
-
-        <span>My Leave</span>
-
-    </a>
-
-
-    <!-- Add Portions -->
-
-    <a href="{{ url_for(
-        'portion_completion.portion_completion_page_route'
-    ) }}"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-        <i data-lucide="book-open-check" class="w-5 h-5"></i>
-
-        <span>Add Portions</span>
-
-    </a>
-
-
-    <!-- Portion Completion -->
-
-    <a href="{{ url_for(
-        'portion_completion.portion_completion_list_route'
-    ) }}"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-        <i data-lucide="book-open-check" class="w-5 h-5"></i>
-
-        <span>Portion Completion</span>
-
-    </a>
-
-
-    <!-- Mentoring -->
-
-    <a href="{{ url_for(
-        'mentoring.mentoring_list_route'
-    ) }}"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-        <i data-lucide="heart-handshake" class="w-5 h-5"></i>
-
-        <span>Mentoring</span>
-
-    </a>
-
-    {% elif session.get("role") == "parent" %}
-
-    <a
-        href="{{ url_for('dashboard.dashboard') }}"
-        class="flex items-center gap-3 px-4 py-3 rounded-xl text-white hover:bg-white/10 transition"
-    >
-
-        <i
-            data-lucide="users"
-            class="w-5 h-5"
-        ></i>
-
-        <span>
-            My Children
-        </span>
-
-    </a>
-
-    {% elif session.get("role") == "student" %}
-
-    
-
-
-    <a href="{{ url_for('students.student_progress_page') }}"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-        <i data-lucide="book-open" class="w-5 h-5"></i>
-
-        <span>My Progress</span>
-
-    </a>
-
-
-    <a href="{{ url_for(
-        'student_leave.student_leave_page_route'
-    ) }}"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition">
-
-        <i data-lucide="calendar-off" class="w-5 h-5"></i>
-
-        <span>Leave Application</span>
-
-    </a>
-
-        </a>
-
-    {% endif %}
-
-</nav>
-<!-- ========================= -->
-<!-- Bottom Section -->
-<!-- ========================= -->
-
-<div class="border-t border-slate-800 p-4">
-
-    <a href="{{ url_for('auth.logout') }}"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-600 hover:text-white transition">
-
-        <i data-lucide="log-out" class="w-5 h-5"></i>
-
-        <span>Logout</span>
-
-    </a>
-
-</div>
+    </div>
 
 </aside>
+
+
+<!-- =========================================================
+     MOBILE SIDEBAR CSS
+     ========================================================= -->
+
+<style>
+
+/* =========================================================
+   DESKTOP
+   Keep existing desktop layout unchanged
+   ========================================================= */
+
+@media (min-width: 768px) {
+
+    #main-sidebar {
+
+        position: relative;
+
+        width: 18rem;
+
+        height: 100vh;
+
+        transform: none !important;
+
+        left: auto;
+        top: auto;
+        bottom: auto;
+
+        z-index: auto;
+
+        box-shadow: none;
+
+        overflow: hidden;
+    }
+
+
+    #mobile-sidebar-open,
+    #mobile-sidebar-overlay,
+    #mobile-sidebar-close-wrapper {
+
+        display: none !important;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 767px) {
+
+    /*
+     * Main sidebar
+     */
+
+    #main-sidebar {
+
+        position: fixed;
+
+        top: 0;
+        left: 0;
+        bottom: 0;
+
+        width: 85vw;
+        max-width: 320px;
+        min-width: 270px;
+
+        height: 100dvh;
+
+        max-height: 100dvh;
+
+        z-index: 9999;
+
+        transform: translateX(-100%);
+
+        transition:
+            transform 0.28s ease;
+
+        display: flex;
+
+        flex-direction: column;
+
+        overflow: hidden;
+
+        box-shadow:
+            8px 0 28px rgba(0, 0, 0, 0.25);
+
+    }
+
+
+    /*
+     * Open state
+     */
+
+    #main-sidebar.mobile-sidebar-open {
+
+        transform: translateX(0);
+
+    }
+
+
+    /*
+     * Mobile menu button
+     */
+
+    #mobile-sidebar-open {
+
+        display: flex;
+
+        width: 42px;
+        height: 42px;
+
+        flex-shrink: 0;
+
+    }
+
+
+    /*
+     * Close button area
+     */
+
+    #mobile-sidebar-close-wrapper {
+
+        display: flex;
+
+        justify-content: flex-end;
+
+        align-items: center;
+
+        height: 56px;
+
+        min-height: 56px;
+
+        padding:
+            8px
+            12px
+            4px
+            12px;
+
+        flex-shrink: 0;
+
+    }
+
+
+    /*
+     * Close button
+     */
+
+    #mobile-sidebar-close {
+
+        width: 40px;
+        height: 40px;
+
+    }
+
+
+    /*
+     * Logo section
+     */
+
+    #main-sidebar > .border-b {
+
+        padding:
+            12px
+            20px
+            18px;
+
+        flex-shrink: 0;
+
+    }
+
+
+    #main-sidebar > .border-b h1 {
+
+        font-size: 1.7rem;
+
+        line-height: 1.2;
+
+    }
+
+
+    #main-sidebar > .border-b p {
+
+        line-height: 1.35;
+
+    }
+
+
+    /*
+     * Logged-in card
+     */
+
+    #main-sidebar > .border-b .mt-4 {
+
+        margin-top: 14px;
+
+        padding: 12px 14px;
+
+        border-radius: 12px;
+
+    }
+
+
+    /*
+     * Navigation
+     */
+
+    #main-sidebar nav {
+
+        flex: 1 1 auto;
+
+        min-height: 0;
+
+        overflow-y: auto;
+
+        overflow-x: hidden;
+
+        padding:
+            12px
+            12px
+            16px;
+
+        margin: 0;
+
+        scrollbar-width: thin;
+
+        -webkit-overflow-scrolling: touch;
+
+    }
+
+
+    /*
+     * Navigation links
+     */
+
+    #main-sidebar nav a {
+
+        min-height: 48px;
+
+        padding:
+            11px
+            14px;
+
+        border-radius: 12px;
+
+        font-size: 15px;
+
+        line-height: 1.25;
+
+    }
+
+
+    /*
+     * Icons
+     */
+
+    #main-sidebar nav a i {
+
+        width: 21px;
+        height: 21px;
+
+        flex-shrink: 0;
+
+    }
+
+
+    /*
+     * Logout section
+     */
+
+    #main-sidebar > .border-t {
+
+        flex-shrink: 0;
+
+        padding:
+            10px
+            12px;
+
+        background: #0f172a;
+
+    }
+
+
+    #main-sidebar > .border-t a {
+
+        min-height: 48px;
+
+        padding:
+            11px
+            14px;
+
+    }
+
+
+    /*
+     * Overlay
+     */
+
+    #mobile-sidebar-overlay {
+
+        position: fixed;
+
+        inset: 0;
+
+        z-index: 9998;
+
+        background:
+            rgba(15, 23, 42, 0.55);
+
+        backdrop-filter:
+            blur(1px);
+
+        -webkit-backdrop-filter:
+            blur(1px);
+
+    }
+
+
+    #mobile-sidebar-overlay.mobile-overlay-open {
+
+        display: block;
+
+    }
+
+}
+
+
+/* =========================================================
+   SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+    #main-sidebar {
+
+        width: 88vw;
+
+        min-width: 0;
+
+        max-width: 300px;
+
+    }
+
+
+    #main-sidebar > .border-b {
+
+        padding:
+            10px
+            16px
+            16px;
+
+    }
+
+
+    #main-sidebar > .border-b h1 {
+
+        font-size: 1.55rem;
+
+    }
+
+
+    #main-sidebar nav {
+
+        padding:
+            10px
+            10px
+            14px;
+
+    }
+
+
+    #main-sidebar nav a {
+
+        min-height: 46px;
+
+        padding:
+            10px
+            12px;
+
+        font-size: 14px;
+
+    }
+
+}
+
+</style>
+
+
+<!-- =========================================================
+     MOBILE SIDEBAR JAVASCRIPT
+     ========================================================= -->
+
+<script>
+
+(function () {
+
+    function initializeMobileSidebar() {
+
+        const sidebar =
+            document.getElementById(
+                "main-sidebar"
+            );
+
+        const openButton =
+            document.getElementById(
+                "mobile-sidebar-open"
+            );
+
+        const closeButton =
+            document.getElementById(
+                "mobile-sidebar-close"
+            );
+
+        const overlay =
+            document.getElementById(
+                "mobile-sidebar-overlay"
+            );
+
+
+        if (
+            !sidebar ||
+            !openButton ||
+            !closeButton ||
+            !overlay
+        ) {
+
+            return;
+
+        }
+
+
+        function openSidebar() {
+
+            sidebar.classList.add(
+                "mobile-sidebar-open"
+            );
+
+            overlay.classList.add(
+                "mobile-overlay-open"
+            );
+
+            document.body.style.overflow =
+                "hidden";
+
+        }
+
+
+        function closeSidebar() {
+
+            sidebar.classList.remove(
+                "mobile-sidebar-open"
+            );
+
+            overlay.classList.remove(
+                "mobile-overlay-open"
+            );
+
+            document.body.style.overflow =
+                "";
+
+        }
+
+
+        openButton.addEventListener(
+            "click",
+            openSidebar
+        );
+
+
+        closeButton.addEventListener(
+            "click",
+            closeSidebar
+        );
+
+
+        overlay.addEventListener(
+            "click",
+            closeSidebar
+        );
+
+
+        /*
+         * Close after selecting a menu item
+         * on mobile.
+         */
+
+        const links =
+            sidebar.querySelectorAll("a");
+
+
+        links.forEach(function (link) {
+
+            link.addEventListener(
+                "click",
+                function () {
+
+                    if (
+                        window.innerWidth < 768
+                    ) {
+
+                        closeSidebar();
+
+                    }
+
+                }
+            );
+
+        });
+
+
+        /*
+         * Restore desktop state after
+         * resizing the browser.
+         */
+
+        window.addEventListener(
+            "resize",
+            function () {
+
+                if (
+                    window.innerWidth >= 768
+                ) {
+
+                    closeSidebar();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /*
+     * dashboard.html is already loaded,
+     * so initialize immediately when possible.
+     */
+
+    if (
+        document.readyState === "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeMobileSidebar
+        );
+
+    } else {
+
+        initializeMobileSidebar();
+
+    }
+
+})();
+
+</script>
