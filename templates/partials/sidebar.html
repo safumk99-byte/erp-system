@@ -107,24 +107,66 @@
     <nav class="flex-1 overflow-y-auto px-4 py-5 space-y-2">
 
         <!-- =================================================
-             DASHBOARD
-             ================================================= -->
+     DASHBOARD
+     ================================================= -->
 
-        <a
-            href="{{ url_for('dashboard.dashboard') }}"
-            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
-        >
+{% if session.get("role") == "super_admin" %}
 
-            <i
-                data-lucide="layout-dashboard"
-                class="w-5 h-5"
-            ></i>
+<a
+    href="{{ url_for('admin_dashboard.dashboard') }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+>
 
-            <span>
-                Dashboard
-            </span>
+    <i
+        data-lucide="layout-dashboard"
+        class="w-5 h-5"
+    ></i>
 
-        </a>
+    <span>
+        Dashboard
+    </span>
+
+</a>
+
+
+{% elif session.get("role") == "institution_admin" %}
+
+<a
+    href="{{ url_for('institution_dashboard.dashboard') }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+>
+
+    <i
+        data-lucide="layout-dashboard"
+        class="w-5 h-5"
+    ></i>
+
+    <span>
+        Dashboard
+    </span>
+
+</a>
+
+
+{% else %}
+
+<a
+    href="{{ url_for('dashboard.dashboard') }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+>
+
+    <i
+        data-lucide="layout-dashboard"
+        class="w-5 h-5"
+    ></i>
+
+    <span>
+        Dashboard
+    </span>
+
+</a>
+
+{% endif %}
 
 
         <!-- =================================================
@@ -412,37 +454,33 @@
 
 
             <a
-                href="#"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
-            >
+    href="{{ url_for('reports.central_report_page') }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+>
+    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
 
-                <i
-                    data-lucide="bar-chart-3"
-                    class="w-5 h-5"
-                ></i>
-
-                <span>
-                    Reports
-                </span>
-
-            </a>
+    <span>
+        Reports
+    </span>
+</a>
 
 
+            
             <a
-                href="#"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
-            >
+    href="{{ url_for('settings.institution_settings') }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+>
 
-                <i
-                    data-lucide="settings"
-                    class="w-5 h-5"
-                ></i>
+    <i
+        data-lucide="settings"
+        class="w-5 h-5"
+    ></i>
 
-                <span>
-                    Settings
-                </span>
+    <span>
+        Settings
+    </span>
 
-            </a>
+</a>
 
 
         <!-- =================================================
@@ -585,6 +623,17 @@
                 </span>
 
             </a>
+
+             <a
+    href="{{ url_for('reports.central_report_page') }}"
+    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition"
+>
+    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+
+    <span>
+        Reports
+    </span>
+</a>
 
 
         <!-- =================================================

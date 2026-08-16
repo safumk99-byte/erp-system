@@ -266,7 +266,20 @@ def login_user(login_type):
 
 
         # =====================================================
-        # Super Admin / Other Roles
+        # Super Admin Dashboard
+        # =====================================================
+
+        if user["role_name"] == "super_admin":
+
+            return redirect(
+                url_for(
+                    "admin_dashboard.dashboard"
+                )
+            )
+
+
+        # =====================================================
+        # Other Roles
         # =====================================================
 
         return redirect(

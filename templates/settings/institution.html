@@ -1,0 +1,851 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Institution Settings
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-6xl mx-auto space-y-6">
+
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div>
+
+        <p class="text-sm font-semibold text-indigo-600">
+            Institution Administration
+        </p>
+
+        <h1 class="text-3xl font-bold text-slate-800 mt-1">
+            Institution Settings
+        </h1>
+
+        <p class="text-sm text-slate-500 mt-2">
+            Manage your institution, account, branding and security.
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         INSTITUTION PROFILE
+    ====================================================== -->
+
+    <form
+        method="POST"
+        action="{{ url_for('settings.institution_settings') }}"
+    >
+
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+            <div class="p-6 border-b border-slate-100">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+
+                        <i data-lucide="building-2" class="w-5 h-5"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h2 class="text-lg font-semibold text-slate-800">
+                            Institution Profile
+                        </h2>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            Update your institution information.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+
+
+                <!-- Name -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Institution Name
+                    </label>
+
+                    <input
+                        type="text"
+                        name="name"
+                        value="{{ institution.name or '' }}"
+                        required
+                        maxlength="255"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+
+                <!-- Code -->
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Institution Code
+                    </label>
+
+                    <input
+                        type="text"
+                        value="{{ institution.code or '' }}"
+                        readonly
+                        class="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-500"
+                    >
+
+                    <p class="text-xs text-slate-400 mt-1">
+                        Managed by Super Admin.
+                    </p>
+
+                </div>
+
+
+                <!-- Admission Prefix -->
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Admission Prefix
+                    </label>
+
+                    <input
+                        type="text"
+                        name="admission_prefix"
+                        value="{{ institution.admission_prefix or '' }}"
+                        maxlength="50"
+                        placeholder="Example: ALIF"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+
+                <!-- Email -->
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        name="email"
+                        value="{{ institution.email or '' }}"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+
+                <!-- Phone -->
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Phone
+                    </label>
+
+                    <input
+                        type="tel"
+                        name="phone"
+                        value="{{ institution.phone or '' }}"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+
+                <!-- Address -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Address
+                    </label>
+
+                    <textarea
+                        name="address"
+                        rows="3"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >{{ institution.address or '' }}</textarea>
+
+                </div>
+
+
+                <!-- City -->
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        City
+                    </label>
+
+                    <input
+                        type="text"
+                        name="city"
+                        value="{{ institution.city or '' }}"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+
+                <!-- State -->
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        State
+                    </label>
+
+                    <input
+                        type="text"
+                        name="state"
+                        value="{{ institution.state or '' }}"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+
+                <!-- Country -->
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Country
+                    </label>
+
+                    <input
+                        type="text"
+                        name="country"
+                        value="{{ institution.country or 'India' }}"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+
+                <button
+                    type="submit"
+                    class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold"
+                >
+
+                    <i data-lucide="save" class="w-4 h-4"></i>
+
+                    Save Changes
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+
+    <!-- =====================================================
+         LOGO
+    ====================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+        <div class="p-6 border-b border-slate-100">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Institution Branding
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Upload the institution logo used across reports and the ERP.
+            </p>
+
+        </div>
+
+
+        <div class="p-6 space-y-5">
+
+
+            {% if institution.logo %}
+
+            <div class="flex flex-col sm:flex-row gap-5 sm:items-center">
+
+                <div class="w-28 h-28 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+
+                    <img
+                        src="{{ institution.logo }}"
+                        alt="Institution Logo"
+                        class="max-w-full max-h-full object-contain"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <p class="font-semibold text-slate-800">
+                        Current Logo
+                    </p>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        You can replace or remove this logo.
+                    </p>
+
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('settings.remove_logo') }}"
+                        class="mt-3"
+                    >
+
+                        <button
+                            type="submit"
+                            onclick="return confirm('Remove the institution logo?')"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold"
+                        >
+
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+
+                            Remove Logo
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
+
+            <form
+                method="POST"
+                action="{{ url_for('settings.update_logo') }}"
+                enctype="multipart/form-data"
+                class="space-y-4"
+            >
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        {{ "Replace Logo" if institution.logo else "Upload Logo" }}
+                    </label>
+
+                    <input
+                        type="file"
+                        name="logo"
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                        required
+                        class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
+                    >
+
+                    <p class="text-xs text-slate-400 mt-2">
+                        JPG, JPEG, PNG or WEBP.
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold"
+                >
+
+                    <i data-lucide="upload" class="w-4 h-4"></i>
+
+                    Upload Logo
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ADMIN ACCOUNT
+    ====================================================== -->
+
+    <form
+        method="POST"
+        action="{{ url_for('settings.update_admin_account') }}"
+    >
+
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+            <div class="p-6 border-b border-slate-100">
+
+                <h2 class="text-lg font-semibold text-slate-800">
+                    Admin Account
+                </h2>
+
+                <p class="text-sm text-slate-500 mt-1">
+                    Manage your institution administrator account.
+                </p>
+
+            </div>
+
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Full Name
+                    </label>
+
+                    <input
+                        type="text"
+                        name="full_name"
+                        value="{{ admin.full_name if admin else '' }}"
+                        required
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Username
+                    </label>
+
+                    <input
+                        type="text"
+                        name="username"
+                        value="{{ admin.username if admin else '' }}"
+                        required
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        name="email"
+                        value="{{ admin.email if admin else '' }}"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Phone
+                    </label>
+
+                    <input
+                        type="tel"
+                        name="phone"
+                        value="{{ admin.phone if admin else '' }}"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+
+                <button
+                    type="submit"
+                    class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold"
+                >
+                    Update Account
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+
+    <!-- =====================================================
+         CHANGE ADMIN PASSWORD
+    ====================================================== -->
+
+    <form
+        method="POST"
+        action="{{ url_for('settings.change_admin_password') }}"
+    >
+
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+            <div class="p-6 border-b border-slate-100">
+
+                <h2 class="text-lg font-semibold text-slate-800">
+                    Change Admin Password
+                </h2>
+
+                <p class="text-sm text-slate-500 mt-1">
+                    Change your own institution administrator password.
+                </p>
+
+            </div>
+
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Current Password
+                    </label>
+
+                    <input
+                        type="password"
+                        name="current_password"
+                        required
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        New Password
+                    </label>
+
+                    <input
+                        type="password"
+                        name="new_password"
+                        minlength="6"
+                        required
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Confirm Password
+                    </label>
+
+                    <input
+                        type="password"
+                        name="confirm_password"
+                        minlength="6"
+                        required
+                        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+
+                <button
+                    type="submit"
+                    class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold"
+                >
+                    Change Password
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+
+    <!-- =====================================================
+         PASSWORD MANAGEMENT
+    ====================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+        <div class="p-6 border-b border-slate-100">
+
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+                <div>
+
+                    <h2 class="text-lg font-semibold text-slate-800">
+                        Password Management
+                    </h2>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        Reset Staff, Student and Parent passwords.
+                    </p>
+
+                </div>
+
+
+                <a
+                    href="{{ url_for('settings.password_management') }}"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold"
+                >
+
+                    <i data-lucide="key-round" class="w-4 h-4"></i>
+
+                    Manage Passwords
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+
+
+            <div class="rounded-xl bg-purple-50 p-5">
+
+                <i data-lucide="user-cog" class="w-6 h-6 text-purple-600"></i>
+
+                <p class="font-semibold text-slate-800 mt-3">
+                    Staff
+                </p>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Reset staff login passwords.
+                </p>
+
+            </div>
+
+
+            <div class="rounded-xl bg-blue-50 p-5">
+
+                <i data-lucide="graduation-cap" class="w-6 h-6 text-blue-600"></i>
+
+                <p class="font-semibold text-slate-800 mt-3">
+                    Students
+                </p>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Reset student login passwords.
+                </p>
+
+            </div>
+
+
+            <div class="rounded-xl bg-green-50 p-5">
+
+                <i data-lucide="users" class="w-6 h-6 text-green-600"></i>
+
+                <p class="font-semibold text-slate-800 mt-3">
+                    Parents
+                </p>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Reset parent portal passwords.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUBSCRIPTION
+    ====================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm">
+
+        <div class="p-6">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Subscription
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Subscription information is managed by Super Admin.
+            </p>
+
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
+
+                <div class="bg-slate-50 rounded-xl p-4">
+
+                    <p class="text-xs text-slate-500">
+                        Plan
+                    </p>
+
+                    <p class="font-bold text-slate-800 mt-1">
+                        {{ institution.subscription_plan or "Free" }}
+                    </p>
+
+                </div>
+
+
+                <div class="bg-slate-50 rounded-xl p-4">
+
+                    <p class="text-xs text-slate-500">
+                        Start
+                    </p>
+
+                    <p class="font-semibold text-slate-800 mt-1">
+                        {{ institution.subscription_start or "Not set" }}
+                    </p>
+
+                </div>
+
+
+                <div class="bg-slate-50 rounded-xl p-4">
+
+                    <p class="text-xs text-slate-500">
+                        End
+                    </p>
+
+                    <p class="font-semibold text-slate-800 mt-1">
+                        {{ institution.subscription_end or "Not set" }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ACADEMIC YEAR
+    ====================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+
+        <div class="flex items-center justify-between gap-4">
+
+            <div>
+
+                <h2 class="text-lg font-semibold text-slate-800">
+                    Academic Year
+                </h2>
+
+                <p class="text-sm text-slate-500 mt-1">
+                    Manage academic years from the dedicated module.
+                </p>
+
+            </div>
+
+
+            <a
+                href="{{ url_for('academic_years.create_academic_year') }}"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-sm font-semibold text-slate-700"
+            >
+
+                <i data-lucide="calendar-days" class="w-4 h-4"></i>
+
+                Manage
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SYSTEM INFORMATION
+    ====================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+
+        <h2 class="text-lg font-semibold text-slate-800">
+            System Information
+        </h2>
+
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-5">
+
+            <div>
+
+                <p class="text-xs text-slate-500">
+                    Institution Code
+                </p>
+
+                <p class="font-semibold text-slate-800 mt-1">
+                    {{ institution.code }}
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <p class="text-xs text-slate-500">
+                    Status
+                </p>
+
+                <p class="font-semibold text-slate-800 mt-1">
+                    {{ institution.status or "Not set" }}
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <p class="text-xs text-slate-500">
+                    Created
+                </p>
+
+                <p class="font-semibold text-slate-800 mt-1">
+                    {{ institution.created_at or "Not available" }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+if (typeof lucide !== "undefined") {
+    lucide.createIcons();
+}
+
+</script>
+
+{% endblock %}

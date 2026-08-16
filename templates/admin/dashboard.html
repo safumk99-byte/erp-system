@@ -6,12 +6,650 @@ Super Admin Dashboard
 
 {% block page_content %}
 
-<h1 class="text-3xl font-bold">
-    Super Admin Dashboard
-</h1>
+<div class="max-w-7xl mx-auto space-y-8">
 
-<p class="mt-2 text-slate-500">
-    Welcome {{ session["full_name"] }}
-</p>
+
+    <!-- =====================================================
+         Header
+    ====================================================== -->
+
+    <div>
+
+        <p class="text-sm font-semibold text-indigo-600">
+            System Administration
+        </p>
+
+        <h1 class="text-3xl md:text-4xl font-bold text-slate-800 mt-1">
+            Super Admin Dashboard
+        </h1>
+
+        <p class="text-slate-500 mt-2">
+            Monitor institutions, users and subscription status.
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         Institution Statistics
+    ====================================================== -->
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+
+
+        <!-- Total Institutions -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-start justify-between">
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Total Institutions
+                    </p>
+
+                    <p class="text-3xl font-bold text-slate-800 mt-2">
+                        {{ total_institutions }}
+                    </p>
+
+                    <p class="text-xs text-slate-400 mt-2">
+                        Registered institutions
+                    </p>
+
+                </div>
+
+                <div class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+
+                    <i
+                        data-lucide="building-2"
+                        class="w-6 h-6"
+                    ></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Active Institutions -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-start justify-between">
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Active Institutions
+                    </p>
+
+                    <p class="text-3xl font-bold text-green-600 mt-2">
+                        {{ active_institutions }}
+                    </p>
+
+                    <p class="text-xs text-slate-400 mt-2">
+                        Currently active
+                    </p>
+
+                </div>
+
+                <div class="w-12 h-12 rounded-xl bg-green-100 text-green-600 flex items-center justify-center">
+
+                    <i
+                        data-lucide="circle-check"
+                        class="w-6 h-6"
+                    ></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Inactive Institutions -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-start justify-between">
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Inactive Institutions
+                    </p>
+
+                    <p class="text-3xl font-bold text-red-600 mt-2">
+                        {{ inactive_institutions }}
+                    </p>
+
+                    <p class="text-xs text-slate-400 mt-2">
+                        Need attention
+                    </p>
+
+                </div>
+
+                <div class="w-12 h-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
+
+                    <i
+                        data-lucide="circle-x"
+                        class="w-6 h-6"
+                    ></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Students -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-start justify-between">
+
+                <div>
+
+                    <p class="text-sm text-slate-500">
+                        Total Students
+                    </p>
+
+                    <p class="text-3xl font-bold text-blue-600 mt-2">
+                        {{ total_students }}
+                    </p>
+
+                    <p class="text-xs text-slate-400 mt-2">
+                        Active students
+                    </p>
+
+                </div>
+
+                <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+
+                    <i
+                        data-lucide="users"
+                        class="w-6 h-6"
+                    ></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         Users + Subscription
+    ====================================================== -->
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+
+        <!-- User Overview -->
+
+        <div class="xl:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <h2 class="text-lg font-semibold text-slate-800">
+                        Platform Overview
+                    </h2>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        Current users across all institutions.
+                    </p>
+
+                </div>
+
+                <div class="w-11 h-11 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+
+                    <i
+                        data-lucide="users-round"
+                        class="w-5 h-5"
+                    ></i>
+
+                </div>
+
+            </div>
+
+
+            <div class="grid grid-cols-2 gap-4 mt-6">
+
+
+                <!-- Students -->
+
+                <div class="rounded-xl bg-blue-50 p-5">
+
+                    <p class="text-sm text-blue-600">
+                        Students
+                    </p>
+
+                    <p class="text-3xl font-bold text-blue-700 mt-1">
+                        {{ total_students }}
+                    </p>
+
+                </div>
+
+
+                <!-- Staff -->
+
+                <div class="rounded-xl bg-purple-50 p-5">
+
+                    <p class="text-sm text-purple-600">
+                        Staff
+                    </p>
+
+                    <p class="text-3xl font-bold text-purple-700 mt-1">
+                        {{ total_staff }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Subscription -->
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <h2 class="text-lg font-semibold text-slate-800">
+                        Subscriptions
+                    </h2>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        Current plan overview.
+                    </p>
+
+                </div>
+
+                <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+
+                    <i
+                        data-lucide="credit-card"
+                        class="w-5 h-5"
+                    ></i>
+
+                </div>
+
+            </div>
+
+
+            <div class="space-y-3 mt-6">
+
+                <div class="flex items-center justify-between">
+
+                    <span class="text-sm text-slate-500">
+                        Free
+                    </span>
+
+                    <span class="font-semibold text-slate-800">
+                        {{ free_institutions }}
+                    </span>
+
+                </div>
+
+
+                <div class="flex items-center justify-between">
+
+                    <span class="text-sm text-slate-500">
+                        Premium
+                    </span>
+
+                    <span class="font-semibold text-slate-800">
+                        {{ premium_institutions }}
+                    </span>
+
+                </div>
+
+
+                <div class="border-t border-slate-100 pt-3 flex items-center justify-between">
+
+                    <span class="text-sm text-amber-600">
+                        Expiring in 30 days
+                    </span>
+
+                    <span class="font-semibold text-amber-600">
+                        {{ expiring_soon }}
+                    </span>
+
+                </div>
+
+
+                <div class="flex items-center justify-between">
+
+                    <span class="text-sm text-red-600">
+                        Expired
+                    </span>
+
+                    <span class="font-semibold text-red-600">
+                        {{ expired_subscriptions }}
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         Recent Institutions
+    ====================================================== -->
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+
+        <div class="p-6 border-b border-slate-100">
+
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+                <div>
+
+                    <h2 class="text-lg font-semibold text-slate-800">
+                        Recent Institutions
+                    </h2>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        Recently registered institutions.
+                    </p>
+
+                </div>
+
+
+                <a
+                    href="{{ url_for('institution.institutions') }}"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition"
+                >
+
+                    <i
+                        data-lucide="building-2"
+                        class="w-4 h-4"
+                    ></i>
+
+                    Manage Institutions
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full min-w-[700px]">
+
+                <thead class="bg-slate-50">
+
+                    <tr>
+
+                        <th class="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Institution
+                        </th>
+
+                        <th class="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Code
+                        </th>
+
+                        <th class="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Students
+                        </th>
+
+                        <th class="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Staff
+                        </th>
+
+                        <th class="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Plan
+                        </th>
+
+                        <th class="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Status
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-slate-100">
+
+                    {% for institution in recent_institutions %}
+
+                    <tr class="hover:bg-slate-50 transition">
+
+                        <td class="px-6 py-4">
+
+                            <p class="font-semibold text-slate-800">
+                                {{ institution.name }}
+                            </p>
+
+                            {% if institution.email %}
+
+                            <p class="text-xs text-slate-500 mt-1">
+                                {{ institution.email }}
+                            </p>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td class="px-6 py-4">
+
+                            <span class="text-sm font-medium text-slate-700">
+                                {{ institution.code }}
+                            </span>
+
+                        </td>
+
+
+                        <td class="px-6 py-4">
+
+                            <span class="text-sm font-semibold text-blue-600">
+                                {{ institution.student_count }}
+                            </span>
+
+                        </td>
+
+
+                        <td class="px-6 py-4">
+
+                            <span class="text-sm font-semibold text-purple-600">
+                                {{ institution.staff_count }}
+                            </span>
+
+                        </td>
+
+
+                        <td class="px-6 py-4">
+
+                            {% if institution.subscription_plan == "premium" %}
+
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-xs font-semibold">
+                                Premium
+                            </span>
+
+                            {% else %}
+
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-semibold">
+                                Free
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td class="px-6 py-4">
+
+                            {% if institution.status == "active" %}
+
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-green-50 text-green-700 text-xs font-semibold">
+
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+
+                                Active
+
+                            </span>
+
+                            {% else %}
+
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-50 text-red-700 text-xs font-semibold">
+
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+
+                                Inactive
+
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="px-6 py-10 text-center text-sm text-slate-500"
+                        >
+                            No institutions registered yet.
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         Quick Actions
+    ====================================================== -->
+
+    <div>
+
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">
+            Quick Actions
+        </h2>
+
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+
+            <!-- Institutions -->
+
+            <a
+                href="{{ url_for('institution.institutions') }}"
+                class="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md hover:border-indigo-200 transition"
+            >
+
+                <i
+                    data-lucide="building-2"
+                    class="w-6 h-6 text-indigo-600"
+                ></i>
+
+                <p class="font-semibold text-slate-800 mt-4">
+                    Institutions
+                </p>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Manage all institutions
+                </p>
+
+            </a>
+
+
+            <!-- Add Institution -->
+
+            <a
+                href="{{ url_for('institution.create_institution') }}"
+                class="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md hover:border-green-200 transition"
+            >
+
+                <i
+                    data-lucide="building"
+                    class="w-6 h-6 text-green-600"
+                ></i>
+
+                <p class="font-semibold text-slate-800 mt-4">
+                    Add Institution
+                </p>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Register a new institution
+                </p>
+
+            </a>
+
+
+            <!-- System Notifications -->
+
+            <a
+                href="{{ url_for('notifications.notification_list') }}"
+                class="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md hover:border-amber-200 transition"
+            >
+
+                <i
+                    data-lucide="bell"
+                    class="w-6 h-6 text-amber-600"
+                ></i>
+
+                <p class="font-semibold text-slate-800 mt-4">
+                    Notifications
+                </p>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Review system notifications
+                </p>
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+<!-- =========================================================
+     Lucide Icons
+========================================================= -->
+
+<script>
+
+    if (typeof lucide !== "undefined") {
+
+        lucide.createIcons();
+
+    }
+
+</script>
 
 {% endblock %}

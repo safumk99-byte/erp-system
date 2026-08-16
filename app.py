@@ -4,6 +4,7 @@ from flask import Flask
 
 from config import SECRET_KEY
 
+from routes.admin_dashboard import admin_dashboard
 from routes.auth import auth
 from routes.dashboard import dashboard_bp
 from routes.institutions import institution
@@ -35,6 +36,7 @@ from routes.reports import reports
 from routes.parent import parent_bp
 from routes.institution_dashboard import institution_dashboard
 from routes.courses import courses
+from routes.settings import settings
 
 from services.notification_service import (
     get_unread_count
@@ -102,6 +104,7 @@ def inject_report_context():
 # =========================================================
 # Blueprint Registration
 # =========================================================
+app.register_blueprint(admin_dashboard)
 
 # ---------------------------------------------------------
 # Authentication / Portal
@@ -128,6 +131,7 @@ app.register_blueprint(institution)
 app.register_blueprint(courses)
 app.register_blueprint(academic_years)
 app.register_blueprint(student_promotions)
+app.register_blueprint(settings)
 
 
 # ---------------------------------------------------------
