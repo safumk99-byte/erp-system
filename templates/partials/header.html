@@ -52,7 +52,76 @@
         </button>
 
 
-        <!-- Page Title -->
+        <!-- =================================================
+             Institution Logo
+        ================================================== -->
+
+        {% if institution_logo %}
+
+        <div
+            class="
+                w-10
+                h-10
+                sm:w-11
+                sm:h-11
+                shrink-0
+                rounded-xl
+                bg-white
+                border
+                border-slate-200
+                flex
+                items-center
+                justify-center
+                overflow-hidden
+            "
+        >
+
+            <img
+                src="{{ institution_logo }}"
+                alt="Institution Logo"
+                class="
+                    w-full
+                    h-full
+                    object-contain
+                    p-1
+                "
+            >
+
+        </div>
+
+        {% else %}
+
+        <!-- Fallback icon when logo is not available -->
+
+        <div
+            class="
+                w-10
+                h-10
+                sm:w-11
+                sm:h-11
+                shrink-0
+                rounded-xl
+                bg-indigo-600
+                text-white
+                flex
+                items-center
+                justify-center
+            "
+        >
+
+            <i
+                data-lucide="building-2"
+                class="w-5 h-5"
+            ></i>
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- =================================================
+             Page Title
+        ================================================== -->
 
         <div class="min-w-0">
 

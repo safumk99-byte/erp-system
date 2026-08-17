@@ -8,7 +8,8 @@ from middleware.roles import role_required
 from services.report_service import (
     central_report,
     central_report_pdf,
-    central_report_excel
+    central_report_excel,
+    student_report
 )
 
 
@@ -59,3 +60,21 @@ def central_report_pdf_page():
 def central_report_excel_page():
 
     return central_report_excel()
+
+# =========================================================
+# Student Report
+# =========================================================
+
+@reports.route(
+    "/reports/student/<int:student_id>"
+)
+@login_required
+@role_required(
+    "institution_admin",
+    "staff"
+)
+def student_report_page(student_id):
+
+    return student_report(
+        student_id
+    )

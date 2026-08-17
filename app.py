@@ -1,6 +1,8 @@
 import os
 
 from flask import Flask
+from database.db import get_connection
+from flask import Flask, render_template, session
 
 from config import SECRET_KEY
 
@@ -99,6 +101,56 @@ def inject_report_context():
     return {
         "report_context": report_context
     }
+    
+    
+# =========================================================
+# Institution Logo
+# =========================================================
+
+@app.context_processor
+def inject_institution_logo():
+
+    institution_logo = None
+
+    try:
+
+        institution_id = session.get(
+            "institution_id"
+        )
+
+        if institution_id:
+
+            conn = get_connection()
+            cur = conn.cursor()
+
+            cur.execute(
+                """
+                SELECT logo
+                FROM institutions
+                WHERE id = %s
+                LIMIT 1
+                """,
+                (institution_id,)
+            )
+
+            row = cur.fetchone()
+
+            if row:
+                institution_logo = row["logo"]
+
+            cur.close()
+            conn.close()
+
+    except Exception as e:
+
+        print(
+            "Institution logo context error:",
+            e
+        )
+
+    return {
+        "institution_logo": institution_logo
+    }    
 
 
 # =========================================================

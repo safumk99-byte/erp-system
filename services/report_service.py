@@ -210,9 +210,6 @@ def _class_is_allowed(
     return cur.fetchone() is not None
 
 
-# =========================================================
-# Central Report
-# =========================================================
 
 # =========================================================
 # Central Report
@@ -258,6 +255,11 @@ def central_report():
             ""
         ).strip()
 
+        student_id = request.args.get(
+            "student_id",
+            ""
+        ).strip()
+
         # =================================================
         # Academic Years
         # =================================================
@@ -279,6 +281,117 @@ def central_report():
         )
 
         # =================================================
+        # Students for Filter
+        # =================================================
+
+        students = []
+
+        # -------------------------------------------------
+        # When Class is selected
+        # -------------------------------------------------
+
+        if class_id:
+
+            if _class_is_allowed(
+                cur,
+                class_id,
+                institution_id,
+                role,
+                user_id
+            ):
+
+                cur.execute(
+                    """
+                    SELECT
+                        s.id,
+                        s.admission_no,
+                        s.full_name,
+                        s.class_id
+
+                    FROM students s
+
+                    WHERE
+                        s.institution_id = %s
+                        AND s.class_id = %s
+                        AND s.is_active = TRUE
+
+                    ORDER BY
+                        s.full_name
+                    """,
+                    (
+                        institution_id,
+                        class_id
+                    )
+                )
+
+                students = cur.fetchall()
+
+        # -------------------------------------------------
+        # All Classes
+        # -------------------------------------------------
+
+        else:
+
+            if role == "institution_admin":
+
+                cur.execute(
+                    """
+                    SELECT
+                        s.id,
+                        s.admission_no,
+                        s.full_name,
+                        s.class_id
+
+                    FROM students s
+
+                    WHERE
+                        s.institution_id = %s
+                        AND s.is_active = TRUE
+
+                    ORDER BY
+                        s.full_name
+                    """,
+                    (
+                        institution_id
+                    )
+                )
+
+            elif role == "staff":
+
+                cur.execute(
+                    """
+                    SELECT DISTINCT
+                        s.id,
+                        s.admission_no,
+                        s.full_name,
+                        s.class_id
+
+                    FROM students s
+
+                    JOIN staff_classes sc
+                        ON sc.class_id = s.class_id
+
+                    WHERE
+                        s.institution_id = %s
+                        AND s.is_active = TRUE
+
+                        AND sc.institution_id = %s
+                        AND sc.staff_id = %s
+                        AND sc.is_active = TRUE
+
+                    ORDER BY
+                        s.full_name
+                    """,
+                    (
+                        institution_id,
+                        institution_id,
+                        user_id
+                    )
+                )
+
+            students = cur.fetchall()
+
+        # =================================================
         # Academic Year Required
         # =================================================
 
@@ -288,20 +401,31 @@ def central_report():
                 "reports/central.html",
 
                 academic_years=academic_years,
+
                 classes=classes,
 
+                students=students,
+
                 selected_academic_year=None,
+
                 selected_month=month,
+
                 selected_class=class_id,
+
+                selected_student=student_id,
 
                 selected_academic_year_data=None,
 
                 report_data=[],
 
                 total_students=0,
+
                 total_css=0,
+
                 average_css=0,
+
                 average_exam=None,
+
                 average_attendance=None
             )
 
@@ -309,7 +433,8 @@ def central_report():
         # Validate Academic Year
         # =================================================
 
-        cur.execute("""
+        cur.execute(
+            """
             SELECT
                 id,
                 year_name,
@@ -324,10 +449,12 @@ def central_report():
                 AND is_active = TRUE
 
             LIMIT 1
-        """, (
-            academic_year_id,
-            institution_id
-        ))
+            """,
+            (
+                academic_year_id,
+                institution_id
+            )
+        )
 
         academic_year = cur.fetchone()
 
@@ -337,20 +464,31 @@ def central_report():
                 "reports/central.html",
 
                 academic_years=academic_years,
+
                 classes=classes,
 
+                students=students,
+
                 selected_academic_year=academic_year_id,
+
                 selected_month=month,
+
                 selected_class=class_id,
+
+                selected_student=student_id,
 
                 selected_academic_year_data=None,
 
                 report_data=[],
 
                 total_students=0,
+
                 total_css=0,
+
                 average_css=0,
+
                 average_exam=None,
+
                 average_attendance=None,
 
                 error_message="Invalid academic year."
@@ -374,11 +512,63 @@ def central_report():
                     "reports/central.html",
 
                     academic_years=academic_years,
+
                     classes=classes,
+
+                    students=[],
+
+                    selected_academic_year=academic_year_id,
+
+                    selected_month=month,
+
+                    selected_class=None,
+
+                    selected_student=None,
+
+                    selected_academic_year_data=academic_year,
+
+                    report_data=[],
+
+                    total_students=0,
+
+                    total_css=0,
+
+                    average_css=0,
+
+                    average_exam=None,
+
+                    average_attendance=None,
+
+                    error_message=(
+                        "You do not have access to this class."
+                    )
+                )
+
+        # =================================================
+        # Verify Student
+        # =================================================
+
+        student_id_int = None
+
+        if student_id:
+
+            try:
+
+                student_id_int = int(student_id)
+
+            except (TypeError, ValueError):
+
+                return render_template(
+                    "reports/central.html",
+
+                    academic_years=academic_years,
+                    classes=classes,
+                    students=students,
 
                     selected_academic_year=academic_year_id,
                     selected_month=month,
-                    selected_class=None,
+                    selected_class=class_id,
+                    selected_student=student_id,
 
                     selected_academic_year_data=academic_year,
 
@@ -390,16 +580,130 @@ def central_report():
                     average_exam=None,
                     average_attendance=None,
 
-                    error_message=(
-                        "You do not have access to this class."
-                    )
+                    error_message="Invalid student."
                 )
+
+            # -------------------------------------------------
+            # Check student belongs to this institution
+            # -------------------------------------------------
+
+            cur.execute(
+                """
+                SELECT
+                    id,
+                    class_id
+
+                FROM students
+
+                WHERE
+                    id = %s
+                    AND institution_id = %s
+                    AND is_active = TRUE
+
+                LIMIT 1
+                """,
+                (
+                    student_id_int,
+                    institution_id
+                )
+            )
+
+            student_row = cur.fetchone()
+
+            if not student_row:
+
+                return render_template(
+                    "reports/central.html",
+
+                    academic_years=academic_years,
+                    classes=classes,
+                    students=students,
+
+                    selected_academic_year=academic_year_id,
+                    selected_month=month,
+                    selected_class=class_id,
+                    selected_student=student_id,
+
+                    selected_academic_year_data=academic_year,
+
+                    report_data=[],
+
+                    total_students=0,
+                    total_css=0,
+                    average_css=0,
+                    average_exam=None,
+                    average_attendance=None,
+
+                    error_message="Student not found."
+                )
+
+            # -------------------------------------------------
+            # RealDictCursor
+            # -------------------------------------------------
+
+            student_class_id = student_row["class_id"]
+
+            # -------------------------------------------------
+            # Check selected class
+            # -------------------------------------------------
+
+            if class_id:
+
+                if str(student_class_id) != str(class_id):
+
+                    return render_template(
+                        "reports/central.html",
+
+                        academic_years=academic_years,
+                        classes=classes,
+                        students=students,
+
+                        selected_academic_year=academic_year_id,
+                        selected_month=month,
+                        selected_class=class_id,
+                        selected_student=student_id,
+
+                        selected_academic_year_data=academic_year,
+
+                        report_data=[],
+
+                        total_students=0,
+                        total_css=0,
+                        average_css=0,
+                        average_exam=None,
+                        average_attendance=None,
+
+                        error_message=(
+                            "Selected student does not belong "
+                            "to the selected class."
+                        )
+                    )
+
+            # -------------------------------------------------
+            # Staff access check
+            # -------------------------------------------------
+
+            if role == "staff":
+
+                if not _class_is_allowed(
+                    cur,
+                    student_class_id,
+                    institution_id,
+                    role,
+                    user_id
+                ):
+
+                    return (
+                        "You do not have access to this student.",
+                        403
+                    )
 
         # =================================================
         # Date Range
         # =================================================
 
         start_date = academic_year["start_date"]
+
         end_date = academic_year["end_date"]
 
         # =================================================
@@ -414,7 +718,9 @@ def central_report():
 
             try:
 
-                month_number = int(month)
+                month_number = int(
+                    month
+                )
 
             except (
                 TypeError,
@@ -429,20 +735,31 @@ def central_report():
                     "reports/central.html",
 
                     academic_years=academic_years,
+
                     classes=classes,
 
+                    students=students,
+
                     selected_academic_year=academic_year_id,
+
                     selected_month=month,
+
                     selected_class=class_id,
+
+                    selected_student=student_id,
 
                     selected_academic_year_data=academic_year,
 
                     report_data=[],
 
                     total_students=0,
+
                     total_css=0,
+
                     average_css=0,
+
                     average_exam=None,
+
                     average_attendance=None,
 
                     error_message="Invalid month."
@@ -455,7 +772,7 @@ def central_report():
             """
 
         # =================================================
-        # Class Condition
+        # Class / Student Conditions
         # =================================================
 
         class_condition = ""
@@ -464,12 +781,22 @@ def central_report():
 
         if class_id:
 
-            class_condition = """
+            class_condition += """
                 AND s.class_id = %s
             """
 
             class_params.append(
                 class_id
+            )
+
+        if student_id_int:
+
+            class_condition += """
+                AND s.id = %s
+            """
+
+            class_params.append(
+                student_id_int
             )
 
         # =================================================
@@ -950,7 +1277,7 @@ def central_report():
         params = []
 
         # =====================================================
-        # Module Date Parameters
+        # Module Parameters
         # =====================================================
 
         module_date_sets = [
@@ -1083,6 +1410,10 @@ def central_report():
                 row["exam_possible"] or 0
             )
 
+            # -------------------------------------------------
+            # Exam Percentage
+            # -------------------------------------------------
+
             if exam_possible > 0:
 
                 exam_percentage = round(
@@ -1096,6 +1427,10 @@ def central_report():
             else:
 
                 exam_percentage = None
+
+            # -------------------------------------------------
+            # Attendance Percentage
+            # -------------------------------------------------
 
             attendance_total = int(
                 row["attendance_total"] or 0
@@ -1118,6 +1453,10 @@ def central_report():
             else:
 
                 attendance_percentage = None
+
+            # -------------------------------------------------
+            # Report Row
+            # -------------------------------------------------
 
             report_data.append({
 
@@ -1179,6 +1518,10 @@ def central_report():
             else 0
         )
 
+        # =====================================================
+        # Average Exam
+        # =====================================================
+
         exam_values = [
 
             item["exam_percentage"]
@@ -1186,16 +1529,6 @@ def central_report():
             for item in report_data
 
             if item["exam_percentage"]
-            is not None
-        ]
-
-        attendance_values = [
-
-            item["attendance_percentage"]
-
-            for item in report_data
-
-            if item["attendance_percentage"]
             is not None
         ]
 
@@ -1211,6 +1544,20 @@ def central_report():
 
             else None
         )
+
+        # =====================================================
+        # Average Attendance
+        # =====================================================
+
+        attendance_values = [
+
+            item["attendance_percentage"]
+
+            for item in report_data
+
+            if item["attendance_percentage"]
+            is not None
+        ]
 
         average_attendance = (
 
@@ -1236,11 +1583,15 @@ def central_report():
 
             classes=classes,
 
+            students=students,
+
             selected_academic_year=academic_year_id,
 
             selected_month=month,
 
             selected_class=class_id,
+
+            selected_student=student_id,
 
             selected_academic_year_data=academic_year,
 
@@ -1255,6 +1606,49 @@ def central_report():
             average_exam=average_exam,
 
             average_attendance=average_attendance
+        )
+
+    except Exception as e:
+
+        print(
+            "Central report error:",
+            e
+        )
+
+        return render_template(
+            "reports/central.html",
+
+            academic_years=academic_years,
+
+            classes=classes,
+
+            students=students,
+
+            selected_academic_year=academic_year_id,
+
+            selected_month=month,
+
+            selected_class=class_id,
+
+            selected_student=student_id,
+
+            selected_academic_year_data=None,
+
+            report_data=[],
+
+            total_students=0,
+
+            total_css=0,
+
+            average_css=0,
+
+            average_exam=None,
+
+            average_attendance=None,
+
+            error_message=(
+                "Unable to generate central report."
+            )
         )
 
     finally:
@@ -3990,6 +4384,978 @@ def central_report_excel():
     finally:
 
         cur.close()
-        conn.close()                
+        conn.close()
+        
+# =========================================================
+# Student Detailed Report
+# =========================================================
+
+def student_report(student_id):
+
+    institution_id = _get_institution_id()
+    role = _get_role()
+    user_id = _get_user_id()
+
+    # =====================================================
+    # Access
+    # =====================================================
+
+    if role not in (
+        "institution_admin",
+        "staff"
+    ):
+        return "Unauthorized", 403
+
+    if not institution_id:
+        return "Institution session not found.", 403
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+
+        # =================================================
+        # Filters
+        # =================================================
+
+        academic_year_id = request.args.get(
+            "academic_year_id",
+            ""
+        ).strip()
+
+        month = request.args.get(
+            "month",
+            ""
+        ).strip()
+
+        # =================================================
+        # Student
+        # =================================================
+
+        cur.execute(
+            """
+            SELECT
+                s.id,
+                s.admission_no,
+                s.full_name,
+                s.class_id,
+                s.photo,
+                c.class_name
+
+            FROM students s
+
+            LEFT JOIN classes c
+                ON c.id = s.class_id
+
+            WHERE
+                s.id = %s
+                AND s.institution_id = %s
+                AND s.is_active = TRUE
+
+            LIMIT 1
+            """,
+            (
+                student_id,
+                institution_id
+            )
+        )
+
+        student = cur.fetchone()
+
+        if not student:
+            return "Student not found.", 404
+
+        # =================================================
+        # Staff Access
+        # =================================================
+
+        if role == "staff":
+
+            if not student["class_id"]:
+                return (
+                    "You do not have access to this student.",
+                    403
+                )
+
+            cur.execute(
+                """
+                SELECT
+                    1
+
+                FROM staff_classes
+
+                WHERE
+                    institution_id = %s
+                    AND staff_id = %s
+                    AND class_id = %s
+                    AND is_active = TRUE
+
+                LIMIT 1
+                """,
+                (
+                    institution_id,
+                    user_id,
+                    student["class_id"]
+                )
+            )
+
+            if not cur.fetchone():
+                return (
+                    "You do not have access to this student.",
+                    403
+                )
+
+        # =================================================
+        # Institution
+        # =================================================
+
+        cur.execute(
+            """
+            SELECT
+                id,
+                name,
+                code,
+                logo,
+                email,
+                phone,
+                address,
+                city,
+                state,
+                country
+
+            FROM institutions
+
+            WHERE id = %s
+
+            LIMIT 1
+            """,
+            (institution_id,)
+        )
+
+        institution = cur.fetchone()
+
+        if not institution:
+            return "Institution not found.", 404
+
+        # =================================================
+        # Academic Year
+        # =================================================
+
+        academic_year = None
+
+        if academic_year_id:
+
+            try:
+                academic_year_id_int = int(
+                    academic_year_id
+                )
+            except (
+                TypeError,
+                ValueError
+            ):
+                return "Invalid academic year.", 400
+
+            cur.execute(
+                """
+                SELECT
+                    id,
+                    year_name,
+                    start_date,
+                    end_date
+
+                FROM academic_years
+
+                WHERE
+                    id = %s
+                    AND institution_id = %s
+                    AND is_active = TRUE
+
+                LIMIT 1
+                """,
+                (
+                    academic_year_id_int,
+                    institution_id
+                )
+            )
+
+            academic_year = cur.fetchone()
+
+            if not academic_year:
+                return "Invalid academic year.", 400
+
+        # =================================================
+        # Date Filter
+        # =================================================
+
+        start_date = None
+        end_date = None
+        month_number = None
+
+        if academic_year:
+
+            start_date = academic_year["start_date"]
+            end_date = academic_year["end_date"]
+
+        if month:
+
+            try:
+                month_number = int(month)
+            except (
+                TypeError,
+                ValueError
+            ):
+                return "Invalid month.", 400
+
+            if month_number not in range(1, 13):
+                return "Invalid month.", 400
+
+        # =================================================
+        # Helper
+        # =================================================
+
+        def module_summary(
+            table_name,
+            date_columns=(),
+            status_column="status"
+        ):
+            """
+            Generic module summary.
+
+            Returns:
+                total
+                approved
+                points
+
+            Uses database metadata so optional columns
+            do not break the student report.
+            """
+
+            allowed_tables = {
+                "reading_submissions",
+                "writing_submissions",
+                "speaking_submissions",
+                "publications",
+                "language_skill_assessments",
+                "achievements",
+                "paper_presentations",
+                "portion_completion",
+                "mentoring",
+                "student_leave_requests"
+            }
+
+            if table_name not in allowed_tables:
+                return {
+                    "total": 0,
+                    "approved": 0,
+                    "points": 0
+                }
+
+            cur.execute(
+                """
+                SELECT
+                    column_name
+                FROM information_schema.columns
+                WHERE
+                    table_schema = 'public'
+                    AND table_name = %s
+                """,
+                (table_name,)
+            )
+
+            columns = {
+                row["column_name"]
+                for row in cur.fetchall()
+            }
+
+            if "student_id" not in columns:
+                return {
+                    "total": 0,
+                    "approved": 0,
+                    "points": 0
+                }
+
+            conditions = [
+                "student_id = %s"
+            ]
+
+            params = [
+                student_id
+            ]
+
+            # -------------------------------------------------
+            # Institution
+            # -------------------------------------------------
+
+            if "institution_id" in columns:
+
+                conditions.append(
+                    "institution_id = %s"
+                )
+
+                params.append(
+                    institution_id
+                )
+
+            # -------------------------------------------------
+            # Academic Year / Date
+            # -------------------------------------------------
+
+            selected_date_column = None
+
+            for column in date_columns:
+
+                if column in columns:
+                    selected_date_column = column
+                    break
+
+            if (
+                selected_date_column
+                and start_date
+                and end_date
+            ):
+
+                conditions.append(
+                    f"{selected_date_column}::date "
+                    "BETWEEN %s AND %s"
+                )
+
+                params.extend([
+                    start_date,
+                    end_date
+                ])
+
+                if month_number:
+
+                    conditions.append(
+                        f"""
+                        EXTRACT(
+                            MONTH FROM {selected_date_column}
+                        ) = %s
+                        """
+                    )
+
+                    params.append(
+                        month_number
+                    )
+
+            # -------------------------------------------------
+            # Total
+            # -------------------------------------------------
+
+            where_sql = " AND ".join(
+                conditions
+            )
+
+            total_query = f"""
+                SELECT
+                    COUNT(*) AS total
+                FROM {table_name}
+                WHERE {where_sql}
+            """
+
+            cur.execute(
+                total_query,
+                tuple(params)
+            )
+
+            total_row = cur.fetchone()
+
+            total = int(
+                total_row["total"] or 0
+            )
+
+            # -------------------------------------------------
+            # Approved
+            # -------------------------------------------------
+
+            approved = 0
+
+            if status_column in columns:
+
+                approved_conditions = (
+                    conditions
+                    + [
+                        f"{status_column} = %s"
+                    ]
+                )
+
+                approved_params = (
+                    params
+                    + ["Approved"]
+                )
+
+                approved_where = " AND ".join(
+                    approved_conditions
+                )
+
+                approved_query = f"""
+                    SELECT
+                        COUNT(*) AS approved
+                    FROM {table_name}
+                    WHERE {approved_where}
+                """
+
+                cur.execute(
+                    approved_query,
+                    tuple(approved_params)
+                )
+
+                approved_row = cur.fetchone()
+
+                approved = int(
+                    approved_row["approved"] or 0
+                )
+
+            # -------------------------------------------------
+            # Points
+            # -------------------------------------------------
+
+            points = 0
+
+            point_parts = []
+
+            if "points" in columns:
+                point_parts.append(
+                    "COALESCE(points, 0)"
+                )
+
+            if "bonus_points" in columns:
+                point_parts.append(
+                    "COALESCE(bonus_points, 0)"
+                )
+
+            if point_parts:
+
+                points_expression = " + ".join(
+                    point_parts
+                )
+
+                points_conditions = list(
+                    conditions
+                )
+
+                points_params = list(
+                    params
+                )
+
+                if status_column in columns:
+
+                    points_conditions.append(
+                        f"{status_column} = %s"
+                    )
+
+                    points_params.append(
+                        "Approved"
+                    )
+
+                points_where = " AND ".join(
+                    points_conditions
+                )
+
+                points_query = f"""
+                    SELECT
+                        COALESCE(
+                            SUM(
+                                {points_expression}
+                            ),
+                            0
+                        ) AS points
+
+                    FROM {table_name}
+
+                    WHERE
+                        {points_where}
+                """
+
+                cur.execute(
+                    points_query,
+                    tuple(points_params)
+                )
+
+                points_row = cur.fetchone()
+
+                points = float(
+                    points_row["points"] or 0
+                )
+
+            return {
+                "total": total,
+                "approved": approved,
+                "points": round(
+                    points,
+                    2
+                )
+            }
+
+        # =====================================================
+        # Module Reports
+        # =====================================================
+
+        reading = module_summary(
+            "reading_submissions",
+            (
+                "created_at",
+            )
+        )
+
+        writing = module_summary(
+            "writing_submissions",
+            (
+                "created_at",
+            )
+        )
+
+        speaking = module_summary(
+            "speaking_submissions",
+            (
+                "presentation_date",
+                "created_at"
+            )
+        )
+
+        publications = module_summary(
+            "publications",
+            (
+                "publication_date",
+                "created_at"
+            )
+        )
+
+        language_skills = module_summary(
+            "language_skill_assessments",
+            (
+                "created_at",
+            )
+        )
+
+        achievements = module_summary(
+            "achievements",
+            (
+                "achievement_date",
+                "created_at"
+            )
+        )
+
+        paper_presentations = module_summary(
+            "paper_presentations",
+            (
+                "created_at",
+            )
+        )
+
+        portion_completion = module_summary(
+            "portion_completion",
+            (
+                "completion_date",
+                "date",
+                "created_at"
+            ),
+            status_column="status"
+        )
+
+        mentoring = module_summary(
+            "mentoring",
+            (
+                "meeting_date",
+                "date",
+                "created_at"
+            ),
+            status_column="status"
+        )
+
+        student_leave = module_summary(
+            "student_leave_requests",
+            (
+                "start_date",
+                "leave_date",
+                "created_at"
+            ),
+            status_column="status"
+        )
+
+        # =====================================================
+        # CSS Total
+        # =====================================================
+
+        total_css = round(
+            reading["points"]
+            + writing["points"]
+            + speaking["points"]
+            + publications["points"]
+            + language_skills["points"]
+            + achievements["points"]
+            + paper_presentations["points"],
+            2
+        )
+
+        # =====================================================
+        # Exam Summary
+        # =====================================================
+
+        exam_conditions = [
+            "em.student_id = %s",
+            "e.institution_id = %s",
+            "e.is_active = TRUE"
+        ]
+
+        exam_params = [
+            student_id,
+            institution_id
+        ]
+
+        if start_date and end_date:
+
+            exam_conditions.append(
+                """
+                e.exam_date::date
+                BETWEEN %s AND %s
+                """
+            )
+
+            exam_params.extend([
+                start_date,
+                end_date
+            ])
+
+        if month_number:
+
+            exam_conditions.append(
+                """
+                EXTRACT(
+                    MONTH FROM e.exam_date
+                ) = %s
+                """
+            )
+
+            exam_params.append(
+                month_number
+            )
+
+        exam_where = " AND ".join(
+            exam_conditions
+        )
+
+        cur.execute(
+            f"""
+            SELECT
+
+                COALESCE(
+                    SUM(em.mark),
+                    0
+                ) AS obtained_marks,
+
+                COALESCE(
+                    SUM(e.total_mark),
+                    0
+                ) AS possible_marks,
+
+                COUNT(
+                    DISTINCT e.id
+                ) AS exam_count
+
+            FROM exam_marks em
+
+            JOIN exams e
+                ON e.id = em.exam_id
+
+            WHERE
+                {exam_where}
+            """,
+            tuple(exam_params)
+        )
+
+        exam_row = cur.fetchone()
+
+        exam_obtained = float(
+            exam_row["obtained_marks"] or 0
+        )
+
+        exam_possible = float(
+            exam_row["possible_marks"] or 0
+        )
+
+        exam_count = int(
+            exam_row["exam_count"] or 0
+        )
+
+        exam_percentage = None
+
+        if exam_possible > 0:
+
+            exam_percentage = round(
+                (
+                    exam_obtained
+                    / exam_possible
+                ) * 100,
+                2
+            )
+
+        exams = {
+            "count": exam_count,
+            "obtained": round(
+                exam_obtained,
+                2
+            ),
+            "possible": round(
+                exam_possible,
+                2
+            ),
+            "percentage": exam_percentage
+        }
+
+        # =====================================================
+        # Attendance
+        # =====================================================
+
+        attendance_conditions = [
+            "student_id = %s",
+            "institution_id = %s"
+        ]
+
+        attendance_params = [
+            student_id,
+            institution_id
+        ]
+
+        if start_date and end_date:
+
+            attendance_conditions.append(
+                """
+                attendance_date::date
+                BETWEEN %s AND %s
+                """
+            )
+
+            attendance_params.extend([
+                start_date,
+                end_date
+            ])
+
+        if month_number:
+
+            attendance_conditions.append(
+                """
+                EXTRACT(
+                    MONTH FROM attendance_date
+                ) = %s
+                """
+            )
+
+            attendance_params.append(
+                month_number
+            )
+
+        attendance_where = " AND ".join(
+            attendance_conditions
+        )
+
+        cur.execute(
+            f"""
+            SELECT
+
+                COUNT(*) AS total_periods,
+
+                COUNT(*) FILTER (
+                    WHERE status IN (
+                        'Present',
+                        'Late'
+                    )
+                ) AS attended_periods,
+
+                COUNT(*) FILTER (
+                    WHERE status = 'Absent'
+                ) AS absent_periods,
+
+                COUNT(*) FILTER (
+                    WHERE status = 'Leave'
+                ) AS leave_periods
+
+            FROM attendance
+
+            WHERE
+                {attendance_where}
+            """,
+            tuple(attendance_params)
+        )
+
+        attendance_row = cur.fetchone()
+
+        attendance_total = int(
+            attendance_row["total_periods"] or 0
+        )
+
+        attendance_attended = int(
+            attendance_row["attended_periods"] or 0
+        )
+
+        attendance_absent = int(
+            attendance_row["absent_periods"] or 0
+        )
+
+        attendance_leave = int(
+            attendance_row["leave_periods"] or 0
+        )
+
+        attendance_percentage = None
+
+        if attendance_total > 0:
+
+            attendance_percentage = round(
+                (
+                    attendance_attended
+                    / attendance_total
+                ) * 100,
+                2
+            )
+
+        attendance = {
+
+            "total":
+                attendance_total,
+
+            "attended":
+                attendance_attended,
+
+            "absent":
+                attendance_absent,
+
+            "leave":
+                attendance_leave,
+
+            "percentage":
+                attendance_percentage
+        }
+
+        # =====================================================
+        # Final Module Collection
+        # =====================================================
+
+        modules = {
+
+            "reading": reading,
+
+            "writing": writing,
+
+            "speaking": speaking,
+
+            "language_skills": language_skills,
+
+            "publications": publications,
+
+            "achievements": achievements,
+
+            "paper_presentations":
+                paper_presentations,
+
+            "portion_completion":
+                portion_completion,
+
+            "mentoring":
+                mentoring,
+
+            "student_leave":
+                student_leave,
+
+            "exams":
+                exams,
+
+            "attendance":
+                attendance
+        }
+
+        # =====================================================
+        # Overall Summary
+        # =====================================================
+
+        report_summary = {
+
+            "total_css":
+                total_css,
+
+            "exam_percentage":
+                exam_percentage,
+
+            "attendance_percentage":
+                attendance_percentage,
+
+            "exam_obtained":
+                exams["obtained"],
+
+            "exam_possible":
+                exams["possible"],
+
+            "attendance_total":
+                attendance["total"],
+
+            "attendance_attended":
+                attendance["attended"],
+
+            "attendance_absent":
+                attendance["absent"],
+
+            "attendance_leave":
+                attendance["leave"]
+        }
+
+        # =====================================================
+        # Render
+        # =====================================================
+
+        return render_template(
+            "reports/student.html",
+
+            student=student,
+
+            institution=institution,
+
+            academic_year=academic_year,
+
+            selected_month=month_number,
+
+            report_summary=report_summary,
+
+            modules=modules,
+
+            reading=reading,
+
+            writing=writing,
+
+            speaking=speaking,
+
+            language_skills=language_skills,
+
+            publications=publications,
+
+            achievements=achievements,
+
+            paper_presentations=paper_presentations,
+
+            portion_completion=portion_completion,
+
+            mentoring=mentoring,
+
+            student_leave=student_leave,
+
+            exams=exams,
+
+            attendance=attendance
+        )
+
+    except Exception as e:
+
+        print(
+            "Student detailed report error:",
+            e
+        )
+
+        return (
+            "Unable to load student report.",
+            500
+        )
+
+    finally:
+
+        cur.close()
+        conn.close()                        
 
 

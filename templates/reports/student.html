@@ -1,0 +1,1218 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Student Report
+{% endblock %}
+
+{% block page_content %}
+
+<div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+        <div class="min-w-0">
+
+            <div class="flex items-center gap-3">
+
+                {% if institution and institution["logo"] %}
+
+                <div
+                    class="
+                        w-12 h-12
+                        rounded-xl
+                        border border-slate-200
+                        bg-white
+                        flex items-center justify-center
+                        overflow-hidden
+                        shrink-0
+                    "
+                >
+
+                    <img
+                        src="{{ institution['logo'] }}"
+                        alt="Institution Logo"
+                        class="w-full h-full object-contain p-1"
+                    >
+
+                </div>
+
+                {% endif %}
+
+                <div class="min-w-0">
+
+                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 truncate">
+                        Student Report
+                    </h1>
+
+                    <p class="text-sm text-slate-500 mt-1 truncate">
+                        Detailed academic performance report
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Back -->
+
+        <a
+            href="{{ url_for('reports.central_report_page') }}"
+            class="
+                inline-flex
+                items-center
+                justify-center
+                gap-2
+                px-4
+                py-2.5
+                rounded-xl
+                border border-slate-300
+                bg-white
+                text-slate-700
+                text-sm
+                font-medium
+                hover:bg-slate-50
+                transition
+                shrink-0
+            "
+        >
+
+            <i
+                data-lucide="arrow-left"
+                class="w-4 h-4"
+            ></i>
+
+            Back to Central Report
+
+        </a>
+
+    </div>
+
+
+    <!-- =====================================================
+         STUDENT PROFILE
+    ====================================================== -->
+
+    <div
+        class="
+            bg-white
+            rounded-2xl
+            border border-slate-200
+            shadow-sm
+            p-5 sm:p-6
+        "
+    >
+
+        <div class="flex flex-col sm:flex-row gap-5 sm:items-center">
+
+            <!-- Student Photo -->
+
+            {% if student["photo"] %}
+
+            <div
+                class="
+                    w-24 h-24
+                    rounded-2xl
+                    overflow-hidden
+                    border border-slate-200
+                    bg-slate-100
+                    shrink-0
+                "
+            >
+
+                <img
+                    src="{{ student['photo'] }}"
+                    alt="{{ student['full_name'] }}"
+                    class="w-full h-full object-cover"
+                >
+
+            </div>
+
+            {% else %}
+
+            <div
+                class="
+                    w-24 h-24
+                    rounded-2xl
+                    bg-indigo-100
+                    text-indigo-700
+                    flex
+                    items-center
+                    justify-center
+                    text-3xl
+                    font-bold
+                    shrink-0
+                "
+            >
+
+                {{ student["full_name"][0] }}
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- Student Details -->
+
+            <div class="min-w-0 flex-1">
+
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800">
+
+                    {{ student["full_name"] }}
+
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2 mt-3 text-sm">
+
+                    <div>
+
+                        <span class="text-slate-400">
+                            Admission No
+                        </span>
+
+                        <p class="font-medium text-slate-700">
+                            {{ student["admission_no"] or "-" }}
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="text-slate-400">
+                            Class
+                        </span>
+
+                        <p class="font-medium text-slate-700">
+                            {{ student["class_name"] or "Unassigned" }}
+                        </p>
+
+                    </div>
+
+
+                    {% if academic_year %}
+
+                    <div>
+
+                        <span class="text-slate-400">
+                            Academic Year
+                        </span>
+
+                        <p class="font-medium text-slate-700">
+                            {{ academic_year["year_name"] }}
+                        </p>
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUMMARY
+    ====================================================== -->
+
+    <div>
+
+        <div class="flex items-center justify-between mb-3">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Performance Summary
+            </h2>
+
+            {% if selected_month %}
+
+            <span class="text-xs px-3 py-1 rounded-full bg-indigo-50 text-indigo-700">
+                Month {{ selected_month }}
+            </span>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <!-- CSS -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+
+                <div class="flex items-center justify-between">
+
+                    <p class="text-sm text-slate-500">
+                        CSS Points
+                    </p>
+
+                    <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+
+                        <i data-lucide="star" class="w-5 h-5"></i>
+
+                    </div>
+
+                </div>
+
+                <p class="text-2xl font-bold text-slate-800 mt-3">
+                    {{ report_summary["total_css"] }}
+                </p>
+
+            </div>
+
+
+            <!-- Exam -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+
+                <div class="flex items-center justify-between">
+
+                    <p class="text-sm text-slate-500">
+                        Exam
+                    </p>
+
+                    <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+
+                        <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+
+                    </div>
+
+                </div>
+
+                <p class="text-2xl font-bold text-slate-800 mt-3">
+
+                    {% if report_summary["exam_percentage"] is not none %}
+                        {{ report_summary["exam_percentage"] }}%
+                    {% else %}
+                        N/A
+                    {% endif %}
+
+                </p>
+
+                <p class="text-xs text-slate-400 mt-1">
+
+                    {{ report_summary["exam_obtained"] }}
+                    /
+                    {{ report_summary["exam_possible"] }}
+
+                </p>
+
+            </div>
+
+
+            <!-- Attendance -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+
+                <div class="flex items-center justify-between">
+
+                    <p class="text-sm text-slate-500">
+                        Attendance
+                    </p>
+
+                    <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+
+                        <i data-lucide="calendar-check" class="w-5 h-5"></i>
+
+                    </div>
+
+                </div>
+
+                <p class="text-2xl font-bold text-slate-800 mt-3">
+
+                    {% if report_summary["attendance_percentage"] is not none %}
+                        {{ report_summary["attendance_percentage"] }}%
+                    {% else %}
+                        N/A
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+
+            <!-- Exams Count -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+
+                <div class="flex items-center justify-between">
+
+                    <p class="text-sm text-slate-500">
+                        Exams
+                    </p>
+
+                    <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+
+                    </div>
+
+                </div>
+
+                <p class="text-2xl font-bold text-slate-800 mt-3">
+                    {{ exams["count"] }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODULE PERFORMANCE
+    ====================================================== -->
+
+    <div>
+
+        <h2 class="text-lg font-semibold text-slate-800 mb-3">
+            Module Performance
+        </h2>
+
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+
+            <!-- Reading -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+
+                        <i data-lucide="book-open" class="w-5 h-5"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h3 class="font-semibold text-slate-800">
+                            Reading
+                        </h3>
+
+                        <p class="text-xs text-slate-400">
+                            Reading submissions
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 mt-5 text-center">
+
+                    <div>
+                        <p class="text-lg font-bold">
+                            {{ reading["total"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Total
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-emerald-600">
+                            {{ reading["approved"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Approved
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-indigo-600">
+                            {{ reading["points"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Points
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Writing -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+
+                        <i data-lucide="pen-line" class="w-5 h-5"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h3 class="font-semibold text-slate-800">
+                            Writing
+                        </h3>
+
+                        <p class="text-xs text-slate-400">
+                            Writing submissions
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 mt-5 text-center">
+
+                    <div>
+                        <p class="text-lg font-bold">
+                            {{ writing["total"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Total
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-emerald-600">
+                            {{ writing["approved"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Approved
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-indigo-600">
+                            {{ writing["points"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Points
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Speaking -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+
+                        <i data-lucide="mic-2" class="w-5 h-5"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h3 class="font-semibold text-slate-800">
+                            Speaking
+                        </h3>
+
+                        <p class="text-xs text-slate-400">
+                            Speaking assessments
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 mt-5 text-center">
+
+                    <div>
+                        <p class="text-lg font-bold">
+                            {{ speaking["total"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Total
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-emerald-600">
+                            {{ speaking["approved"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Approved
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-indigo-600">
+                            {{ speaking["points"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Points
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Language Skills -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
+
+                        <i data-lucide="languages" class="w-5 h-5"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h3 class="font-semibold text-slate-800">
+                            Language Skills
+                        </h3>
+
+                        <p class="text-xs text-slate-400">
+                            Language assessments
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 mt-5 text-center">
+
+                    <div>
+                        <p class="text-lg font-bold">
+                            {{ language_skills["total"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Total
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-emerald-600">
+                            {{ language_skills["approved"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Approved
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-indigo-600">
+                            {{ language_skills["points"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Points
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Publications -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+
+                        <i data-lucide="book-open-check" class="w-5 h-5"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h3 class="font-semibold text-slate-800">
+                            Publications
+                        </h3>
+
+                        <p class="text-xs text-slate-400">
+                            Publication activities
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 mt-5 text-center">
+
+                    <div>
+                        <p class="text-lg font-bold">
+                            {{ publications["total"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Total
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-emerald-600">
+                            {{ publications["approved"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Approved
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-indigo-600">
+                            {{ publications["points"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Points
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Achievements -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-10 h-10 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center">
+
+                        <i data-lucide="trophy" class="w-5 h-5"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h3 class="font-semibold text-slate-800">
+                            Achievements
+                        </h3>
+
+                        <p class="text-xs text-slate-400">
+                            Achievement records
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 mt-5 text-center">
+
+                    <div>
+                        <p class="text-lg font-bold">
+                            {{ achievements["total"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Total
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-emerald-600">
+                            {{ achievements["approved"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Approved
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-indigo-600">
+                            {{ achievements["points"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Points
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Paper Presentation -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+
+                        <i data-lucide="presentation" class="w-5 h-5"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h3 class="font-semibold text-slate-800">
+                            Paper Presentation
+                        </h3>
+
+                        <p class="text-xs text-slate-400">
+                            Presentation records
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 mt-5 text-center">
+
+                    <div>
+                        <p class="text-lg font-bold">
+                            {{ paper_presentations["total"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Total
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-emerald-600">
+                            {{ paper_presentations["approved"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Approved
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-indigo-600">
+                            {{ paper_presentations["points"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Points
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Portion Completion -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
+
+                        <i data-lucide="book-open-check" class="w-5 h-5"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h3 class="font-semibold text-slate-800">
+                            Portion Completion
+                        </h3>
+
+                        <p class="text-xs text-slate-400">
+                            Portion records
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mt-5 text-center">
+
+                    <div>
+                        <p class="text-lg font-bold">
+                            {{ portion_completion["total"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Total
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-emerald-600">
+                            {{ portion_completion["approved"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Approved
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Mentoring -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-10 h-10 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center">
+
+                        <i data-lucide="heart-handshake" class="w-5 h-5"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h3 class="font-semibold text-slate-800">
+                            Mentoring
+                        </h3>
+
+                        <p class="text-xs text-slate-400">
+                            Mentoring records
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mt-5 text-center">
+
+                    <div>
+                        <p class="text-lg font-bold">
+                            {{ mentoring["total"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Total
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-emerald-600">
+                            {{ mentoring["approved"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Approved
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Student Leave -->
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+
+                        <i data-lucide="calendar-off" class="w-5 h-5"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h3 class="font-semibold text-slate-800">
+                            Student Leave
+                        </h3>
+
+                        <p class="text-xs text-slate-400">
+                            Leave applications
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mt-5 text-center">
+
+                    <div>
+                        <p class="text-lg font-bold">
+                            {{ student_leave["total"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Total
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold text-emerald-600">
+                            {{ student_leave["approved"] }}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Approved
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ATTENDANCE DETAILS
+    ====================================================== -->
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6">
+
+        <div class="flex items-center justify-between mb-5">
+
+            <div>
+
+                <h2 class="text-lg font-semibold text-slate-800">
+                    Attendance
+                </h2>
+
+                <p class="text-sm text-slate-500">
+                    Attendance summary for the selected period
+                </p>
+
+            </div>
+
+            <i
+                data-lucide="calendar-check"
+                class="w-6 h-6 text-blue-500"
+            ></i>
+
+        </div>
+
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+            <div class="rounded-xl bg-slate-50 p-4">
+
+                <p class="text-xs text-slate-500">
+                    Total
+                </p>
+
+                <p class="text-xl font-bold mt-1">
+                    {{ attendance["total"] }}
+                </p>
+
+            </div>
+
+
+            <div class="rounded-xl bg-emerald-50 p-4">
+
+                <p class="text-xs text-emerald-600">
+                    Present / Late
+                </p>
+
+                <p class="text-xl font-bold text-emerald-700 mt-1">
+                    {{ attendance["attended"] }}
+                </p>
+
+            </div>
+
+
+            <div class="rounded-xl bg-red-50 p-4">
+
+                <p class="text-xs text-red-600">
+                    Absent
+                </p>
+
+                <p class="text-xl font-bold text-red-700 mt-1">
+                    {{ attendance["absent"] }}
+                </p>
+
+            </div>
+
+
+            <div class="rounded-xl bg-amber-50 p-4">
+
+                <p class="text-xs text-amber-600">
+                    Leave
+                </p>
+
+                <p class="text-xl font-bold text-amber-700 mt-1">
+                    {{ attendance["leave"] }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         EXAM DETAILS
+    ====================================================== -->
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6">
+
+        <div class="flex items-center justify-between mb-5">
+
+            <div>
+
+                <h2 class="text-lg font-semibold text-slate-800">
+                    Examination Performance
+                </h2>
+
+                <p class="text-sm text-slate-500">
+                    Examination summary
+                </p>
+
+            </div>
+
+            <i
+                data-lucide="clipboard-check"
+                class="w-6 h-6 text-emerald-500"
+            ></i>
+
+        </div>
+
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+            <div class="rounded-xl bg-slate-50 p-4">
+
+                <p class="text-xs text-slate-500">
+                    Exams
+                </p>
+
+                <p class="text-xl font-bold mt-1">
+                    {{ exams["count"] }}
+                </p>
+
+            </div>
+
+
+            <div class="rounded-xl bg-blue-50 p-4">
+
+                <p class="text-xs text-blue-600">
+                    Obtained
+                </p>
+
+                <p class="text-xl font-bold text-blue-700 mt-1">
+                    {{ exams["obtained"] }}
+                </p>
+
+            </div>
+
+
+            <div class="rounded-xl bg-slate-50 p-4">
+
+                <p class="text-xs text-slate-500">
+                    Possible
+                </p>
+
+                <p class="text-xl font-bold mt-1">
+                    {{ exams["possible"] }}
+                </p>
+
+            </div>
+
+
+            <div class="rounded-xl bg-emerald-50 p-4">
+
+                <p class="text-xs text-emerald-600">
+                    Percentage
+                </p>
+
+                <p class="text-xl font-bold text-emerald-700 mt-1">
+
+                    {% if exams["percentage"] is not none %}
+                        {{ exams["percentage"] }}%
+                    {% else %}
+                        N/A
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         REPORT INFORMATION
+    ====================================================== -->
+
+    <div
+        class="
+            bg-slate-50
+            rounded-2xl
+            border border-slate-200
+            p-5
+            sm:p-6
+        "
+    >
+
+        <div class="flex items-start gap-3">
+
+            <i
+                data-lucide="info"
+                class="w-5 h-5 text-indigo-500 mt-0.5 shrink-0"
+            ></i>
+
+            <div>
+
+                <h3 class="font-semibold text-slate-800">
+                    Report Information
+                </h3>
+
+                <p class="text-sm text-slate-500 mt-1 leading-6">
+
+                    This report contains the student's consolidated
+                    academic and institutional performance data.
+
+                    {% if academic_year %}
+
+                        The selected academic year is
+                        <strong>
+                            {{ academic_year["year_name"] }}
+                        </strong>.
+
+                    {% endif %}
+
+                    {% if selected_month %}
+
+                        The report is filtered for month
+                        <strong>
+                            {{ selected_month }}
+                        </strong>.
+
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     ICON INITIALIZATION
+====================================================== -->
+
+<script>
+
+    if (
+        typeof lucide !== "undefined"
+    ) {
+
+        lucide.createIcons();
+
+    }
+
+</script>
+
+{% endblock %}

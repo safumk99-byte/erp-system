@@ -337,50 +337,52 @@ Institution Settings
             {% endif %}
 
 
-            <form
-                method="POST"
-                action="{{ url_for('settings.update_logo') }}"
-                enctype="multipart/form-data"
-                class="space-y-4"
-            >
+           <form
+    method="POST"
+    action="{{ url_for('settings.update_logo') }}"
+    enctype="multipart/form-data"
+    class="mt-4"
+>
 
-                <div>
+    <label class="block text-sm font-medium text-slate-700 mb-2">
+        Upload Logo
+    </label>
 
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">
-                        {{ "Replace Logo" if institution.logo else "Upload Logo" }}
-                    </label>
+    <input
+        type="file"
+        name="logo"
+        accept=".jpg,.jpeg,.png,.webp"
+        required
+        class="block w-full text-sm text-slate-600
+               border border-slate-300
+               rounded-xl
+               p-3
+               bg-white"
+    >
 
-                    <input
-                        type="file"
-                        name="logo"
-                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-                        required
-                        class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
-                    >
+    <p class="text-xs text-slate-400 mt-2">
+        JPG, JPEG, PNG or WEBP.
+    </p>
 
-                    <p class="text-xs text-slate-400 mt-2">
-                        JPG, JPEG, PNG or WEBP.
-                    </p>
+    <button
+        type="submit"
+        class="mt-4 inline-flex items-center gap-2
+               px-5 py-3
+               rounded-xl
+               bg-indigo-600
+               text-white
+               font-medium
+               hover:bg-indigo-700
+               transition"
+    >
 
-                </div>
+        <i data-lucide="upload" class="w-5 h-5"></i>
 
+        Upload Logo
 
-                <button
-                    type="submit"
-                    class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold"
-                >
+    </button>
 
-                    <i data-lucide="upload" class="w-4 h-4"></i>
-
-                    Upload Logo
-
-                </button>
-
-            </form>
-
-        </div>
-
-    </div>
+</form>
 
 
     <!-- =====================================================

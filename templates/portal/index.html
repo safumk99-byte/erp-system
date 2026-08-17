@@ -1,45 +1,385 @@
 {% extends "layouts/base.html" %}
 
 {% block title %}
-ALIF ERP
+ALIF ERP — Login
 {% endblock %}
 
 {% block content %}
 
-<div class="min-h-screen flex items-center justify-center">
+<div class="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8 relative overflow-hidden">
 
-    <div class="bg-white shadow-xl rounded-2xl p-10 w-full max-w-md">
+    <!-- Background Decoration -->
+    <div class="absolute -top-32 -right-32 w-80 h-80 bg-indigo-200/40 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-32 -left-32 w-80 h-80 bg-emerald-200/40 rounded-full blur-3xl"></div>
 
-        <h1 class="text-3xl font-bold text-center mb-8">
-            ALIF ERP
-        </h1>
 
-        <div class="space-y-4">
+    <!-- Main Card -->
+    <div class="relative w-full max-w-5xl">
 
-            <a href="/institution/login"
-               class="block text-center bg-indigo-600 text-white py-3 rounded-xl">
-                Institution Login
-            </a>
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
 
-            <a href="/staff/login"
-               class="block text-center bg-slate-700 text-white py-3 rounded-xl">
-                Staff Login
-            </a>
+            <div class="grid grid-cols-1 lg:grid-cols-2">
 
-            <a href="/parent/login"
-               class="block text-center bg-green-600 text-white py-3 rounded-xl">
-                Parent Login
-            </a>
 
-            <a href="/student/login"
-               class="block text-center bg-orange-600 text-white py-3 rounded-xl">
-                Student Login
-            </a>
+                <!-- =====================================================
+                     LEFT — BRANDING
+                ====================================================== -->
+
+                <div class="hidden lg:flex relative bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-700 p-12 text-white overflow-hidden">
+
+                    <!-- Decorative circles -->
+                    <div class="absolute -top-20 -right-20 w-56 h-56 border border-white/10 rounded-full"></div>
+                    <div class="absolute -bottom-24 -left-24 w-72 h-72 border border-white/10 rounded-full"></div>
+
+                    <div class="relative z-10 flex flex-col justify-between w-full">
+
+                        <div>
+
+                            <!-- Logo -->
+                            <div class="flex items-center gap-3">
+
+                                <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+
+                                    <i
+                                        data-lucide="graduation-cap"
+                                        class="w-7 h-7"
+                                    ></i>
+
+                                </div>
+
+                                <div>
+
+                                    <h1 class="text-2xl font-bold tracking-tight">
+                                        ALIF ERP
+                                    </h1>
+
+                                    <p class="text-xs text-indigo-100">
+                                        Education Management System
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Hero -->
+                            <div class="mt-20">
+
+                                <p class="text-indigo-100 text-sm font-semibold uppercase tracking-widest">
+                                    Welcome to ALIF
+                                </p>
+
+                                <h2 class="text-4xl font-bold leading-tight mt-4">
+                                    Manage your institution
+                                    <span class="text-indigo-200">
+                                        smarter.
+                                    </span>
+                                </h2>
+
+                                <p class="text-indigo-100 mt-5 leading-7 max-w-md">
+                                    A complete platform to manage students,
+                                    staff, academics, attendance, assessments,
+                                    reports and institutional operations.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Features -->
+                        <div class="grid grid-cols-2 gap-4 mt-12">
+
+                            <div class="bg-white/10 rounded-2xl p-4 border border-white/10">
+
+                                <i
+                                    data-lucide="users"
+                                    class="w-5 h-5 text-indigo-200"
+                                ></i>
+
+                                <p class="font-semibold mt-3">
+                                    Student Management
+                                </p>
+
+                                <p class="text-xs text-indigo-100 mt-1">
+                                    Manage students easily
+                                </p>
+
+                            </div>
+
+
+                            <div class="bg-white/10 rounded-2xl p-4 border border-white/10">
+
+                                <i
+                                    data-lucide="bar-chart-3"
+                                    class="w-5 h-5 text-indigo-200"
+                                ></i>
+
+                                <p class="font-semibold mt-3">
+                                    Reports & Analytics
+                                </p>
+
+                                <p class="text-xs text-indigo-100 mt-1">
+                                    Clear performance insights
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =====================================================
+                     RIGHT — LOGIN OPTIONS
+                ====================================================== -->
+
+                <div class="p-6 sm:p-10 lg:p-12">
+
+                    <!-- Mobile Logo -->
+                    <div class="flex lg:hidden items-center justify-center mb-8">
+
+                        <div class="flex items-center gap-3">
+
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg">
+
+                                <i
+                                    data-lucide="graduation-cap"
+                                    class="w-7 h-7"
+                                ></i>
+
+                            </div>
+
+                            <div>
+
+                                <h1 class="text-2xl font-bold text-slate-800">
+                                    ALIF ERP
+                                </h1>
+
+                                <p class="text-xs text-slate-500">
+                                    Education Management System
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Heading -->
+                    <div class="text-center lg:text-left">
+
+                        <p class="text-sm font-semibold text-indigo-600">
+                            Welcome back
+                        </p>
+
+                        <h2 class="text-3xl font-bold text-slate-800 mt-2">
+                            Choose your login
+                        </h2>
+
+                        <p class="text-sm text-slate-500 mt-2">
+                            Select your account type to continue.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Login Cards -->
+                    <div class="mt-8 space-y-3">
+
+
+                        <!-- Institution -->
+                        <a
+                            href="/institution/login"
+                            class="group flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/50 hover:shadow-md transition-all duration-200"
+                        >
+
+                            <div class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition">
+
+                                <i
+                                    data-lucide="building-2"
+                                    class="w-6 h-6"
+                                ></i>
+
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+
+                                <p class="font-semibold text-slate-800">
+                                    Institution Login
+                                </p>
+
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Manage your institution and administration
+                                </p>
+
+                            </div>
+
+                            <i
+                                data-lucide="chevron-right"
+                                class="w-5 h-5 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition"
+                            ></i>
+
+                        </a>
+
+
+                        <!-- Staff -->
+                        <a
+                            href="/staff/login"
+                            class="group flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-50 hover:shadow-md transition-all duration-200"
+                        >
+
+                            <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 group-hover:bg-slate-700 group-hover:text-white transition">
+
+                                <i
+                                    data-lucide="briefcase-business"
+                                    class="w-6 h-6"
+                                ></i>
+
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+
+                                <p class="font-semibold text-slate-800">
+                                    Staff Login
+                                </p>
+
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Access academic and staff management tools
+                                </p>
+
+                            </div>
+
+                            <i
+                                data-lucide="chevron-right"
+                                class="w-5 h-5 text-slate-400 group-hover:text-slate-700 group-hover:translate-x-1 transition"
+                            ></i>
+
+                        </a>
+
+
+                        <!-- Parent -->
+                        <a
+                            href="/parent/login"
+                            class="group flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/50 hover:shadow-md transition-all duration-200"
+                        >
+
+                            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition">
+
+                                <i
+                                    data-lucide="heart-handshake"
+                                    class="w-6 h-6"
+                                ></i>
+
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+
+                                <p class="font-semibold text-slate-800">
+                                    Parent Login
+                                </p>
+
+                                <p class="text-xs text-slate-500 mt-1">
+                                    View your child's progress and reports
+                                </p>
+
+                            </div>
+
+                            <i
+                                data-lucide="chevron-right"
+                                class="w-5 h-5 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition"
+                            ></i>
+
+                        </a>
+
+
+                        <!-- Student -->
+                        <a
+                            href="/student/login"
+                            class="group flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-orange-300 hover:bg-orange-50/50 hover:shadow-md transition-all duration-200"
+                        >
+
+                            <div class="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 group-hover:bg-orange-600 group-hover:text-white transition">
+
+                                <i
+                                    data-lucide="book-open"
+                                    class="w-6 h-6"
+                                ></i>
+
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+
+                                <p class="font-semibold text-slate-800">
+                                    Student Login
+                                </p>
+
+                                <p class="text-xs text-slate-500 mt-1">
+                                    View your learning progress and activities
+                                </p>
+
+                            </div>
+
+                            <i
+                                data-lucide="chevron-right"
+                                class="w-5 h-5 text-slate-400 group-hover:text-orange-600 group-hover:translate-x-1 transition"
+                            ></i>
+
+                        </a>
+
+                    </div>
+
+
+                    <!-- Security note -->
+                    <div class="mt-8 flex items-center justify-center gap-2 text-xs text-slate-400">
+
+                        <i
+                            data-lucide="shield-check"
+                            class="w-4 h-4 text-emerald-500"
+                        ></i>
+
+                        Secure role-based access
+
+                    </div>
+
+
+                    <!-- Footer -->
+                    <div class="mt-6 pt-6 border-t border-slate-100 text-center">
+
+                        <p class="text-xs text-slate-400">
+                            © {{ current_year|default(2026) }} ALIF ERP
+                        </p>
+
+                        <p class="text-[11px] text-slate-400 mt-1">
+                            Education Management System
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
     </div>
 
 </div>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    if (typeof lucide !== "undefined") {
+        lucide.createIcons();
+    }
+
+});
+
+</script>
 
 {% endblock %}
