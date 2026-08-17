@@ -8,90 +8,310 @@
 
     <title>{{ title }}</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/output.css') }}">
 
 </head>
 
-<body class="bg-slate-100">
+<body class="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900">
 
-<div class="min-h-screen flex items-center justify-center p-4">
+<div class="min-h-screen flex items-center justify-center px-4 py-8">
 
-    <form method="POST"
-          class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+    <div class="w-full max-w-md">
 
-        <div class="text-center mb-8">
+        <!-- Brand -->
+        <div class="text-center mb-6">
 
-            <h1 class="text-3xl font-bold text-slate-800">
+            <div class="inline-flex items-center justify-center
+                        w-16 h-16 rounded-2xl
+                        bg-white/10 backdrop-blur-md
+                        border border-white/20
+                        shadow-2xl mb-4">
 
-                {{ heading }}
+                <span class="text-2xl font-extrabold text-white">
+                    A
+                </span>
 
-            </h1>
+            </div>
 
-            <p class="text-slate-500 mt-2">
+            <h2 class="text-2xl font-bold text-white tracking-wide">
+                ALIF ERP
+            </h2>
 
-                {{ subtitle }}
-
+            <p class="text-sm text-slate-300 mt-1">
+                Islamic Educational Management System
             </p>
 
         </div>
 
-        {% include "components/alert.html" %}
 
-        {% if login_type != "admin" %}
+        <!-- Login Card -->
+        <form method="POST"
+              class="bg-white rounded-3xl shadow-2xl
+                     p-6 sm:p-8 border border-white/20">
 
-        <div class="mb-4">
+            <!-- Header -->
+            <div class="text-center mb-7">
 
-            <label class="block mb-2 font-medium">
-                Institution Code
-            </label>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">
+                    {{ heading }}
+                </h1>
 
-            <input
-                type="text"
-                name="institution_code"
-                required
-                class="w-full border rounded-xl px-4 py-3">
+                <p class="text-slate-500 text-sm mt-2">
+                    {{ subtitle }}
+                </p>
+
+            </div>
+
+
+            <!-- Alerts -->
+            {% include "components/alert.html" %}
+
+
+            <!-- Institution Code -->
+            {% if login_type != "admin" %}
+
+            <div class="mb-5">
+
+                <label for="institution_code"
+                       class="block text-sm font-semibold text-slate-700 mb-2">
+
+                    Institution Code
+
+                </label>
+
+                <div class="relative">
+
+                    <div class="absolute inset-y-0 left-0
+                                flex items-center pl-4
+                                text-slate-400">
+
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.8"
+                             stroke="currentColor"
+                             class="w-5 h-5">
+
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  d="M3.75 21h16.5M4.5 18h15M6 18V8.25
+                                     A2.25 2.25 0 018.25 6h7.5A2.25 2.25 0 0118
+                                     8.25V18M9 10.5h6M9 13.5h6"/>
+
+                        </svg>
+
+                    </div>
+
+                    <input
+                        id="institution_code"
+                        type="text"
+                        name="institution_code"
+                        required
+                        autocomplete="organization"
+                        placeholder="Enter institution code"
+                        class="w-full bg-slate-50
+                               border border-slate-200
+                               rounded-xl
+                               pl-12 pr-4 py-3.5
+                               text-slate-800
+                               placeholder-slate-400
+                               outline-none
+                               transition
+                               focus:bg-white
+                               focus:border-indigo-500
+                               focus:ring-4
+                               focus:ring-indigo-100">
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- Username -->
+            <div class="mb-5">
+
+                <label for="username"
+                       class="block text-sm font-semibold text-slate-700 mb-2">
+
+                    Username
+
+                </label>
+
+                <div class="relative">
+
+                    <div class="absolute inset-y-0 left-0
+                                flex items-center pl-4
+                                text-slate-400">
+
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.8"
+                             stroke="currentColor"
+                             class="w-5 h-5">
+
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  d="M15.75 6a3.75 3.75 0 11-7.5 0
+                                     3.75 3.75 0 017.5 0z
+                                     M4.5 20.25a8.25 8.25 0
+                                     0115 0"/>
+
+                        </svg>
+
+                    </div>
+
+                    <input
+                        id="username"
+                        type="text"
+                        name="username"
+                        required
+                        autocomplete="username"
+                        placeholder="Enter your username"
+                        class="w-full bg-slate-50
+                               border border-slate-200
+                               rounded-xl
+                               pl-12 pr-4 py-3.5
+                               text-slate-800
+                               placeholder-slate-400
+                               outline-none
+                               transition
+                               focus:bg-white
+                               focus:border-indigo-500
+                               focus:ring-4
+                               focus:ring-indigo-100">
+
+                </div>
+
+            </div>
+
+
+            <!-- Password -->
+            <div class="mb-7">
+
+                <label for="password"
+                       class="block text-sm font-semibold text-slate-700 mb-2">
+
+                    Password
+
+                </label>
+
+                <div class="relative">
+
+                    <div class="absolute inset-y-0 left-0
+                                flex items-center pl-4
+                                text-slate-400">
+
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.8"
+                             stroke="currentColor"
+                             class="w-5 h-5">
+
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  d="M16.5 10.5V7.875
+                                     a4.5 4.5 0 10-9 0V10.5
+                                     m-.75 0h10.5A2.25 2.25
+                                     0 0119.5 12.75v6A2.25
+                                     2.25 0 0117.25 21H6.75
+                                     A2.25 2.25 0 014.5
+                                     18.75v-6A2.25 2.25
+                                     0 016.75 10.5z"/>
+
+                        </svg>
+
+                    </div>
+
+                    <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        placeholder="Enter your password"
+                        class="w-full bg-slate-50
+                               border border-slate-200
+                               rounded-xl
+                               pl-12 pr-4 py-3.5
+                               text-slate-800
+                               placeholder-slate-400
+                               outline-none
+                               transition
+                               focus:bg-white
+                               focus:border-indigo-500
+                               focus:ring-4
+                               focus:ring-indigo-100">
+
+                </div>
+
+            </div>
+
+
+            <!-- Login Button -->
+            <button
+                type="submit"
+                class="group w-full
+                       bg-gradient-to-r from-indigo-600 to-violet-600
+                       hover:from-indigo-700 hover:to-violet-700
+                       active:scale-[0.98]
+                       text-white
+                       font-semibold
+                       py-3.5
+                       rounded-xl
+                       shadow-lg shadow-indigo-200
+                       transition-all duration-200">
+
+                <span class="flex items-center justify-center gap-2">
+
+                    Login
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke-width="2"
+                         stroke="currentColor"
+                         class="w-5 h-5
+                                transition-transform
+                                group-hover:translate-x-1">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+
+                    </svg>
+
+                </span>
+
+            </button>
+
+
+            <!-- Footer -->
+            <div class="text-center mt-6">
+
+                <p class="text-xs text-slate-400">
+                    Secure access to your ALIF ERP account
+                </p>
+
+            </div>
+
+        </form>
+
+
+        <!-- Bottom Branding -->
+        <div class="text-center mt-6">
+
+            <p class="text-xs text-slate-400">
+                © 2026 ALIF ERP
+            </p>
 
         </div>
 
-        {% endif %}
-
-        <div class="mb-4">
-
-            <label class="block mb-2 font-medium">
-                Username
-            </label>
-
-            <input
-                type="text"
-                name="username"
-                required
-                class="w-full border rounded-xl px-4 py-3">
-
-        </div>
-
-        <div class="mb-6">
-
-            <label class="block mb-2 font-medium">
-                Password
-            </label>
-
-            <input
-                type="password"
-                name="password"
-                required
-                class="w-full border rounded-xl px-4 py-3">
-
-        </div>
-
-        <button
-            type="submit"
-            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl">
-
-            Login
-
-        </button>
-
-    </form>
+    </div>
 
 </div>
 
