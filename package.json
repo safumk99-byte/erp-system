@@ -6,14 +6,14 @@
   "directories": {
     "test": "tests"
   },
- "scripts": {
-  "tailwind": "npx @tailwindcss/cli -i ./src/input.css -o ./static/css/output.css --watch"
-},
+  "scripts": {
+    "tailwind": "npx @tailwindcss/cli -i ./src/input.css -o ./static/css/output.css --watch"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "dependencies": {
+  "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
     "tailwindcss": "^4.3.3"
   }

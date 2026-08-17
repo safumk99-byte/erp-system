@@ -4,25 +4,148 @@
 <head>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{% block title %}ERP System{% endblock %}</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <title>
+        {% block title %}
+            ERP System
+        {% endblock %}
+    </title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
 
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- =====================================================
+         Tailwind CSS
+    ====================================================== -->
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/output.css') }}"
+    >
+
+
+    <!-- =====================================================
+         Google Font
+    ====================================================== -->
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- =====================================================
+         Base Page Styles
+    ====================================================== -->
 
     <style>
 
-        body{
-            font-family:'Inter',sans-serif;
+        /* -------------------------------------------------
+           Global reset
+        ------------------------------------------------- */
+
+        html,
+        body {
+
+            width: 100%;
+
+            min-width: 100%;
+
+            margin: 0;
+
+            padding: 0;
+
+        }
+
+
+        html {
+
+            min-height: 100%;
+
+        }
+
+
+        body {
+
+            min-height: 100vh;
+
+            font-family: 'Inter', sans-serif;
+
+            background-color: #f1f5f9;
+
+            color: #1e293b;
+
+            overflow-x: hidden;
+
+        }
+
+
+        /* -------------------------------------------------
+           Prevent unexpected horizontal shifting
+        ------------------------------------------------- */
+
+        *,
+        *::before,
+        *::after {
+
+            box-sizing: border-box;
+
+        }
+
+
+        /* -------------------------------------------------
+           Images
+        ------------------------------------------------- */
+
+        img {
+
+            max-width: 100%;
+
+            height: auto;
+
+        }
+
+
+        /* -------------------------------------------------
+           Links
+        ------------------------------------------------- */
+
+        a {
+
+            text-decoration: none;
+
+        }
+
+
+        /* -------------------------------------------------
+           Buttons
+        ------------------------------------------------- */
+
+        button,
+        input,
+        select,
+        textarea {
+
+            font-family: inherit;
+
         }
 
     </style>
+
 
     {% block styles %}
 
@@ -30,22 +153,49 @@
 
 </head>
 
+
 <body class="bg-slate-100 text-slate-800">
 
-{% block content %}
 
-{% endblock %}
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
 
-<script src="https://unpkg.com/lucide@latest"></script>
+    {% block content %}
 
-<script>
-    lucide.createIcons();
-</script>
+    {% endblock %}
 
-{% block scripts %}
 
-{% endblock %}
+    <!-- =====================================================
+         Lucide Icons
+    ====================================================== -->
 
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+
+    <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                if (
+                    typeof lucide !== "undefined"
+                ) {
+
+                    lucide.createIcons();
+
+                }
+
+            }
+        );
+
+    </script>
+
+
+    {% block scripts %}
+
+    {% endblock %}
 
 
 </body>
